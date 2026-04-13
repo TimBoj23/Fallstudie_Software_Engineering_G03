@@ -34,7 +34,7 @@ In diesem REPO wird die Fallstudie für Gruppe 3 bearbeitet.
 
 ### Lastenheft
 
-Test Test Test
+Test 2.0
 
 #### funktionale Anforderungen
 
