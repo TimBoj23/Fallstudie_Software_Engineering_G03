@@ -1,6 +1,7 @@
 # Zeitplan Fallstudie Software Engineering
 
 ## Ziel
+
 Diese Datei dient als grober Fahrplan für die Fallstudie im Bereich Software Engineering.  
 Da die konkrete Projektidee noch nicht final ausgewählt wurde, orientiert sich der Plan zunächst an allgemeinen Arbeitspaketen, die später an das gewählte Thema angepasst werden können.
 
