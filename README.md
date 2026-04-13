@@ -9,11 +9,31 @@ In diesem REPO wird die Fallstudie für Gruppe 3 bearbeitet.
 - Denis Nickel
 - Alexander Vetrenko
 
+## Verteilte Rollen
+
+- Requirements Engineer
+- Projektmanager:in
+- Entwickler:in Backend
+- Entwickler:in Frontend
+- Quality Assurance Manager
+- Scrum Master
+
+---
+
+- Tim-Oliver Strauß: "Requirements Engineer"/"Development Team" - [x]
+- Florian Haentjes: "Projektmanager"/"Development Team" - [x]
+- Denis Nickel: "Quality Assurance Manager"/"Development Team" - [x]
+- Alexander Vetrenko: "Scrum Master"/"Development Team" - [x]
+
+---
+
 ### Github
 
 - wir nutzen hauptsächlich zur Bearbeitung den Branch G03
 - es wird ein Pull Request erstellt, wenn eine Aufgabe fertig ist
 - die Arbeitsteilung halten wir in TASKS.md fest
+
+---
 
 #### Themen
 
@@ -22,6 +42,8 @@ In diesem REPO wird die Fallstudie für Gruppe 3 bearbeitet.
 - [x] Raum‑ und Ressourcenplanung für Unternehmen
 - [ ] Aktivitäten und Habit‑Tracker für Fitness‑ und Gesundheitsbewusste
 - [ ] Gerätemanagement‑Plattform für Unternehmen
+
+---
 
 ## Raum- und Ressourcenplanung für Unternehmen
 
@@ -43,6 +65,8 @@ Test 2.0
 #### nicht-funktionale Anforderungen
 
 - text
+
+---
 
 ### Ausführung des Programms
 

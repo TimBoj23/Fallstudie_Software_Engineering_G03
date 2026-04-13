@@ -8,7 +8,7 @@ Da die konkrete Projektidee noch nicht final ausgewählt wurde, orientiert sich 
 ## Wichtige Termine
 
 | Meilenstein | Datum |
-|---|---:|
+| --- | ---: |
 | Themenfindung | 24.04.2026 |
 | Sprint I | 11.06.2026 |
 | Sprint II | 20.07.2026 |
