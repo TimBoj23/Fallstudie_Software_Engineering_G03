@@ -21,9 +21,9 @@ In diesem REPO wird die Fallstudie für Gruppe 3 im Modul **Fallstudie Software 
 
 | Rolle | Verantwortliche Person | Aufgaben |
 |---|---|---|
-| Projektmanager / Scrum Master | Tim-Oliver Strauß | Koordination, Zeitplanung, Sprint Planning, Review & Retrospective |
-| Requirements Engineer | Florian Haentjes | Anforderungen, User Stories, Stakeholderanalyse, Scoping Document |
-| Backend-Entwicklung | Alexander Vetrenko | Datenmodell, Geschäftslogik, Buchungslogik, Schnittstellen |
+| Projektmanager / Scrum Master | Florian Haentjes | Koordination, Zeitplanung, Sprint Planning, Review & Retrospective |
+| Requirements Engineer | Alexander Vetrenko | Anforderungen, User Stories, Stakeholderanalyse, Scoping Document |
+| Backend-Entwicklung | Tim-Oliver Strauß | Datenmodell, Geschäftslogik, Buchungslogik, Schnittstellen |
 | Frontend-Entwicklung / UX | Denis Nickel | Benutzeroberfläche, Nutzerführung, Darstellung der Buchungen |
 | Quality Assurance | gesamtes Team | Tests, Code Reviews, Fehlerprüfung, Dokumentation der Qualität |
 
