@@ -86,7 +86,7 @@ Beispiel: `Raum 1001, Platz 23 [1001-23]`
 - Moderationsmaterial
 - Präsentationstechnik
 
-# Lastenheft / Grobanforderungen
+# Anforderungen / Grobanforderungen
 
 ## Auftraggeber
 
@@ -217,14 +217,14 @@ flowchart TD
 
 - Wichtige Funktionen sollen durch Tests überprüfbar sein.
 - Tests sollen im Ordner `tests/` abgelegt werden.
-- Die Tests sollen mit `pytest` ausgeführt werden können.
+- Die Tests sollen mit `npm test` ausgeführt werden können.
 - Besonders die Buchungslogik und die Verhinderung von Doppelbuchungen sollen getestet werden.
 
 ### Portabilität und Installation
 
 - Die Anwendung soll auf verschiedenen Rechnern ausführbar sein.
-- Abhängigkeiten sollen in der Datei `requirements.txt` dokumentiert werden.
-- Die Installation soll über `pip install -r requirements.txt` möglich sein.
+- Abhängigkeiten sollen in der Datei `package.json` dokumentiert werden.
+- Die Installation soll über `npm install` möglich sein.
 - Die Ausführung der Anwendung soll im README beschrieben werden.
 
 ### Sicherheit
@@ -286,7 +286,7 @@ Die Anforderungen werden zusätzlich als GitHub Issues gepflegt. Erste User Stor
 | Doppelbuchungen werden nicht korrekt verhindert | hohe Fehleranfälligkeit im Kernprozess | Buchungslogik früh entwickeln und testen |
 | Zu großer Funktionsumfang | Projekt wird nicht rechtzeitig fertig | Muss-, Soll- und Kann-Anforderungen priorisieren |
 | Unklare Aufgabenverteilung | Verzögerungen im Team | Rollen und Aufgaben in `TASKS.md` festhalten |
-| Technische Probleme bei der Installation | Anwendung läuft nicht auf anderen Rechnern | `requirements.txt` und Setup-Anleitung pflegen |
+| Technische Probleme bei der Installation | Anwendung läuft nicht auf anderen Rechnern | `package.json` und Setup-Anleitung pflegen |
 | Fehlende Tests | Fehler bleiben unentdeckt | zentrale Funktionen mit `pytest` testen |
 
 ## Abgrenzung
@@ -306,10 +306,11 @@ Nicht im Fokus der ersten Version stehen:
 
 Die genaue technische Umsetzung kann im Projektverlauf angepasst werden. Geplant ist eine webbasierte Anwendung mit:
 
-- Python als Programmiersprache
+- React für das Frontend
+- JavaScript für das Backend
 - Weboberfläche im Browser
 - Speicherung der Daten in einer einfachen Datenbank oder Datei
-- Tests mit `pytest`
+- Tests für Frontend- und Backend-Funktionen
 - Dokumentation im GitHub-Repository
 
 # Ausführung des Programms
@@ -321,7 +322,7 @@ Repository klonen oder herunterladen.
 Abhängigkeiten installieren:
 
 ```bash
-pip install -r requirements.txt
+npm install
 ```
 
 ## Start des Programms
@@ -329,13 +330,20 @@ pip install -r requirements.txt
 Start des Programms durch:
 
 ```bash
-python3 <STARTDATEI>.py
+npm start
 ```
 
-Beispiel, falls die Startdatei später `app.py` heißt:
+Alternativ können Frontend und Backend je nach Projektstruktur getrennt gestartet werden:
 
 ```bash
-python3 app.py
+npm run dev
+```
+
+oder zum Beispiel:
+
+```bash
+npm run frontend
+npm run backend
 ```
 
 Das Programm startet anschließend im Browser unter:
@@ -344,13 +352,19 @@ Das Programm startet anschließend im Browser unter:
 http://[IP_ADDRESS]
 ```
 
-oder lokal unter:
+oder lokal zum Beispiel unter:
+
+```text
+http://localhost:3000
+```
+
+Das Backend kann je nach Umsetzung zum Beispiel unter folgendem Port laufen:
 
 ```text
 http://localhost:5000
 ```
 
-> Hinweis: Die konkrete Startdatei wird nach der technischen Umsetzung angepasst.
+> Hinweis: Die konkreten Startbefehle und Ports werden nach der technischen Umsetzung angepasst.
 
 # Testen
 
@@ -359,7 +373,7 @@ Die zu testenden Dateien werden im Ordner `tests/` abgelegt.
 Tests ausführen:
 
 ```bash
-pytest
+npm test
 ```
 
 Wichtige Testfälle:
@@ -371,4 +385,3 @@ Wichtige Testfälle:
 - Nutzer kann eigene Buchung stornieren.
 - Administrator kann Räume verwalten.
 - Administrator kann Ressourcen verwalten.
-
