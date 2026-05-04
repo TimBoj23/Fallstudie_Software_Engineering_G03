@@ -167,13 +167,43 @@ Die App soll diesen Prozess strukturieren und digital abbilden.
 
 ### Lastenheft
 
+Entwicklung eines Raum- und Ressourcenplanungs-Systems
+Dieses Dokument legt die Anforderungen und Spezifikationen für die Entwicklung einer
+Web-App zur Verwaltung von Raum- und Ressourcenplanung für Unternehmen fest. Es
+dient als Grundlage für die Entwicklung und Implementierung der Softwarelösung /
+Fallstudie.
+Das Ziel des Projektes ist die Entwicklung einer benutzerfreundlichen, effizienten und
+zuverlässigen Software zur Verwaltung, Planung, Buchung und Nutzungsauswertungen von
+Räumen und Ressourcen.
+
 #### Funktionale Anforderungen
 
-**ergänzen**
+- Stammdatenverwaltung
+  - Verwaltung von Räumen und Arbeitsplätzen (inkl. Location, z.B. Standort und Gebäude)
+  - Verwaltung von Resourcen (inkl. Vor- und Nachlaufzeiten, z.B. MedienkoGer muss
+  gecheckt werden oder Raumwechsel)
+- Nutzung der Software
+  - Buchung von Räumen und Resourcen (Vermeidung von Doppelbuchungen)
+  - Übersicht eigener Buchungen (inkl. Stornierungen)
+- Reporting und Visualisierung
+  - Übersichtliche Darstellung von Resourcennutzung (z. B. pro Tag, Woche, Mitarbeiter)
+  - Exportfunktionen (CSV & Excel)
 
 #### Nicht-funktionale Anforderungen
 
-**ergänzen**
+- Leistung & Performance
+  - Performante Verarbeitung der Daten
+  - Performante Ladezeit des Front-Ends
+  - Gleichzeitige Nutzung der App / Webseite von mehreren Nutzer:innen
+- Sicherheit
+  - Verschlüsselte Datenübertragung und Speicherung
+  - Regelkonformität bezüglich Datenschutz (DSGVO)
+- Benutzerfreundlichkeit
+  - Intuitive Benutzeroberflächen und Navigation
+  - Mehrsprachige Unterstützung
+  - Barrierefreie Zugänglichkeitsfeatures
+
+- Die Software ist agil zu entwickeln um Modifikationen während der Entwicklung zu erlauben.
 
 ### Projektmanagement-Schwerpunkte in dieser Phase
 
