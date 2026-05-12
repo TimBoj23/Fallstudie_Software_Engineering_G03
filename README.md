@@ -21,7 +21,7 @@ Die ausführliche fachliche Planung, das Lastenheft, die Stakeholderanalyse, Use
 - Denis Nickel
 - Alexander Vetrenko
 
-<<<<<<< HEAD
+<<<<<<<<< Temporary merge branch 1
 ## GitHub
 
 - Wir nutzen hauptsächlich zur Bearbeitung den Branch `G03`.
@@ -43,8 +43,8 @@ Die ausführliche fachliche Planung, das Lastenheft, die Stakeholderanalyse, Use
 
 > Hinweis: Die Rollen dienen als Hauptverantwortlichkeiten. Die Umsetzung erfolgt gemeinsam im Team.
 
-=======
->>>>>>> G03
+=========
+>>>>>>>>> Temporary merge branch 2
 ## Themenauswahl
 
 - [ ] Lernplaner für Studierende
