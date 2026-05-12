@@ -18,3 +18,8 @@ Da die konkrete Projektidee noch nicht final ausgewählt wurde, orientiert sich 
 | Abgabe / Vorstellung | 04.08.2026 |
 
 ---
+
+## Nächste Schritte (bis zum 18.05.2026, 13:30 Uhr)
+- Projektplan erstellen: Florian
+- MVP erstellen: Ganze Gruppe
+- Merge mit Main
