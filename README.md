@@ -12,7 +12,7 @@ Das System soll Mitarbeitenden ermöglichen, verfügbare Räume, Arbeitsplätze 
 
 Die ausführliche fachliche Planung, das Lastenheft, die Stakeholderanalyse, Use Cases, Anforderungen, Priorisierung, Risiken und Sprintplanung befinden sich im Dokument:
 
-- [`Konzeptionsplan.md`](./Konzeptionsplan.md)
+- [`Konzeptionsplan.md`](./docs/Konzeptionsplan.md)
 
 ## Teilnehmer
 

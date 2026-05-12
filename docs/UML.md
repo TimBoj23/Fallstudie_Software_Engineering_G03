@@ -51,10 +51,11 @@ classDiagram
         BEAMER
         WHITEBOARD
         LAPTOP
+        COMPUTER
         MONITOR
         ADAPTER
         MODERATIONSMATERIAL
-        PRAESENTATIONSTECHNIK
+        PRÄSENTATIONSTECHNIK
     }
 
     %% ─────────────────────────────────────────────
@@ -432,27 +433,15 @@ classDiagram
 | `Rolle` | `MITARBEITER`, `ADMIN` | Steuert Zugriffsrechte im System. |
 | `BuchungsStatus` | `AKTIV`, `STORNIERT`, `ABGESCHLOSSEN` | Lebenszyklus einer Buchung. |
 | `RaumTyp` | `MEETINGRAUM`, `KONFERENZRAUM`, `ARBEITSPLATZ`, `SCHULUNGSRAUM`, `PROJEKTRAUM` | Kategorisierung von Räumen. |
-| `RessourcenTyp` | `BEAMER`, `WHITEBOARD`, `LAPTOP`, `MONITOR`, `ADAPTER`, `MODERATIONSMATERIAL`, `PRAESENTATIONSTECHNIK` | Kategorisierung von Ressourcen. |
+| `RessourcenTyp` | `BEAMER`, `WHITEBOARD`, `LAPTOP`, `MONITOR`, `COMPUTER`,`ADAPTER`, `MODERATIONSMATERIAL`, `PRÄSENTATIONSTECHNIK` | Kategorisierung von Ressourcen. |
 
 ---
 
-## Architekturprinzipien
+## Anmerkungen
 
-Das Diagramm folgt einer **dreischichtigen Architektur**:
-
-```
-┌──────────────────────────┐
-│    Routes / Controller   │  ← HTTP-Endpunkte (Flask/Web-Schicht)
-├──────────────────────────┤
-│      Service-Schicht     │  ← Geschäftslogik, Konfliktprüfung
-├──────────────────────────┤
-│    Repository-Schicht    │  ← Datenzugriff (DB / Datei)
-├──────────────────────────┤
-│     Model / Entitäten    │  ← Datenstrukturen der Fachdomäne
-└──────────────────────────┘
-```
-
-- **Vererbung**: `RaumBuchung` und `RessourcenBuchung` erben von der abstrakten Basisklasse `Buchung`, um gemeinsame Attribute (Zeitraum, Status, Nutzer) zu teilen.
-- **Konfliktprüfung**: `BuchungsService.pruefe_zeitkonflikt()` delegiert an `BuchungsRepository.finde_konflikte()`, um Doppelbuchungen systemseitig zu verhindern.
-- **Rollenbasierter Zugriff**: Die `Rolle`-Enumeration auf `Nutzer` steuert, welche Operationen (z. B. Admin-CRUD) zulässig sind.
-- **Getter/Setter**: Alle Attribute der Entitäten sind `private` (`-`) und werden über öffentliche (`+`) Getter- und Setter-Methoden zugegriffen, um das Kapselung-Prinzip (Encapsulation) einzuhalten.
+- Datenbanken für Buchungen, Ressourcen, Räume und Nutzer sind separat in JSON Dateien gemappt.
+- Falls Fotos gewünscht sind, können diese dem Repository in einem Images-Ordner hinzugefügt werden. Wenn Fotos auf der Webseite angezeigt werden sollen, muss für anzuzeigende Entitäten der entsprechende Pfad in der jeweiligen JSON-Datei hinterlegt werden. Außerdem müssen die Entitäten um das Attribut "photo_path" erweitert werden.
+- Der Administrator muss Nutzer anlegen können. Zu Beginn müssen bereits Test-Nutzer im System vorhanden sein. Die Logik zur Anlage des Nutzers muss zusätzlich implementiert werden.
+- Die Logik zur Passworthashung muss zusätzlich implementiert werden.
+- Es muss eine Möglichkeit zur Anmeldung und Abmeldung geben. (Logoutmechanismus)
+- Buchung eines Raumes ohne Platz oder Buchung eines Raumes mit Platzauswahl?
