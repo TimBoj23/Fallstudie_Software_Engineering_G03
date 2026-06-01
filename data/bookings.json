@@ -1,0 +1,35 @@
+[
+  {
+    "id": "3e658363-bfe6-42e3-b5a1-4c9bb3d82216",
+    "user_id": "bde9ac40-8c32-4f6d-a8cb-11190b41cbb7",
+    "target_id": "6a188a9c-9ee3-4165-9fdd-1e903619b192",
+    "target_type": "room",
+    "title": "Demo-Teammeeting",
+    "start_time": "2026-06-01T17:02:10",
+    "end_time": "2026-06-01T19:02:10",
+    "status": "cancelled",
+    "created_at": "2026-06-01T15:02:10.293945"
+  },
+  {
+    "id": "67bd7207-b258-4454-a832-a5fb2e936d8a",
+    "user_id": "bde9ac40-8c32-4f6d-a8cb-11190b41cbb7",
+    "target_id": "6b13479b-4f4a-45b6-9a26-ab7e21673bcb",
+    "target_type": "asset",
+    "title": "Demo-Präsentation",
+    "start_time": "2026-06-01T17:02:10",
+    "end_time": "2026-06-01T19:02:10",
+    "status": "active",
+    "created_at": "2026-06-01T15:02:10.294760"
+  },
+  {
+    "id": "0e8e81b5-198a-4c48-b58a-b0bffc5e69b1",
+    "user_id": "fe3a5c2b-d77e-450c-bceb-542f80fec791",
+    "target_id": "6a188a9c-9ee3-4165-9fdd-1e903619b192",
+    "target_type": "room",
+    "title": "Demo-Teammeeting",
+    "start_time": "2026-06-01T17:09:04",
+    "end_time": "2026-06-01T19:09:04",
+    "status": "active",
+    "created_at": "2026-06-01T15:09:04.788781"
+  }
+]
