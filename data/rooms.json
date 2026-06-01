@@ -1,0 +1,31 @@
+[
+  {
+    "id": "6a188a9c-9ee3-4165-9fdd-1e903619b192",
+    "name": "Meetingraum Alpha",
+    "number": "1001-A",
+    "capacity": 10,
+    "location": "Gebäude A, EG",
+    "equipment": [
+      "Beamer",
+      "Whiteboard",
+      "Videokonferenz"
+    ],
+    "description": "Großer Meetingraum für Teamgespräche",
+    "is_active": true,
+    "created_at": "2026-06-01T15:02:10.127924"
+  },
+  {
+    "id": "19775325-1af8-409b-ac79-154a34cb9ae0",
+    "name": "Projektraum Beta",
+    "number": "1002-B",
+    "capacity": 6,
+    "location": "Gebäude A, 1. OG",
+    "equipment": [
+      "Whiteboard",
+      "Monitor"
+    ],
+    "description": "Kompakter Projektraum",
+    "is_active": true,
+    "created_at": "2026-06-01T15:02:10.129116"
+  }
+]
