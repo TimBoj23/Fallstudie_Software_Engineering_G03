@@ -59,9 +59,9 @@ Die Rollen dienen in erster Linie der Strukturierung und Verantwortung, können 
 | Scrum Master | Tim-Oliver Strauß | Sprint Planning, Review, Retrospective, Unterstützung des iterativen Vorgehens |
 | Requirements Engineering / Dokumentation | Alexander Vetrenko | Sammlung und Strukturierung von Anforderungen, Use Cases, User Stories, Anforderungskatalog, Dokumentation fachlicher Entscheidungen |
 | Software-Architektur / Systemdesign | gesamtes Team | Entwurf der Systemarchitektur, Modellierung von Komponenten und Datenstrukturen, Definition technischer Schnittstellen |
-| Backend-Entwicklung | gesamtes Team | Umsetzung der Kernfunktionalitäten, Geschäftslogik, Buchungslogik, Schnittstellen |
-| Frontend-Entwicklung / UX | Denis Nickel | Benutzeroberfläche, Nutzerführung, Darstellung der Buchungen |
-| Qualitätssicherung / Testing | Denis Nickel | Testplanung, Testfälle, Funktionstests, Code Reviews, Fehlerprüfung |
+| Backend-Entwicklung | Alexander Vetrenko & Tim-Oliver Strauß | Umsetzung der Kernfunktionalitäten, Geschäftslogik, Buchungslogik, Schnittstellen |
+| Frontend-Entwicklung / UX | Denis Nickel & Florian Haentjes| Benutzeroberfläche, Nutzerführung, Darstellung der Buchungen |
+| Qualitätssicherung / Testing | Denis Nickel & Florian Haentjes| Testplanung, Testfälle, Funktionstests, Code Reviews, Fehlerprüfung |
 
 > Hinweis: Die Rollen dienen als Hauptverantwortlichkeiten. Die Umsetzung erfolgt gemeinsam im Team.
 
