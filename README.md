@@ -10,7 +10,7 @@ Ziel des Projekts ist die Entwicklung eines webbasierten Tools, das Unternehmen 
 
 Das System soll Mitarbeitenden ermöglichen, verfügbare Räume, Arbeitsplätze und Ressourcen schnell zu finden und für bestimmte Zeiträume zu buchen. Gleichzeitig soll ein Admin-Bereich bereitgestellt werden, in dem Räume, Ressourcen und Buchungen zentral verwaltet werden können.
 
-Die ausführliche fachliche Planung, das Lastenheft, die Stakeholderanalyse, Use Cases, Anforderungen, Priorisierung, Risiken und Sprintplanung befinden sich im Dokument:
+Die ausführliche fachliche Planung, das Lastenheft, die Stakeholderanalyse, Use Cases, Anforderungen, Priorisierung, Risiken, Sprintplanung und **Rollenverteilung** befinden sich im Dokument:
 
 - [`Konzeptionsplan.md`](./docs/Konzeptionsplan.md)
 
@@ -21,30 +21,6 @@ Die ausführliche fachliche Planung, das Lastenheft, die Stakeholderanalyse, Use
 - Denis Nickel
 - Alexander Vetrenko
 
-<<<<<<<<< Temporary merge branch 1
-## GitHub
-
-- Wir nutzen hauptsächlich zur Bearbeitung den Branch `G03`.
-- Es wird ein Pull Request erstellt, wenn eine Aufgabe fertig ist.
-- Die Arbeitsteilung halten wir in `TASKS.md` fest.
-- Anforderungen, Dokumentation, Setup-Hinweise und Tests werden im Repository gepflegt.
-- Fertige oder geplante Aufgaben werden zusätzlich als GitHub Issues dokumentiert.
-
-## Rollenverteilung
-
-| Rolle | Verantwortliche Person | Aufgaben |
-|---|---|---|
-| Projektmanager | Florian Haentjes | Koordination, Zeitplanung |
-| Scrum Master | Tim-Oliver Strauß | Sprint Planning, Review & Retrospective |
-| Requirements Engineer | Alexander Vetrenko | Anforderungen, User Stories, Stakeholderanalyse, Scoping Document |
-| Backend-Entwicklung | gesamtes Team | Datenmodell, Geschäftslogik, Buchungslogik, Schnittstellen |
-| Frontend-Entwicklung / UX | Denis Nickel | Benutzeroberfläche, Nutzerführung, Darstellung der Buchungen |
-| Quality Assurance | Denis Nickel | Tests, Code Reviews, Fehlerprüfung, Dokumentation der Qualität |
-
-> Hinweis: Die Rollen dienen als Hauptverantwortlichkeiten. Die Umsetzung erfolgt gemeinsam im Team.
-
-=========
->>>>>>>>> Temporary merge branch 2
 ## Themenauswahl
 
 - [ ] Lernplaner für Studierende
@@ -103,19 +79,6 @@ Beispiel: `Raum 1001, Platz 23 [1001-23]`
 - Fertige oder geplante Aufgaben werden zusätzlich als GitHub Issues dokumentiert.
 - Die Dokumentation wird kontinuierlich gepflegt und nicht erst am Projektende ergänzt.
 
-## Rollenverteilung
-
-| Rolle | Verantwortliche Person | Aufgaben |
-|---|---|---|
-| Projektmanager | Florian Haentjes | Koordination, Zeitplanung |
-| Scrum Master | Tim-Oliver Strauß | Sprint Planning, Review & Retrospective |
-| Requirements Engineer | Alexander Vetrenko | Anforderungen, User Stories, Stakeholderanalyse, Scoping Document |
-| Backend-Entwicklung | gesamtes Team | Datenmodell, Geschäftslogik, Buchungslogik, Schnittstellen |
-| Frontend-Entwicklung / UX | Denis Nickel | Benutzeroberfläche, Nutzerführung, Darstellung der Buchungen |
-| Quality Assurance | Denis Nickel | Tests, Code Reviews, Fehlerprüfung, Dokumentation der Qualität |
-
-> Hinweis: Die Rollen dienen als Hauptverantwortlichkeiten. Die Umsetzung erfolgt gemeinsam im Team.
-
 ## Geplante technische Umsetzung
 
 Die genaue technische Umsetzung kann im Projektverlauf angepasst werden. Geplant ist eine webbasierte Anwendung mit:
@@ -133,7 +96,8 @@ Eine mögliche Projektstruktur ist:
 ```text
 .
 ├── README.md
-├── Konzeptionsplan.md
+├── docs/
+│   └── Konzeptionsplan.md
 ├── TASKS.md
 ├── requirements.txt
 ├── app.py
@@ -213,4 +177,3 @@ Wichtige Testfälle:
 - `TASKS.md`: konkrete Aufgabenverteilung im Team
 - `requirements.txt`: technische Abhängigkeiten
 - `tests/`: automatisierte Tests
-
