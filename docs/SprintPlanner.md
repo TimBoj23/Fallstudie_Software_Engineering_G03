@@ -10,6 +10,9 @@ Inhalte für die nächste Woche(n) zusammentragen
 - Anforderungen im Backlog sauber schreiben
 - Infrastruktur-Aufgaben im Backlog als Anforderungen erfassen
 - Konkrete Verbesserungsaufgaben aus Retrospektive im Backlog erfassen
+- Rollen erklären und Plan erklären
+- mein Task war ("ABC") nach Rollen aufteilen
+- von Sprint zu Sprint nur das Delta erklären / Update / Fortschritt
 
 ## Priorisierung der kommenden Woche(n) (10 Minuten)
 
