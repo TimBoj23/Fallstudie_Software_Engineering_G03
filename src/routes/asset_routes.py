@@ -24,15 +24,15 @@ def get_assets():
     start = request.args.get("start")
     end = request.args.get("end")
     asset_type_str = request.args.get("type")
+    query = request.args.get("q", "")
 
-    assets = _asset_service.get_all()
-
+    atype = None
     if asset_type_str:
         try:
             atype = AssetType(asset_type_str)
-            assets = [a for a in assets if a.asset_type == atype]
         except ValueError:
             return jsonify({"error": f"Unbekannter Asset-Typ: '{asset_type_str}'."}), 400
+    assets = _asset_service.search(query=query, asset_type=atype)
 
     if start and end:
         try:

@@ -22,10 +22,12 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.models.user import User, UserRole
 from src.models.room import Room
+from src.models.seat import Seat
 from src.models.asset import Asset, AssetType
 from src.models.booking import BookingTargetType, BookingStatus
 from src.repositories.booking_repository import BookingRepository
 from src.repositories.room_repository import RoomRepository
+from src.repositories.seat_repository import SeatRepository
 from src.repositories.asset_repository import AssetRepository
 from src.services.booking_service import BookingService, BookingConflictError, BookingNotFoundError
 from src.services.user_service import AuthError
@@ -78,6 +80,16 @@ def asset_repo(tmp_data_dir):
 
 
 @pytest.fixture
+def seat_repo(tmp_data_dir):
+    import threading
+    repo = SeatRepository.__new__(SeatRepository)
+    repo._filepath = os.path.join(tmp_data_dir, "seats.json")
+    repo._lock = threading.Lock()
+    repo._ensure_file_exists()
+    return repo
+
+
+@pytest.fixture
 def demo_room(room_repo):
     room = Room(
         id=str(uuid.uuid4()),
@@ -122,10 +134,11 @@ def admin():
 
 
 @pytest.fixture
-def booking_service(booking_repo, room_repo, asset_repo):
+def booking_service(booking_repo, room_repo, seat_repo, asset_repo):
     return BookingService(
         booking_repository=booking_repo,
         room_repository=room_repo,
+        seat_repository=seat_repo,
         asset_repository=asset_repo,
     )
 
@@ -196,6 +209,72 @@ class TestCreateBooking:
             start_time=start, end_time=end, title="Meeting R2",
         )
         assert b1.id != b2.id  # Beide Buchungen existieren
+
+    def test_sitzplatz_direkt_erfolgreich_buchen(
+        self, booking_service, demo_room, seat_repo, user
+    ):
+        """Ein einzelner Sitzplatz kann als eigene Entität gebucht werden."""
+        seat = Seat(id=str(uuid.uuid4()), room_id=demo_room.id, label="A1")
+        seat_repo.save(seat)
+        start, end = future(hours=4, duration=1)
+
+        booking = booking_service.create_booking(
+            user=user,
+            target_id=seat.id,
+            target_type=BookingTargetType.SEAT,
+            start_time=start,
+            end_time=end,
+            title="Arbeitsplatz",
+        )
+
+        assert booking.target_type == BookingTargetType.SEAT
+        assert booking.target_id == seat.id
+        assert booking.room_id == demo_room.id
+        assert booking.auto_assigned_seat is False
+
+    def test_raumbuchung_ohne_sitzplatz_weist_freien_sitzplatz_zu(
+        self, booking_service, demo_room, seat_repo, user
+    ):
+        """Wenn ein Raum Sitzplätze hat, wird ohne Auswahl automatisch ein freier Platz gewählt."""
+        seat = Seat(id=str(uuid.uuid4()), room_id=demo_room.id, label="A1")
+        seat_repo.save(seat)
+        start, end = future(hours=5, duration=1)
+
+        booking = booking_service.create_booking(
+            user=user,
+            target_id=demo_room.id,
+            target_type=BookingTargetType.ROOM,
+            start_time=start,
+            end_time=end,
+            title="Automatische Platzwahl",
+        )
+
+        assert booking.target_type == BookingTargetType.SEAT
+        assert booking.target_id == seat.id
+        assert booking.room_id == demo_room.id
+        assert booking.auto_assigned_seat is True
+
+    def test_raumbuchung_mit_explizitem_sitzplatz(
+        self, booking_service, demo_room, seat_repo, user
+    ):
+        """Bei einer Raumbuchung kann ein konkreter Sitzplatz angegeben werden."""
+        seat = Seat(id=str(uuid.uuid4()), room_id=demo_room.id, label="Fenster")
+        seat_repo.save(seat)
+        start, end = future(hours=6, duration=1)
+
+        booking = booking_service.create_booking(
+            user=user,
+            target_id=demo_room.id,
+            target_type=BookingTargetType.ROOM,
+            start_time=start,
+            end_time=end,
+            title="Explizite Platzwahl",
+            seat_id=seat.id,
+        )
+
+        assert booking.target_type == BookingTargetType.SEAT
+        assert booking.target_id == seat.id
+        assert booking.auto_assigned_seat is False
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -311,6 +390,88 @@ class TestConflictPrevention:
             title="Direkt anschließend",
         )
         assert b2 is not None
+
+    def test_belegter_sitzplatz_wird_bei_autozuweisung_uebersprungen(
+        self, booking_service, demo_room, seat_repo, user
+    ):
+        """Automatische Zuweisung wählt den nächsten freien Sitzplatz."""
+        s1 = Seat(id=str(uuid.uuid4()), room_id=demo_room.id, label="A1")
+        s2 = Seat(id=str(uuid.uuid4()), room_id=demo_room.id, label="A2")
+        seat_repo.save(s1)
+        seat_repo.save(s2)
+        start, end = future(hours=22, duration=2)
+
+        booking_service.create_booking(
+            user=user,
+            target_id=s1.id,
+            target_type=BookingTargetType.SEAT,
+            start_time=start,
+            end_time=end,
+            title="Sitz A1",
+        )
+        auto_booking = booking_service.create_booking(
+            user=user,
+            target_id=demo_room.id,
+            target_type=BookingTargetType.ROOM,
+            start_time=start,
+            end_time=end,
+            title="Automatisch",
+        )
+
+        assert auto_booking.target_id == s2.id
+
+    def test_sitzplatz_doppelbuchung_wird_verhindert(
+        self, booking_service, demo_room, seat_repo, user
+    ):
+        """Derselbe Sitzplatz kann nicht doppelt gebucht werden."""
+        seat = Seat(id=str(uuid.uuid4()), room_id=demo_room.id, label="A1")
+        seat_repo.save(seat)
+        start, end = future(hours=24, duration=2)
+        booking_service.create_booking(
+            user=user,
+            target_id=seat.id,
+            target_type=BookingTargetType.SEAT,
+            start_time=start,
+            end_time=end,
+            title="Erste Sitzplatzbuchung",
+        )
+
+        with pytest.raises(BookingConflictError):
+            booking_service.create_booking(
+                user=user,
+                target_id=seat.id,
+                target_type=BookingTargetType.SEAT,
+                start_time=start,
+                end_time=end,
+                title="Doppelte Sitzplatzbuchung",
+            )
+
+    def test_ganze_raumbuchung_blockiert_sitzplaetze(
+        self, booking_service, demo_room, seat_repo, user
+    ):
+        """Eine klassische Raumbuchung ohne Sitzplatzdaten blockiert spätere Sitzplatzbuchungen."""
+        seat = Seat(id=str(uuid.uuid4()), room_id=demo_room.id, label="A1")
+        start, end = future(hours=26, duration=2)
+
+        booking_service.create_booking(
+            user=user,
+            target_id=demo_room.id,
+            target_type=BookingTargetType.ROOM,
+            start_time=start,
+            end_time=end,
+            title="Ganze Raumbuchung",
+        )
+        seat_repo.save(seat)
+
+        with pytest.raises(BookingConflictError):
+            booking_service.create_booking(
+                user=user,
+                target_id=seat.id,
+                target_type=BookingTargetType.SEAT,
+                start_time=start,
+                end_time=end,
+                title="Sitzplatz im blockierten Raum",
+            )
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -467,3 +628,31 @@ class TestAvailability:
         )
         assert is_avail is False
         assert len(conflicts) > 0
+
+    def test_raum_mit_freiem_sitzplatz_bleibt_verfuegbar(
+        self, booking_service, demo_room, seat_repo, user
+    ):
+        """Bei Sitzplatzräumen reicht ein freier Sitzplatz für Raum-Verfügbarkeit."""
+        s1 = Seat(id=str(uuid.uuid4()), room_id=demo_room.id, label="A1")
+        s2 = Seat(id=str(uuid.uuid4()), room_id=demo_room.id, label="A2")
+        seat_repo.save(s1)
+        seat_repo.save(s2)
+        start, end = future(hours=74, duration=2)
+        booking_service.create_booking(
+            user=user,
+            target_id=s1.id,
+            target_type=BookingTargetType.SEAT,
+            start_time=start,
+            end_time=end,
+            title="Sitz A1",
+        )
+
+        is_avail, conflicts = booking_service.check_availability(
+            target_id=demo_room.id,
+            target_type=BookingTargetType.ROOM,
+            start_time=start,
+            end_time=end,
+        )
+
+        assert is_avail is True
+        assert conflicts == []

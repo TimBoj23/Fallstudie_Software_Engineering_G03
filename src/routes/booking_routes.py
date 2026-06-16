@@ -1,7 +1,7 @@
 """
 Routes: Bookings API
-GET    /api/bookings            – Eigene Buchungen (Auth required)
-GET    /api/bookings/all        – Alle Buchungen (Admin only)
+GET    /api/bookings            – Eigene Buchungen, optional gefiltert (Auth required)
+GET    /api/bookings/all        – Alle Buchungen, optional gefiltert (Admin only)
 POST   /api/bookings            – Neue Buchung erstellen
 GET    /api/bookings/<id>       – Buchung abrufen
 DELETE /api/bookings/<id>       – Buchung stornieren
@@ -22,11 +22,23 @@ _booking_service = BookingService()
 @login_required
 def get_my_bookings():
     """Gibt alle eigenen Buchungen des eingeloggten Nutzers zurück."""
-    bookings = _booking_service.get_user_bookings(g.current_user.id)
-    return jsonify({
-        "bookings": [b.to_dict() for b in bookings],
-        "count": len(bookings),
-    }), 200
+    try:
+        bookings = _booking_service.search_bookings(
+            requesting_user=g.current_user,
+            user_id=g.current_user.id,
+            status=request.args.get("status"),
+            target_type=request.args.get("target_type"),
+            target_id=request.args.get("target_id"),
+            start=request.args.get("start"),
+            end=request.args.get("end"),
+            q=request.args.get("q", ""),
+        )
+        return jsonify({
+            "bookings": [b.to_dict() for b in bookings],
+            "count": len(bookings),
+        }), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
 
 
 @bookings_bp.route("/all", methods=["GET"])
@@ -34,13 +46,24 @@ def get_my_bookings():
 def get_all_bookings():
     """Gibt alle Buchungen zurück. Nur für Admins."""
     try:
-        bookings = _booking_service.get_all_bookings(g.current_user)
+        bookings = _booking_service.search_bookings(
+            requesting_user=g.current_user,
+            user_id=request.args.get("user_id"),
+            status=request.args.get("status"),
+            target_type=request.args.get("target_type"),
+            target_id=request.args.get("target_id"),
+            start=request.args.get("start"),
+            end=request.args.get("end"),
+            q=request.args.get("q", ""),
+        )
         return jsonify({
             "bookings": [b.to_dict() for b in bookings],
             "count": len(bookings),
         }), 200
     except AuthError as e:
         return jsonify({"error": str(e)}), 403
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
 
 
 @bookings_bp.route("", methods=["POST"])
@@ -50,8 +73,9 @@ def create_booking():
     Erstellt eine neue Buchung.
 
     Body (JSON):
-        target_id   (str): ID des Raums oder Assets
-        target_type (str): "room" | "asset"
+        target_id   (str): ID des Raums, Assets oder Sitzplatzes
+        target_type (str): "room" | "asset" | "seat"
+        seat_id     (str, optional): Sitzplatz innerhalb eines Raums
         start_time  (str): ISO-8601 Startzeit
         end_time    (str): ISO-8601 Endzeit
         title       (str, optional): Titel der Buchung
@@ -66,6 +90,7 @@ def create_booking():
             start_time=data.get("start_time", ""),
             end_time=data.get("end_time", ""),
             title=data.get("title", "Buchung"),
+            seat_id=data.get("seat_id"),
         )
         return jsonify({"booking": booking.to_dict()}), 201
     except BookingConflictError as e:
@@ -110,8 +135,8 @@ def check_availability():
     Prüft Verfügbarkeit eines Objekts für einen Zeitraum.
 
     Query-Parameter:
-        target_id   (str): ID des Raums oder Assets
-        target_type (str): "room" | "asset"
+        target_id   (str): ID des Raums, Assets oder Sitzplatzes
+        target_type (str): "room" | "asset" | "seat"
         start       (str): ISO-8601 Startzeit
         end         (str): ISO-8601 Endzeit
     """

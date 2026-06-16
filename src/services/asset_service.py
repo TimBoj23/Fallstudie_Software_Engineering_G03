@@ -36,6 +36,22 @@ class AssetService:
     def get_by_type(self, asset_type: AssetType) -> List[Asset]:
         return self._repo.find_by_type(asset_type)
 
+    def search(self, query: str = "", asset_type: AssetType = None) -> List[Asset]:
+        """Backend-Such- und Filterlogik für Assets."""
+        assets = self.get_all()
+        if asset_type:
+            assets = [a for a in assets if a.asset_type == asset_type]
+        if query:
+            q = query.lower().strip()
+            assets = [
+                a for a in assets
+                if q in a.name.lower()
+                or q in a.description.lower()
+                or q in a.location.lower()
+                or q in a.asset_type.value.lower()
+            ]
+        return assets
+
     def create(
         self,
         name: str,

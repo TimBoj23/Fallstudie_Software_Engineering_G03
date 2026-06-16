@@ -23,12 +23,24 @@ _booking_service = BookingService()
 def get_rooms():
     """
     Gibt alle aktiven Räume zurück.
-    Query-Parameter ?start=&end= filtern auf Verfügbarkeit.
+    Query-Parameter ?q=&location=&min_capacity=&equipment=&start=&end= filtern die Liste.
     """
     start = request.args.get("start")
     end = request.args.get("end")
+    min_capacity = request.args.get("min_capacity")
+    equipment = request.args.getlist("equipment")
+    if not equipment and request.args.get("equipment"):
+        equipment = request.args.get("equipment").split(",")
 
-    rooms = _room_service.get_all()
+    try:
+        rooms = _room_service.search(
+            query=request.args.get("q", ""),
+            location=request.args.get("location", ""),
+            min_capacity=int(min_capacity) if min_capacity else None,
+            equipment=equipment,
+        )
+    except ValueError:
+        return jsonify({"error": "min_capacity muss eine Zahl sein."}), 400
 
     if start and end:
         try:
