@@ -2,11 +2,13 @@
 Routes: Auth API
 POST /api/auth/register  – Registrierung
 POST /api/auth/login     – Login (gibt User-ID zurück, JWT-ready)
+POST /api/auth/logout    – Logout
 """
 
 from flask import Blueprint, request, jsonify
 from ..services.user_service import UserService, AuthError
 from ..models.user import UserRole
+from ..utils.auth_middleware import login_required
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 _user_service = UserService()
@@ -68,3 +70,15 @@ def login():
         }), 200
     except AuthError as e:
         return jsonify({"error": str(e)}), 401
+
+
+@auth_bp.route("/logout", methods=["POST"])
+@login_required
+def logout():
+    """
+    Meldet den Nutzer ab.
+
+    MVP-Hinweis: Der aktuelle Token ist die User-ID im Header. Dadurch gibt es
+    serverseitig keine Session, die invalidiert werden muss.
+    """
+    return jsonify({"message": "Logout erfolgreich. Token clientseitig entfernen."}), 200

@@ -37,6 +37,7 @@ from ..models.booking import Booking, BookingStatus, BookingTargetType
 from ..models.user import User
 from ..repositories.booking_repository import BookingRepository
 from ..repositories.room_repository import RoomRepository
+from ..repositories.seat_repository import SeatRepository
 from ..repositories.asset_repository import AssetRepository
 from ..services.user_service import AuthError
 
@@ -67,10 +68,12 @@ class BookingService:
         self,
         booking_repository: BookingRepository = None,
         room_repository: RoomRepository = None,
+        seat_repository: SeatRepository = None,
         asset_repository: AssetRepository = None,
     ):
         self._booking_repo = booking_repository or BookingRepository()
         self._room_repo = room_repository or RoomRepository()
+        self._seat_repo = seat_repository or SeatRepository()
         self._asset_repo = asset_repository or AssetRepository()
 
     # ──────────────────────────────────────────────────────────────────────────
@@ -85,6 +88,7 @@ class BookingService:
         start_time: str,
         end_time: str,
         title: str = "Buchung",
+        seat_id: str = None,
     ) -> Booking:
         """
         Erstellt eine neue Buchung nach erfolgreicher Konfliktprüfung.
@@ -113,13 +117,17 @@ class BookingService:
         # 1. Zeitraum validieren
         self._validate_time_range(start_time, end_time)
 
-        # 2. Zielobjekt prüfen
-        self._validate_target_exists(target_id, target_type)
+        # 2. Zielobjekt prüfen und bei Raum-Sitzplatzbuchung Ziel auf Sitzplatz normalisieren
+        target_id, target_type, room_id, auto_assigned_seat = self._resolve_booking_target(
+            target_id=target_id,
+            target_type=target_type,
+            start_time=start_time,
+            end_time=end_time,
+            seat_id=seat_id,
+        )
 
         # 3. Konflikte prüfen ← KERNLOGIK
-        conflicts = self._booking_repo.find_conflicts(
-            target_id, target_type, start_time, end_time
-        )
+        conflicts = self._find_booking_conflicts(target_id, target_type, start_time, end_time)
         if conflicts:
             existing = conflicts[0]
             raise BookingConflictError(
@@ -138,6 +146,8 @@ class BookingService:
             title=title.strip() if title else "Buchung",
             start_time=start_time,
             end_time=end_time,
+            room_id=room_id,
+            auto_assigned_seat=auto_assigned_seat,
         )
         return self._booking_repo.save(booking)
 
@@ -191,6 +201,56 @@ class BookingService:
     def get_by_id(self, booking_id: str) -> Optional[Booking]:
         return self._booking_repo.find_by_id(booking_id)
 
+    def search_bookings(
+        self,
+        requesting_user: User,
+        user_id: str = None,
+        status: str = None,
+        target_type: str = None,
+        target_id: str = None,
+        start: str = None,
+        end: str = None,
+        q: str = "",
+    ) -> List[Booking]:
+        """
+        Backend-Such- und Filterlogik für Buchungen.
+
+        Normale Nutzer dürfen nur eigene Buchungen sehen; Admins können optional
+        nach user_id filtern oder alle Buchungen durchsuchen.
+        """
+        if not requesting_user.is_admin():
+            user_id = requesting_user.id
+
+        bookings = self._booking_repo.find_all()
+        if user_id:
+            bookings = [b for b in bookings if b.user_id == user_id]
+        if status:
+            try:
+                booking_status = BookingStatus(status)
+            except ValueError:
+                raise ValueError(f"Unbekannter Buchungsstatus: '{status}'.")
+            bookings = [b for b in bookings if b.status == booking_status]
+        if target_type:
+            try:
+                booking_target_type = BookingTargetType(target_type)
+            except ValueError:
+                raise ValueError(f"Unbekannter Buchungstyp: '{target_type}'.")
+            bookings = [b for b in bookings if b.target_type == booking_target_type]
+        if target_id:
+            bookings = [b for b in bookings if b.target_id == target_id or b.room_id == target_id]
+        if start and end:
+            self._validate_time_range(start, end, allow_past=True)
+            bookings = [b for b in bookings if b.overlaps_with(start, end)]
+        if q:
+            query = q.lower().strip()
+            bookings = [
+                b for b in bookings
+                if query in b.title.lower()
+                or query in b.target_id.lower()
+                or query in b.room_id.lower()
+            ]
+        return bookings
+
     def check_availability(
         self,
         target_id: str,
@@ -206,9 +266,17 @@ class BookingService:
             (False, [conflicts]) → nicht verfügbar, mit Konfliktliste
         """
         self._validate_time_range(start_time, end_time)
-        conflicts = self._booking_repo.find_conflicts(
-            target_id, target_type, start_time, end_time
-        )
+        self._validate_target_exists(target_id, target_type)
+
+        if target_type == BookingTargetType.ROOM:
+            seats = self._seat_repo.find_by_room(target_id)
+            if seats:
+                seat = self._find_available_seat(target_id, start_time, end_time)
+                if seat:
+                    return True, []
+                return False, self._find_room_seat_conflicts(target_id, start_time, end_time)
+
+        conflicts = self._find_booking_conflicts(target_id, target_type, start_time, end_time)
         return len(conflicts) == 0, conflicts
 
     def get_available_rooms(
@@ -223,12 +291,44 @@ class BookingService:
         all_rooms = self._room_repo.find_active()
         available = []
         for room in all_rooms:
-            conflicts = self._booking_repo.find_conflicts(
+            seats = self._seat_repo.find_by_room(room.id)
+            if seats:
+                if self._find_available_seat(room.id, start_time, end_time):
+                    available.append(room.id)
+            elif not self._find_booking_conflicts(
                 room.id, BookingTargetType.ROOM, start_time, end_time
-            )
-            if not conflicts:
+            ):
                 available.append(room.id)
         return available
+
+    def get_available_seats(
+        self, room_id: str, start_time: str, end_time: str
+    ) -> List[str]:
+        """Gibt IDs aller freien Sitzplätze eines Raums zurück."""
+        self._validate_time_range(start_time, end_time)
+        room = self._room_repo.find_by_id(room_id)
+        if not room or not room.is_active:
+            raise ValueError(f"Raum mit ID '{room_id}' nicht gefunden oder nicht verfügbar.")
+        return [
+            seat.id
+            for seat in self._seat_repo.find_by_room(room_id)
+            if not self._find_booking_conflicts(
+                seat.id, BookingTargetType.SEAT, start_time, end_time
+            )
+        ]
+
+    def get_available_seat_ids(
+        self, start_time: str, end_time: str
+    ) -> List[str]:
+        """Gibt IDs aller freien Sitzplätze zurück."""
+        self._validate_time_range(start_time, end_time)
+        return [
+            seat.id
+            for seat in self._seat_repo.find_active()
+            if not self._find_booking_conflicts(
+                seat.id, BookingTargetType.SEAT, start_time, end_time
+            )
+        ]
 
     def get_available_assets(
         self, start_time: str, end_time: str
@@ -249,7 +349,7 @@ class BookingService:
     # Private Hilfsmethoden
     # ──────────────────────────────────────────────────────────────────────────
 
-    def _validate_time_range(self, start_time: str, end_time: str) -> None:
+    def _validate_time_range(self, start_time: str, end_time: str, allow_past: bool = False) -> None:
         """
         Validiert den Buchungszeitraum.
 
@@ -269,13 +369,13 @@ class BookingService:
         if start_dt >= end_dt:
             raise ValueError("Die Startzeit muss vor der Endzeit liegen.")
 
-        if start_dt < datetime.utcnow():
+        if not allow_past and start_dt < datetime.utcnow():
             raise ValueError("Buchungen können nicht in der Vergangenheit erstellt werden.")
 
     def _validate_target_exists(
         self, target_id: str, target_type: BookingTargetType
     ) -> None:
-        """Stellt sicher, dass das Buchungsziel (Raum/Asset) existiert und aktiv ist."""
+        """Stellt sicher, dass das Buchungsziel (Raum/Asset/Sitzplatz) existiert und aktiv ist."""
         if target_type == BookingTargetType.ROOM:
             obj = self._room_repo.find_by_id(target_id)
             if not obj or not obj.is_active:
@@ -284,5 +384,100 @@ class BookingService:
             obj = self._asset_repo.find_by_id(target_id)
             if not obj or not obj.is_active:
                 raise ValueError(f"Asset mit ID '{target_id}' nicht gefunden oder nicht verfügbar.")
+        elif target_type == BookingTargetType.SEAT:
+            obj = self._seat_repo.find_by_id(target_id)
+            if not obj or not obj.is_active:
+                raise ValueError(f"Sitzplatz mit ID '{target_id}' nicht gefunden oder nicht verfügbar.")
+            room = self._room_repo.find_by_id(obj.room_id)
+            if not room or not room.is_active:
+                raise ValueError("Der zugehörige Raum ist nicht verfügbar.")
         else:
             raise ValueError(f"Unbekannter Buchungstyp: '{target_type}'.")
+
+    def _resolve_booking_target(
+        self,
+        target_id: str,
+        target_type: BookingTargetType,
+        start_time: str,
+        end_time: str,
+        seat_id: str = None,
+    ) -> Tuple[str, BookingTargetType, str, bool]:
+        """
+        Normalisiert Raum-Sitzplatzbuchungen.
+
+        Räume ohne Sitzplatzdaten werden wie bisher als Raum gebucht.
+        Räume mit Sitzplätzen werden auf einen expliziten oder automatisch freien
+        Sitzplatz abgebildet, damit Sitzplätze als eigene Entität buchbar sind.
+        """
+        self._validate_target_exists(target_id, target_type)
+
+        if target_type == BookingTargetType.SEAT:
+            seat = self._seat_repo.find_by_id(target_id)
+            return seat.id, BookingTargetType.SEAT, seat.room_id, False
+
+        if target_type != BookingTargetType.ROOM:
+            return target_id, target_type, "", False
+
+        if seat_id:
+            seat = self._seat_repo.find_by_id(seat_id)
+            if not seat or not seat.is_active or seat.room_id != target_id:
+                raise ValueError("Der angegebene Sitzplatz gehört nicht zum Raum oder ist nicht verfügbar.")
+            return seat.id, BookingTargetType.SEAT, target_id, False
+
+        seats = self._seat_repo.find_by_room(target_id)
+        if not seats:
+            return target_id, BookingTargetType.ROOM, "", False
+
+        seat = self._find_available_seat(target_id, start_time, end_time)
+        if not seat:
+            raise BookingConflictError(
+                "Für den gewünschten Zeitraum ist kein Sitzplatz in diesem Raum verfügbar.",
+                conflicts=self._find_room_seat_conflicts(target_id, start_time, end_time),
+            )
+        return seat.id, BookingTargetType.SEAT, target_id, True
+
+    def _find_available_seat(self, room_id: str, start_time: str, end_time: str):
+        for seat in self._seat_repo.find_by_room(room_id):
+            conflicts = self._find_booking_conflicts(
+                seat.id, BookingTargetType.SEAT, start_time, end_time
+            )
+            if not conflicts:
+                return seat
+        return None
+
+    def _find_booking_conflicts(
+        self,
+        target_id: str,
+        target_type: BookingTargetType,
+        start_time: str,
+        end_time: str,
+    ) -> List[Booking]:
+        """Prüft direkte Konflikte und Raum/Sitzplatz-Abhängigkeiten."""
+        conflicts = self._booking_repo.find_conflicts(
+            target_id, target_type, start_time, end_time
+        )
+
+        if target_type == BookingTargetType.SEAT:
+            seat = self._seat_repo.find_by_id(target_id)
+            if seat:
+                conflicts.extend(
+                    self._booking_repo.find_conflicts(
+                        seat.room_id, BookingTargetType.ROOM, start_time, end_time
+                    )
+                )
+        elif target_type == BookingTargetType.ROOM:
+            conflicts.extend(self._find_room_seat_conflicts(target_id, start_time, end_time))
+
+        return conflicts
+
+    def _find_room_seat_conflicts(
+        self, room_id: str, start_time: str, end_time: str
+    ) -> List[Booking]:
+        conflicts = []
+        for seat in self._seat_repo.find_by_room(room_id):
+            conflicts.extend(
+                self._booking_repo.find_conflicts(
+                    seat.id, BookingTargetType.SEAT, start_time, end_time
+                )
+            )
+        return conflicts

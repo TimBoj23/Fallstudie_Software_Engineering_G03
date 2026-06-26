@@ -4,7 +4,9 @@ RePlan – Interaktive Terminal-Demo
 Führt einen vollständigen Demo-Durchlauf durch:
     - Nutzer registrieren / einloggen
     - Räume und Assets anzeigen
+    - Sitzplätze innerhalb eines Raums anzeigen
     - Raum buchen
+    - Sitzplatz automatisch oder explizit buchen
     - Asset buchen
     - Doppelbuchung testen (wird verhindert)
     - Eigene Buchungen anzeigen
@@ -27,6 +29,7 @@ from src.models.booking import BookingTargetType
 from src.models.asset import AssetType
 from src.services.user_service import UserService, AuthError
 from src.services.room_service import RoomService
+from src.services.seat_service import SeatService
 from src.services.asset_service import AssetService
 from src.services.booking_service import BookingService, BookingConflictError
 
@@ -50,6 +53,7 @@ def warn(text): print(f"  {c(YELLOW, '⚠')} {text}")
 # ── Services (Demo nutzt temporäre Daten) ─────────────────────────────────────
 user_svc    = UserService()
 room_svc    = RoomService()
+seat_svc    = SeatService()
 asset_svc   = AssetService()
 booking_svc = BookingService()
 
@@ -57,6 +61,8 @@ booking_svc = BookingService()
 current_user = None
 demo_room_id = None
 demo_asset_id = None
+demo_seat_ids = []
+demo_booked_seat_id = None
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -100,11 +106,11 @@ def get_choice(prompt: str = "Auswahl") -> str:
 # ─────────────────────────────────────────────────────────────────────────────
 
 def demo_setup_seed_data():
-    """Legt Demo-Räume und Assets an, falls noch keine vorhanden."""
-    global demo_room_id, demo_asset_id
+    """Legt Demo-Räume, Sitzplätze und Assets an, falls noch keine vorhanden."""
+    global demo_room_id, demo_asset_id, demo_seat_ids
 
     header("SCHRITT 0: Demo-Daten vorbereiten")
-    info("Prüfe vorhandene Räume und Assets...")
+    info("Prüfe vorhandene Räume, Sitzplätze und Assets...")
 
     # Räume prüfen/anlegen
     rooms = room_svc.get_all()
@@ -136,6 +142,26 @@ def demo_setup_seed_data():
     else:
         demo_room_id = rooms[0].id
         ok(f"{len(rooms)} Räume vorhanden. Nutze: {rooms[0].name}")
+
+    # Sitzplätze für Demo-Raum prüfen/anlegen
+    if demo_room_id:
+        try:
+            seats = seat_svc.get_by_room(demo_room_id)
+            if not seats:
+                info("Keine Sitzplätze im Demo-Raum vorhanden – lege Demo-Sitzplätze an...")
+                for label in ["A1", "A2", "A3"]:
+                    seat = seat_svc.create(
+                        room_id=demo_room_id,
+                        label=label,
+                        description=f"Demo-Sitzplatz {label}",
+                    )
+                    ok(f"Sitzplatz angelegt: {seat.label}")
+                    seats.append(seat)
+            else:
+                ok(f"{len(seats)} Sitzplätze im Demo-Raum vorhanden.")
+            demo_seat_ids = [s.id for s in seats]
+        except Exception as ex:
+            warn(f"Sitzplätze konnten nicht vorbereitet werden: {ex}")
 
     # Assets prüfen/anlegen
     assets = asset_svc.get_all()
@@ -233,9 +259,30 @@ def demo_list_rooms():
         print(f"      Ausstattg: {equip}")
 
 
+def demo_list_seats():
+    """Szenario 4: Sitzplätze eines Raums anzeigen."""
+    if not demo_room_id:
+        warn("Kein Demo-Raum verfügbar.")
+        return
+
+    header("SZENARIO 4: Sitzplätze anzeigen")
+    room = room_svc.get_by_id(demo_room_id)
+    try:
+        seats = seat_svc.get_by_room(demo_room_id)
+    except ValueError as e:
+        err(f"Sitzplätze konnten nicht geladen werden: {e}")
+        return
+
+    info(f"{len(seats)} Sitzplätze in {room.name} [{room.number}]:")
+    for seat in seats:
+        print(f"\n    {c(BOLD, seat.label)}")
+        print(f"      Beschreibung: {seat.description or '–'}")
+        print(f"      ID:           {seat.id}")
+
+
 def demo_list_assets():
-    """Szenario 4: Assets anzeigen."""
-    header("SZENARIO 4: Verfügbare Assets anzeigen")
+    """Szenario 5: Assets anzeigen."""
+    header("SZENARIO 5: Verfügbare Assets anzeigen")
     assets = asset_svc.get_all()
     if not assets:
         warn("Keine Assets vorhanden.")
@@ -248,13 +295,13 @@ def demo_list_assets():
 
 
 def demo_book_room():
-    """Szenario 5: Raum buchen."""
-    global demo_room_id
+    """Szenario 6: Raum buchen, mit automatischer Sitzplatzzuweisung wenn möglich."""
+    global demo_room_id, demo_booked_seat_id
     if not current_user or not demo_room_id:
         warn("Nutzer oder Raum nicht verfügbar. Überspringe.")
         return
 
-    header("SZENARIO 5: Raum buchen")
+    header("SZENARIO 6: Raum buchen")
     start, end = future_time(hours_from_now=2, duration_hours=2)
     room = room_svc.get_by_id(demo_room_id)
     info(f"Buche: {room.name} [{room.number}]")
@@ -273,6 +320,50 @@ def demo_book_room():
         ok(f"Buchungs-ID: {booking.id}")
         ok(f"Titel:       {booking.title}")
         ok(f"Status:      {booking.status.value}")
+        if booking.target_type == BookingTargetType.SEAT:
+            demo_booked_seat_id = booking.target_id
+            seat = seat_svc.get_by_id(booking.target_id)
+            ok(f"Sitzplatz:   {seat.label if seat else booking.target_id}")
+            if booking.auto_assigned_seat:
+                ok("Zuweisung:   automatisch, da kein Sitzplatz gewählt wurde")
+        return booking
+    except BookingConflictError as e:
+        err(f"Buchungskonflikt: {e}")
+    except ValueError as e:
+        err(f"Fehler: {e}")
+    return None
+
+
+def demo_book_explicit_seat():
+    """Szenario 7: Konkreten Sitzplatz buchen."""
+    global demo_seat_ids
+    if not current_user or not demo_seat_ids:
+        warn("Nutzer oder Sitzplätze nicht verfügbar. Überspringe.")
+        return
+
+    header("SZENARIO 7: Sitzplatz explizit buchen")
+    start, end = future_time(hours_from_now=5, duration_hours=2)
+    seat_id = demo_seat_ids[-1]
+    seat = seat_svc.get_by_id(seat_id)
+    room = room_svc.get_by_id(seat.room_id) if seat else None
+
+    info(f"Buche Sitzplatz: {seat.label if seat else seat_id}")
+    if room:
+        info(f"Raum: {room.name} [{room.number}]")
+    info(f"Zeitraum: {start} → {end}")
+
+    try:
+        booking = booking_svc.create_booking(
+            user=current_user,
+            target_id=seat_id,
+            target_type=BookingTargetType.SEAT,
+            start_time=start,
+            end_time=end,
+            title="Demo-Arbeitsplatzbuchung",
+        )
+        ok("Sitzplatz-Buchung erfolgreich!")
+        ok(f"Buchungs-ID: {booking.id}")
+        ok(f"Sitzplatz-ID: {booking.target_id}")
         return booking
     except BookingConflictError as e:
         err(f"Buchungskonflikt: {e}")
@@ -282,13 +373,13 @@ def demo_book_room():
 
 
 def demo_book_asset():
-    """Szenario 6: Asset buchen."""
+    """Szenario 8: Asset buchen."""
     global demo_asset_id
     if not current_user or not demo_asset_id:
         warn("Nutzer oder Asset nicht verfügbar. Überspringe.")
         return
 
-    header("SZENARIO 6: Asset buchen")
+    header("SZENARIO 8: Asset buchen")
     start, end = future_time(hours_from_now=2, duration_hours=2)
     asset = asset_svc.get_by_id(demo_asset_id)
     info(f"Buche: {asset.name} [{asset.asset_type.value}]")
@@ -314,23 +405,23 @@ def demo_book_asset():
 
 
 def demo_double_booking():
-    """Szenario 7: Doppelbuchung verhindern (KERNLOGIK)."""
-    global demo_room_id
-    if not current_user or not demo_room_id:
+    """Szenario 9: Doppelbuchung verhindern (KERNLOGIK)."""
+    global demo_booked_seat_id
+    if not current_user or not demo_booked_seat_id:
         warn("Voraussetzungen nicht erfüllt. Überspringe.")
         return
 
-    header("SZENARIO 7: Doppelbuchung verhindern (Kernlogik)")
+    header("SZENARIO 9: Doppelbuchung verhindern (Kernlogik)")
     start, end = future_time(hours_from_now=2, duration_hours=2)
-    room = room_svc.get_by_id(demo_room_id)
-    info(f"Versuche denselben Raum nochmals zu buchen: {room.name}")
-    info(f"Zeitraum: {start} → {end} (identisch mit vorheriger Buchung)")
+    seat = seat_svc.get_by_id(demo_booked_seat_id)
+    info(f"Versuche denselben Sitzplatz nochmals zu buchen: {seat.label if seat else demo_booked_seat_id}")
+    info(f"Zeitraum: {start} → {end} (identisch mit vorheriger Sitzplatzbuchung)")
 
     try:
         booking_svc.create_booking(
             user=current_user,
-            target_id=demo_room_id,
-            target_type=BookingTargetType.ROOM,
+            target_id=demo_booked_seat_id,
+            target_type=BookingTargetType.SEAT,
             start_time=start,
             end_time=end,
             title="Konflikt-Test",
@@ -342,26 +433,35 @@ def demo_double_booking():
 
 
 def demo_view_bookings():
-    """Szenario 8: Eigene Buchungen anzeigen."""
+    """Szenario 10: Eigene Buchungen anzeigen."""
     if not current_user:
         warn("Kein Nutzer eingeloggt. Überspringe.")
         return
 
-    header("SZENARIO 8: Eigene Buchungen anzeigen")
+    header("SZENARIO 10: Eigene Buchungen anzeigen")
     bookings = booking_svc.get_user_active_bookings(current_user.id)
     info(f"{len(bookings)} aktive Buchungen für {current_user.name}:")
 
     for b in bookings:
-        target_label = "Raum" if b.target_type.value == "room" else "Asset"
+        target_label = {
+            "room": "Raum",
+            "seat": "Sitzplatz",
+            "asset": "Asset",
+        }.get(b.target_type.value, b.target_type.value)
         print(f"\n    {c(BOLD, b.title)} [{target_label}]")
         print(f"      Von:    {b.start_time}")
         print(f"      Bis:    {b.end_time}")
         print(f"      Status: {c(GREEN, b.status.value)}")
+        if b.target_type == BookingTargetType.SEAT:
+            seat = seat_svc.get_by_id(b.target_id)
+            print(f"      Platz:  {seat.label if seat else b.target_id}")
+            if b.auto_assigned_seat:
+                print(f"      Art:    automatisch zugewiesen")
         print(f"      ID:     {b.id}")
 
 
 def demo_cancel_booking():
-    """Szenario 9: Buchung stornieren."""
+    """Szenario 11: Buchung stornieren."""
     if not current_user:
         warn("Kein Nutzer eingeloggt. Überspringe.")
         return
@@ -371,7 +471,7 @@ def demo_cancel_booking():
         warn("Keine aktiven Buchungen zum Stornieren vorhanden.")
         return
 
-    header("SZENARIO 9: Buchung stornieren")
+    header("SZENARIO 11: Buchung stornieren")
     booking = bookings[0]
     info(f"Storniere Buchung: '{booking.title}' (ID: {booking.id})")
 
@@ -399,17 +499,19 @@ def interactive_menu():
         print_menu("Was möchtest du tun?", [
             ("1", "Nutzer registrieren & einloggen"),
             ("2", "Verfügbare Räume anzeigen"),
-            ("3", "Verfügbare Assets anzeigen"),
-            ("4", "Raum buchen"),
-            ("5", "Asset buchen"),
-            ("6", "Doppelbuchung testen (Kernlogik)"),
-            ("7", "Eigene Buchungen anzeigen"),
-            ("8", "Buchung stornieren"),
-            ("9", "Kompletten Demo-Durchlauf starten"),
+            ("3", "Sitzplätze anzeigen"),
+            ("4", "Verfügbare Assets anzeigen"),
+            ("5", "Raum buchen (automatische Sitzplatzzuweisung)"),
+            ("6", "Sitzplatz explizit buchen"),
+            ("7", "Asset buchen"),
+            ("8", "Doppelbuchung testen (Sitzplatz-Kernlogik)"),
+            ("9", "Eigene Buchungen anzeigen"),
+            ("10", "Buchung stornieren"),
+            ("11", "Kompletten Demo-Durchlauf starten"),
             ("0", c(RED, "Beenden")),
         ])
 
-        choice = get_choice("Auswahl (0-9)")
+        choice = get_choice("Auswahl (0-11)")
 
         if choice == "0":
             print(c(BOLD + GREEN, "\n  Auf Wiedersehen!\n"))
@@ -420,21 +522,25 @@ def interactive_menu():
         elif choice == "2":
             demo_list_rooms()
         elif choice == "3":
-            demo_list_assets()
+            demo_list_seats()
         elif choice == "4":
-            demo_book_room()
+            demo_list_assets()
         elif choice == "5":
-            demo_book_asset()
+            demo_book_room()
         elif choice == "6":
-            demo_double_booking()
+            demo_book_explicit_seat()
         elif choice == "7":
-            demo_view_bookings()
+            demo_book_asset()
         elif choice == "8":
-            demo_cancel_booking()
+            demo_double_booking()
         elif choice == "9":
+            demo_view_bookings()
+        elif choice == "10":
+            demo_cancel_booking()
+        elif choice == "11":
             run_full_demo()
         else:
-            warn("Ungültige Eingabe. Bitte 0–9 wählen.")
+            warn("Ungültige Eingabe. Bitte 0–11 wählen.")
 
         pause()
 
@@ -442,14 +548,16 @@ def interactive_menu():
 def run_full_demo():
     """Führt alle Demo-Szenarien automatisch durch."""
     header("VOLLSTÄNDIGER DEMO-DURCHLAUF")
-    info("Alle 9 Szenarien werden nacheinander ausgeführt...")
+    info("Alle 11 Szenarien werden nacheinander ausgeführt...")
 
     demo_setup_seed_data()
     demo_user_registration()
     demo_user_login()
     demo_list_rooms()
+    demo_list_seats()
     demo_list_assets()
     demo_book_room()
+    demo_book_explicit_seat()
     demo_book_asset()
     demo_double_booking()
     demo_view_bookings()
@@ -458,10 +566,11 @@ def run_full_demo():
     header("DEMO ABGESCHLOSSEN")
     ok("Alle Kernfunktionen erfolgreich demonstriert:")
     ok("✓ Nutzer-Registrierung und Login")
-    ok("✓ Raum- und Asset-Anzeige")
-    ok("✓ Raum-Buchung")
+    ok("✓ Raum-, Sitzplatz- und Asset-Anzeige")
+    ok("✓ Raum-Buchung mit automatischer Sitzplatzzuweisung")
+    ok("✓ Explizite Sitzplatz-Buchung")
     ok("✓ Asset-Buchung")
-    ok("✓ Doppelbuchungs-Prävention (Kernlogik)")
+    ok("✓ Doppelbuchungs-Prävention für Sitzplätze (Kernlogik)")
     ok("✓ Eigene Buchungen anzeigen")
     ok("✓ Buchung stornieren")
 

@@ -132,3 +132,37 @@ class RoomService:
 
     def filter_by_capacity(self, min_capacity: int) -> List[Room]:
         return self._repo.find_by_capacity(min_capacity)
+
+    def search(
+        self,
+        query: str = "",
+        location: str = "",
+        min_capacity: int = None,
+        equipment: list = None,
+    ) -> List[Room]:
+        """Backend-Such- und Filterlogik für Räume."""
+        rooms = self.get_all()
+        if query:
+            q = query.lower().strip()
+            rooms = [
+                r for r in rooms
+                if q in r.name.lower()
+                or q in r.number.lower()
+                or q in r.location.lower()
+                or q in r.description.lower()
+            ]
+        if location:
+            loc = location.lower().strip()
+            rooms = [r for r in rooms if loc in r.location.lower()]
+        if min_capacity is not None:
+            rooms = [r for r in rooms if r.capacity >= min_capacity]
+        if equipment:
+            wanted = [e.lower().strip() for e in equipment if e.strip()]
+            rooms = [
+                r for r in rooms
+                if all(
+                    any(item == existing.lower() for existing in r.equipment)
+                    for item in wanted
+                )
+            ]
+        return rooms

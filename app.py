@@ -53,11 +53,14 @@ def create_app(config: dict = None) -> Flask:
     # ── Blueprints registrieren ────────────────────────────────────────────────
     from src.routes.auth_routes import auth_bp
     from src.routes.room_routes import rooms_bp
+    from src.routes.seat_routes import seats_bp, room_seats_bp
     from src.routes.asset_routes import assets_bp
     from src.routes.booking_routes import bookings_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(rooms_bp)
+    app.register_blueprint(seats_bp)
+    app.register_blueprint(room_seats_bp)
     app.register_blueprint(assets_bp)
     app.register_blueprint(bookings_bp)
 
@@ -82,16 +85,25 @@ def create_app(config: dict = None) -> Flask:
                 "auth": {
                     "POST /api/auth/register": "Nutzer registrieren",
                     "POST /api/auth/login": "Nutzer anmelden",
+                    "POST /api/auth/logout": "Nutzer abmelden",
                 },
                 "rooms": {
-                    "GET  /api/rooms": "Alle Räume (optional: ?start=&end=)",
+                    "GET  /api/rooms": "Alle Räume (optional: ?q=&location=&min_capacity=&equipment=&start=&end=)",
                     "GET  /api/rooms/<id>": "Einzelnen Raum abrufen",
+                    "GET  /api/rooms/<id>/seats": "Sitzplätze eines Raums abrufen",
                     "POST /api/rooms": "Raum anlegen [Admin]",
                     "PUT  /api/rooms/<id>": "Raum bearbeiten [Admin]",
                     "DELETE /api/rooms/<id>": "Raum deaktivieren [Admin]",
                 },
+                "seats": {
+                    "GET  /api/seats": "Alle Sitzplätze (optional: ?room_id=&q=&start=&end=)",
+                    "GET  /api/seats/<id>": "Einzelnen Sitzplatz abrufen",
+                    "POST /api/seats": "Sitzplatz anlegen [Admin]",
+                    "PUT  /api/seats/<id>": "Sitzplatz bearbeiten [Admin]",
+                    "DELETE /api/seats/<id>": "Sitzplatz deaktivieren [Admin]",
+                },
                 "assets": {
-                    "GET  /api/assets": "Alle Assets (optional: ?start=&end=&type=)",
+                    "GET  /api/assets": "Alle Assets (optional: ?q=&start=&end=&type=)",
                     "GET  /api/assets/<id>": "Einzelnes Asset abrufen",
                     "POST /api/assets": "Asset anlegen [Admin]",
                     "PUT  /api/assets/<id>": "Asset bearbeiten [Admin]",

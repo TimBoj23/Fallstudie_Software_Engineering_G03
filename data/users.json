@@ -16,5 +16,14 @@
     "password_hash": "f7de16d111c91edb095d3a7af45724f466d015ccec8797134f3bef5f37cbd32e:f8625abb074179be74117362d8689aa24104053c7f76ebd4b932c2c6bd2aa1e6",
     "created_at": "2026-06-01T15:08:43.643391",
     "is_active": true
+  },
+  {
+    "id": "4e88b321-4aaf-48c7-81da-45da03d167cc",
+    "name": "Max Mustermann (Demo)",
+    "email": "demo_411b41@replan.de",
+    "role": "user",
+    "password_hash": "99a4ed42360bb5f126e326dda733b0095d4a17a765c2bbaca30baec72057632b:eea6b7491f2f3202ff5a405aaeac7ac210a56c6f3cbe51d96c0f498a68213e31",
+    "created_at": "2026-06-16T11:51:33.189964",
+    "is_active": true
   }
 ]

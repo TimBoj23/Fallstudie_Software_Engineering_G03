@@ -31,5 +31,18 @@
     "end_time": "2026-06-01T19:09:04",
     "status": "active",
     "created_at": "2026-06-01T15:09:04.788781"
+  },
+  {
+    "id": "49c89770-4571-40ff-b7ed-403aafc7f19f",
+    "user_id": "4e88b321-4aaf-48c7-81da-45da03d167cc",
+    "target_id": "662a3c9c-77b5-42e7-b7c9-c1a24ea0fadf",
+    "target_type": "seat",
+    "title": "Demo-Arbeitsplatzbuchung",
+    "start_time": "2026-06-16T16:51:40",
+    "end_time": "2026-06-16T18:51:40",
+    "room_id": "6a188a9c-9ee3-4165-9fdd-1e903619b192",
+    "auto_assigned_seat": false,
+    "status": "active",
+    "created_at": "2026-06-16T11:51:40.517720"
   }
 ]

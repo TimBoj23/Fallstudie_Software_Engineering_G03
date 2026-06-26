@@ -17,6 +17,7 @@ class BookingStatus(str, Enum):
 class BookingTargetType(str, Enum):
     ROOM = "room"
     ASSET = "asset"
+    SEAT = "seat"
 
 
 @dataclass
@@ -28,7 +29,7 @@ class Booking:
         id:           Eindeutige Buchungs-ID (UUID-String)
         user_id:      ID des buchenden Nutzers
         target_id:    ID des gebuchten Raums oder der gebuchten Ressource
-        target_type:  Typ des Buchungsobjekts (room | asset)
+        target_type:  Typ des Buchungsobjekts (room | asset | seat)
         title:        Kurze Beschreibung/Titel der Buchung (z. B. "Teammeeting")
         start_time:   Startzeit im ISO-8601 Format (z. B. "2026-06-15T09:00:00")
         end_time:     Endzeit im ISO-8601 Format
@@ -38,6 +39,7 @@ class Booking:
     Invarianten:
         - start_time muss vor end_time liegen
         - Zwei aktive Buchungen für dasselbe Zielobjekt dürfen sich zeitlich nicht überschneiden
+        - Bei Sitzplatzbuchungen kann room_id als Kontext gespeichert werden
     """
     id: str
     user_id: str
@@ -46,6 +48,8 @@ class Booking:
     title: str
     start_time: str
     end_time: str
+    room_id: str = ""
+    auto_assigned_seat: bool = False
     status: BookingStatus = BookingStatus.ACTIVE
     created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
 
@@ -59,6 +63,8 @@ class Booking:
             "title": self.title,
             "start_time": self.start_time,
             "end_time": self.end_time,
+            "room_id": self.room_id,
+            "auto_assigned_seat": self.auto_assigned_seat,
             "status": self.status.value if isinstance(self.status, BookingStatus) else self.status,
             "created_at": self.created_at,
         }
@@ -74,6 +80,8 @@ class Booking:
             title=data.get("title", ""),
             start_time=data["start_time"],
             end_time=data["end_time"],
+            room_id=data.get("room_id", ""),
+            auto_assigned_seat=data.get("auto_assigned_seat", False),
             status=BookingStatus(data.get("status", BookingStatus.ACTIVE.value)),
             created_at=data.get("created_at", datetime.utcnow().isoformat()),
         )
