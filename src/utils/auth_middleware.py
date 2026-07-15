@@ -28,6 +28,10 @@ def _get_user_from_request():
     from ..repositories.user_repository import UserRepository
     user_id = request.headers.get("X-User-Id")
     if not user_id:
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header.startswith("Bearer "):
+            user_id = auth_header.replace("Bearer ", "", 1).strip()
+    if not user_id:
         return None
     repo = UserRepository()
     return repo.find_by_id(user_id)

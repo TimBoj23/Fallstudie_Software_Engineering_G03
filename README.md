@@ -112,6 +112,88 @@ Die konkrete Struktur kann im Verlauf der Umsetzung angepasst werden.
 
 ## Ausführung des Programms
 
+## Setup-Guide: Backend und React-Frontend
+
+Das Projekt besteht aus einem Flask-Backend und einem React-Frontend. Beide Teile müssen parallel laufen.
+
+### 1. Backend einrichten
+
+Im Hauptordner des Projekts:
+
+```bash
+pip install -r requirements.txt
+```
+
+Falls `pip` nicht zur richtigen Python-Version gehört:
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+### 2. Backend starten
+
+Im Hauptordner:
+
+```bash
+python app.py
+```
+
+Das Backend läuft anschließend unter:
+
+```text
+http://localhost:5000
+```
+
+API-Test:
+
+```text
+http://localhost:5000/api/health
+```
+
+### 3. Frontend einrichten
+
+In einem zweiten Terminal:
+
+```bash
+cd frontend
+npm install
+```
+
+### 4. Frontend starten
+
+Im Ordner `frontend`:
+
+```bash
+npm run dev
+```
+
+Das Frontend läuft anschließend unter:
+
+```text
+http://localhost:5173
+```
+
+### Kurzfassung
+
+Terminal 1:
+
+```bash
+python app.py
+```
+
+Terminal 2:
+
+```bash
+cd frontend
+npm run dev
+```
+
+Danach im Browser öffnen:
+
+```text
+http://localhost:5173
+```
+
 ### Installation
 
 Repository klonen oder herunterladen.
