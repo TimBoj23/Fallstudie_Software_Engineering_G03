@@ -38,13 +38,15 @@ def create_app(config: dict = None) -> Flask:
         app.config.update(config)
 
     # ── CORS (für Frontend-Anbindung) ──────────────────────────────────────────
-    # Erlaubt Requests vom Frontend (Entwicklung: localhost:3000 / 5173)
+    # Erlaubt Requests vom Frontend (Entwicklung: localhost:3000 / 5173 / 5174)
     CORS(app, resources={
         r"/api/*": {
             "origins": [
                 "http://localhost:3000",   # React
                 "http://localhost:5173",   # Vite
                 "http://127.0.0.1:5173",
+                "http://localhost:5174",   # Vite Ausweichport
+                "http://127.0.0.1:5174",
                 "http://localhost:4200",   # Angular
                 "http://127.0.0.1:3000",
             ]
