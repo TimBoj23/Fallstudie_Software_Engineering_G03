@@ -10,7 +10,7 @@ Starten:
     python3 app.py
     oder: flask run
 
-API läuft unter: http://localhost:5000
+API läuft unter: http://localhost:5002
 """
 
 import os
@@ -141,8 +141,8 @@ if __name__ == "__main__":
     print("=" * 60)
     print("  RePlan API – Raum- und Ressourcenplanungssystem")
     print("=" * 60)
-    print("  Server: http://localhost:5000")
-    print("  API:    http://localhost:5000/api")
-    print("  Health: http://localhost:5000/api/health")
+    print("  Server: http://localhost:5002")
+    print("  API:    http://localhost:5002/api")
+    print("  Health: http://localhost:5002/api/health")
     print("=" * 60)
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    app.run(debug=True, host="0.0.0.0", port=5002)

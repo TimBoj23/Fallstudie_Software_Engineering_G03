@@ -105,6 +105,8 @@ Eine mögliche Projektstruktur ist:
 │   ├── models/
 │   ├── services/
 │   └── routes/
+├── frontend/
+│   └── src/
 └── tests/
 ```
 
@@ -112,7 +114,7 @@ Die konkrete Struktur kann im Verlauf der Umsetzung angepasst werden.
 
 ## Ausführung des Programms
 
-### Installation
+### Backend installieren
 
 Repository klonen oder herunterladen.
 
@@ -122,33 +124,47 @@ Abhängigkeiten installieren:
 pip install -r requirements.txt
 ```
 
-### Start des Programms
+### Backend starten
 
-Start des Programms durch:
-
-```bash
-python3 <STARTDATEI>.py
-```
-
-Beispiel, falls die Startdatei später `app.py` heißt:
+Start des Backends:
 
 ```bash
 python3 app.py
 ```
 
-Das Programm startet anschließend im Browser unter:
+Das Backend läuft anschließend unter:
 
 ```text
-http://[IP_ADDRESS]
+http://localhost:5002
 ```
 
-oder lokal unter:
+API-Test:
 
 ```text
-http://localhost:5000
+http://localhost:5002/api/health
 ```
 
-> Hinweis: Die konkrete Startdatei wird nach der technischen Umsetzung angepasst.
+### Frontend installieren und starten
+
+In einem zweiten Terminal:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Das React-Frontend läuft anschließend unter:
+
+```text
+http://localhost:5173
+```
+
+Das Frontend spricht standardmäßig mit:
+
+```text
+http://localhost:5002/api
+```
 
 ## Testen
 
