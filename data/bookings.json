@@ -44,5 +44,18 @@
     "auto_assigned_seat": false,
     "status": "active",
     "created_at": "2026-06-16T11:51:40.517720"
+  },
+  {
+    "id": "ade726e2-0eac-4077-bf6c-a2de7a331d99",
+    "user_id": "a17c2c1a-c2ce-4f28-bdcf-a81b98cd9e63",
+    "target_id": "cc0663eb-f782-4705-894a-368e3e900b3d",
+    "target_type": "asset",
+    "title": "#außentermin",
+    "start_time": "2026-07-19T13:00",
+    "end_time": "2026-07-19T17:00",
+    "room_id": "",
+    "auto_assigned_seat": false,
+    "status": "cancelled",
+    "created_at": "2026-07-19T11:32:42.038835"
   }
 ]
