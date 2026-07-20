@@ -1,4 +1,4 @@
-export const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5002/api";
+export const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
 function buildUrl(path, params) {
   const url = new URL(`${API_BASE}${path}`);
