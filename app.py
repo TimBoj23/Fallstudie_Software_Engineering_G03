@@ -10,7 +10,7 @@ Starten:
     python3 app.py
     oder: flask run
 
-API läuft unter: http://localhost:5000
+API läuft unter: http://localhost:5002
 """
 
 import os
@@ -38,12 +38,15 @@ def create_app(config: dict = None) -> Flask:
         app.config.update(config)
 
     # ── CORS (für Frontend-Anbindung) ──────────────────────────────────────────
-    # Erlaubt Requests vom Frontend (Entwicklung: localhost:3000 / 5173)
+    # Erlaubt Requests vom Frontend (Entwicklung: localhost:3000 / 5173 / 5174)
     CORS(app, resources={
         r"/api/*": {
             "origins": [
                 "http://localhost:3000",   # React
                 "http://localhost:5173",   # Vite
+                "http://127.0.0.1:5173",
+                "http://localhost:5174",   # Vite Ausweichport
+                "http://127.0.0.1:5174",
                 "http://localhost:4200",   # Angular
                 "http://127.0.0.1:3000",
             ]
@@ -141,8 +144,8 @@ if __name__ == "__main__":
     print("=" * 60)
     print("  RePlan API – Raum- und Ressourcenplanungssystem")
     print("=" * 60)
-    print("  Server: http://localhost:5000")
-    print("  API:    http://localhost:5000/api")
-    print("  Health: http://localhost:5000/api/health")
+    print("  Server: http://localhost:5002")
+    print("  API:    http://localhost:5002/api")
+    print("  Health: http://localhost:5002/api/health")
     print("=" * 60)
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    app.run(debug=True, host="0.0.0.0", port=5002)
