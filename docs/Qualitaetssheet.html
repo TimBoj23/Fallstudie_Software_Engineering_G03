@@ -427,6 +427,46 @@
       line-height: 1.3;
     }
 
+    .agenda {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .agenda-item {
+      min-height: 142px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+    }
+
+    .agenda-time {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      color: var(--blue);
+      background: color-mix(in srgb, var(--blue) 10%, white);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .agenda-item b {
+      display: block;
+      margin-top: 14px;
+      font-size: 17px;
+    }
+
+    .agenda-item span {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      line-height: 1.3;
+    }
+
     @keyframes rise {
       from {
         opacity: 0;
@@ -460,7 +500,8 @@
       }
 
       .detail-grid,
-      .flow {
+      .flow,
+      .agenda {
         grid-template-columns: 1fr;
       }
     }
@@ -490,32 +531,47 @@
       <div>
         <p class="eyebrow">RePlan Workspace</p>
         <h1 id="title">Qualitätssheet Sprint I bis III</h1>
-        <p class="lead">Ein visueller Projektverlauf für den Vortrag: was schwierig war, was entschieden wurde und welche Ergebnisse pro Sprint entstanden sind.</p>
+        <p class="lead">Ein präsentationsfähiger Überblick über Projektentwicklung, Architekturentscheidungen, Qualitätsmaßnahmen und erreichte Demonstrationsreife.</p>
       </div>
       <div class="hero-grid" aria-label="Projektkennzahlen">
-        <div class="metric"><strong>3</strong><span>Sprints mit klar erkennbarem Fortschritt</span></div>
+        <div class="metric"><strong>30</strong><span>Minuten Präsentationsbogen mit klarer Dramaturgie</span></div>
         <div class="metric"><strong>4</strong><span>Rollencluster aus Backend, Frontend, Requirements und Projektsteuerung</span></div>
         <div class="metric"><strong>52</strong><span>Backend-Tests als Qualitätsnachweis</span></div>
-        <div class="metric"><strong>1</strong><span>verbundene Demo-App statt getrennter Insellösungen</span></div>
+        <div class="metric"><strong>1</strong><span>integrierte RePlan-Demo mit Backend, Frontend und Demo-Daten</span></div>
+      </div>
+    </section>
+
+    <section aria-labelledby="agenda-title">
+      <div class="section-head">
+        <h2 id="agenda-title">30-Minuten-Struktur</h2>
+        <p class="hint">Ein roter Faden für Vortrag, Demo und Rückfragen.</p>
+      </div>
+      <div class="agenda">
+        <article class="agenda-item"><span class="agenda-time">0-3 min</span><b>Ausgangslage</b><span>Zielbild von RePlan und fachlicher Kontext.</span></article>
+        <article class="agenda-item"><span class="agenda-time">3-8 min</span><b>Sprint I</b><span>Domänenmodell, Backend-Basis und erste Qualitätssicherung.</span></article>
+        <article class="agenda-item"><span class="agenda-time">8-14 min</span><b>Sprint II</b><span>REST API, Integration und Sitzplatzlogik.</span></article>
+        <article class="agenda-item"><span class="agenda-time">14-21 min</span><b>Sprint III</b><span>SQLite, Admin-Funktionen, Datenqualität und UI-Anbindung.</span></article>
+        <article class="agenda-item"><span class="agenda-time">21-27 min</span><b>Live-Demo</b><span>Buchung, Filter, Nutzerrollen und Administrationssicht.</span></article>
+        <article class="agenda-item"><span class="agenda-time">27-30 min</span><b>Fazit</b><span>Qualitätsstand, offene Punkte und nächste Sprint-Ziele.</span></article>
       </div>
     </section>
 
     <section aria-labelledby="timeline-title">
       <div class="section-head">
         <h2 id="timeline-title">Sprint-Verlauf</h2>
-        <p class="hint">Vom MVP zur präsentierbaren Fullstack-Demo.</p>
+        <p class="hint">Vom fachlichen MVP zur integrierten und überprüfbaren Fullstack-Demo.</p>
       </div>
       <div class="timeline">
         <article class="sprint-card" data-accent="blue">
           <div class="sprint-top">
             <h3>Sprint I</h3>
-            <span class="badge">Orientierung</span>
+            <span class="badge">Grundlage</span>
           </div>
           <div class="progress" aria-label="Sprint I Fortschritt"><span style="--value: 58%"></span></div>
           <div class="stage-list">
-            <div class="stage"><div class="dot">1</div><div><strong>Basis verstanden</strong><span>Buchungen, Nutzer und Ressourcen wurden fachlich eingeordnet.</span></div></div>
-            <div class="stage"><div class="dot">2</div><div><strong>Erste Backend-Logik</strong><span>Services, Validierung und einfache Datenhaltung entstanden.</span></div></div>
-            <div class="stage"><div class="dot">3</div><div><strong>Hauptproblem</strong><span>Frontend und Backend entwickelten sich zunächst auseinander.</span></div></div>
+            <div class="stage"><div class="dot">1</div><div><strong>Fachliche Grundlage</strong><span>Buchungen, Nutzer und Ressourcen wurden als Domäne abgegrenzt.</span></div></div>
+            <div class="stage"><div class="dot">2</div><div><strong>Backend-Basis</strong><span>Services, Validierung und Datenzugriff wurden strukturiert aufgebaut.</span></div></div>
+            <div class="stage"><div class="dot">3</div><div><strong>Integrationsrisiko</strong><span>Die Schnittstelle zwischen Frontend und Backend musste klarer definiert werden.</span></div></div>
           </div>
         </article>
 
@@ -526,22 +582,22 @@
           </div>
           <div class="progress" aria-label="Sprint II Fortschritt"><span style="--value: 76%"></span></div>
           <div class="stage-list">
-            <div class="stage"><div class="dot">1</div><div><strong>REST API angebunden</strong><span>Frontend-Aufrufe wurden stärker auf Backend-Endpunkte ausgerichtet.</span></div></div>
-            <div class="stage"><div class="dot">2</div><div><strong>Sitzplatzlogik</strong><span>Räume, Arbeitsplätze und Ausstattung wurden separat buchbar.</span></div></div>
-            <div class="stage"><div class="dot">3</div><div><strong>Hauptproblem</strong><span>Technische IDs, Demo-Daten und Rollen wirkten noch nicht vortragsreif.</span></div></div>
+            <div class="stage"><div class="dot">1</div><div><strong>REST API</strong><span>Frontend-Aktionen wurden gezielt auf Backend-Endpunkte ausgerichtet.</span></div></div>
+            <div class="stage"><div class="dot">2</div><div><strong>Buchbare Objekte</strong><span>Räume, Arbeitsplätze und Ausstattung wurden getrennt modelliert.</span></div></div>
+            <div class="stage"><div class="dot">3</div><div><strong>Präsentationslücke</strong><span>IDs, Demo-Daten und Rollen mussten für Nutzer verständlicher werden.</span></div></div>
           </div>
         </article>
 
         <article class="sprint-card" data-accent="green">
           <div class="sprint-top">
             <h3>Sprint III</h3>
-            <span class="badge">Demo-Reife</span>
+            <span class="badge">Demoqualität</span>
           </div>
           <div class="progress" aria-label="Sprint III Fortschritt"><span style="--value: 92%"></span></div>
           <div class="stage-list">
-            <div class="stage"><div class="dot">1</div><div><strong>SQL statt JSON-Wirkung</strong><span>SQLite wurde als realistischere Persistenzschicht genutzt.</span></div></div>
-            <div class="stage"><div class="dot">2</div><div><strong>Admin & Nutzer</strong><span>Rollen, Fotos, Buchungsbesitzer und Passwortprozesse wurden sichtbar.</span></div></div>
-            <div class="stage"><div class="dot">3</div><div><strong>Ergebnis</strong><span>Eine konsistente Demo mit bereinigten Nutzern, Räumen und Assets.</span></div></div>
+            <div class="stage"><div class="dot">1</div><div><strong>Persistenz</strong><span>SQLite wurde als nachvollziehbare Datenhaltung für die Demo genutzt.</span></div></div>
+            <div class="stage"><div class="dot">2</div><div><strong>Administration</strong><span>Rollen, Fotos, Buchungsbesitzer und Passwortprozesse wurden steuerbar.</span></div></div>
+            <div class="stage"><div class="dot">3</div><div><strong>Abnahmestand</strong><span>Die Demo enthält bereinigte Nutzer, Räume, Assets und klare Buchungsabläufe.</span></div></div>
           </div>
         </article>
       </div>
@@ -549,8 +605,8 @@
 
     <section aria-labelledby="focus-title">
       <div class="section-head">
-        <h2 id="focus-title">Vortragsmodus</h2>
-        <p class="hint">Sprint anklicken und über Probleme, Entscheidungen und Ergebnis sprechen.</p>
+        <h2 id="focus-title">Sprint-Analyse</h2>
+        <p class="hint">Je Sprint: Ausgangspunkt, technische Maßnahme und nachweisbarer Stand.</p>
       </div>
       <div class="board">
         <nav class="selector" aria-label="Sprint-Auswahl">
@@ -561,9 +617,9 @@
         <article class="detail" aria-live="polite">
           <h3 id="detail-title">Sprint I · MVP</h3>
           <div class="detail-grid">
-            <div class="tile"><span class="label">Schwierigkeit</span><p id="problem">Unklare Trennung zwischen fachlicher Buchungslogik und erster UI-Idee.</p></div>
-            <div class="tile"><span class="label">Entscheidung</span><p id="decision">Backend als stabile Quelle für Validierung, Nutzer und Buchungen aufbauen.</p></div>
-            <div class="tile"><span class="label">Umgesetzt</span><p id="result">Grundmodell mit Räumen, Buchungen, Nutzern und Tests.</p></div>
+            <div class="tile"><span class="label">Ausgangspunkt</span><p id="problem">Unklare Trennung zwischen fachlicher Buchungslogik und erster UI-Idee.</p></div>
+            <div class="tile"><span class="label">Maßnahme</span><p id="decision">Backend als stabile Quelle für Validierung, Nutzer und Buchungen aufbauen.</p></div>
+            <div class="tile"><span class="label">Nachweis</span><p id="result">Grundmodell mit Räumen, Buchungen, Nutzern und Tests.</p></div>
           </div>
         </article>
       </div>
@@ -572,7 +628,7 @@
     <section aria-labelledby="quality-title">
       <div class="section-head">
         <h2 id="quality-title">Qualitätsstand</h2>
-        <p class="hint">Kurze Gesprächspunkte statt langer Fließtexte.</p>
+        <p class="hint">Qualitätsdimensionen für technische Einordnung und Bewertung.</p>
       </div>
       <div class="quality-grid">
         <article class="quality">
@@ -592,7 +648,7 @@
         </article>
         <article class="quality">
           <div class="ring" style="--score: 80%">80%</div>
-          <strong>Präsentation</strong>
+          <strong>Demonstrationsreife</strong>
           <span>Buchbare Objekte, Bilder, Admin-Sichten und Rollen sind nachvollziehbar.</span>
         </article>
       </div>
@@ -601,13 +657,13 @@
     <section aria-labelledby="flow-title">
       <div class="section-head">
         <h2 id="flow-title">Projektfluss</h2>
-        <p class="hint">Was aus dem Wirrwarr eine vorführbare Linie gemacht hat.</p>
+        <p class="hint">Die Entwicklung von der Anforderung bis zur Qualitätssicherung.</p>
       </div>
       <div class="flow">
         <div class="flow-item"><b>Anforderung</b><span>Räume, Assets und Sitzplätze buchbar machen.</span></div>
-        <div class="flow-item"><b>Konflikt</b><span>Frontend und Backend liefen zunächst unabhängig.</span></div>
+        <div class="flow-item"><b>Schnittstelle</b><span>Frontend und Backend über definierte REST-Endpunkte verbinden.</span></div>
         <div class="flow-item"><b>Architektur</b><span>REST API, Services, Repositories und SQLite.</span></div>
-        <div class="flow-item"><b>Demo-Fokus</b><span>Realistische Nutzer, Bilder, Filter und Admin-Sicht.</span></div>
+        <div class="flow-item"><b>Nutzerfokus</b><span>Realistische Daten, Bilder, Filter und Admin-Sicht.</span></div>
         <div class="flow-item"><b>Qualität</b><span>Tests, Build, GitHub-Branch und klare Rollen.</span></div>
       </div>
     </section>
@@ -630,20 +686,20 @@
     const sprintData = [
       {
         title: "Sprint I · MVP",
-        problem: "Unklare Trennung zwischen fachlicher Buchungslogik und erster UI-Idee.",
+        problem: "Die Domäne musste zunächst sauber von der ersten UI-Idee getrennt werden.",
         decision: "Backend als stabile Quelle für Validierung, Nutzer und Buchungen aufbauen.",
         result: "Grundmodell mit Räumen, Buchungen, Nutzern und Tests."
       },
       {
         title: "Sprint II · Schnittstellen",
-        problem: "Das Frontend war teilweise autark und passte nicht sauber zur Backend-Struktur.",
+        problem: "Frontend-Abläufe und Backend-Struktur mussten über eindeutige Endpunkte zusammengeführt werden.",
         decision: "REST-Endpunkte konsequent als Verbindung zwischen UI und Logik nutzen.",
         result: "Login, Buchungen, Ressourcenlisten und Admin-Funktionen stärker integriert."
       },
       {
         title: "Sprint III · Demo",
-        problem: "Technische IDs, unechte Demo-Daten und fehlende Bilder erschwerten den Vortrag.",
-        decision: "Demo-Reife priorisieren: sprechende Namen, Fotos, Filter und klare Admin-Sichten.",
+        problem: "Die Oberfläche musste fachliche Informationen statt technischer Details in den Vordergrund stellen.",
+        decision: "Demonstrationsreife priorisieren: sprechende Namen, Fotos, Filter und klare Admin-Sichten.",
         result: "Bereinigte Nutzer, neue Räume und Assets, visuelle Buchungsübersichten und Build-Nachweis."
       }
     ];
