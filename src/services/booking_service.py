@@ -31,6 +31,7 @@ Skalierungshinweis:
 
 import uuid
 import hashlib
+from datetime import date, timedelta
 from typing import List, Optional, Tuple
 
 from ..models.booking import Booking, BookingStatus, BookingTargetType
@@ -285,6 +286,75 @@ class BookingService:
 
         conflicts = self._find_booking_conflicts(target_id, target_type, start_time, end_time)
         return len(conflicts) == 0, conflicts
+
+    def get_time_block_schedule(
+        self,
+        target_id: str,
+        target_type: BookingTargetType,
+        start_date: str = "",
+        days: int = 7,
+        first_hour: int = 8,
+        last_hour: int = 22,
+    ) -> List[dict]:
+        """Erzeugt eine Kalenderansicht mit stündlichen Buchungsblöcken."""
+        self._validate_target_exists(target_id, target_type)
+        try:
+            current_date = date.fromisoformat(start_date) if start_date else date.today()
+        except ValueError:
+            raise ValueError("start_date muss im Format YYYY-MM-DD angegeben werden.")
+
+        day_count = max(1, min(int(days or 7), 31))
+        schedule = []
+        for day_offset in range(day_count):
+            block_date = current_date + timedelta(days=day_offset)
+            slots = []
+            booked_blocks = 0
+            unavailable_blocks = 0
+
+            for hour in range(first_hour, last_hour):
+                block_start = f"{block_date.isoformat()}T{hour:02d}:00:00"
+                block_end = f"{block_date.isoformat()}T{hour + 1:02d}:00:00"
+                conflicts = self._find_booking_conflicts(
+                    target_id,
+                    target_type,
+                    block_start,
+                    block_end,
+                )
+                available = self._is_block_available(
+                    target_id,
+                    target_type,
+                    block_start,
+                    block_end,
+                )
+                if conflicts:
+                    booked_blocks += 1
+                if not available:
+                    unavailable_blocks += 1
+                slots.append({
+                    "start_time": block_start,
+                    "end_time": block_end,
+                    "label": f"{hour:02d}:00-{hour + 1:02d}:00",
+                    "available": available,
+                    "booked": bool(conflicts),
+                    "conflict_count": len(conflicts),
+                })
+
+            total_blocks = len(slots)
+            if booked_blocks == 0:
+                status = "free"
+            elif unavailable_blocks == total_blocks:
+                status = "full"
+            else:
+                status = "partial"
+            schedule.append({
+                "date": block_date.isoformat(),
+                "status": status,
+                "booked_blocks": booked_blocks,
+                "available_blocks": total_blocks - unavailable_blocks,
+                "total_blocks": total_blocks,
+                "slots": slots,
+            })
+        return schedule
 
     def get_available_rooms(
         self, start_time: str, end_time: str
@@ -555,3 +625,17 @@ class BookingService:
                 )
             )
         return conflicts
+
+    def _is_block_available(
+        self,
+        target_id: str,
+        target_type: BookingTargetType,
+        start_time: str,
+        end_time: str,
+    ) -> bool:
+        if target_type == BookingTargetType.ROOM:
+            room = self._room_repo.find_by_id(target_id)
+            seats = self._seat_repo.find_by_room(target_id)
+            if seats and room and getattr(room, "room_type", "seminarraum") == "shared_desk":
+                return self._find_available_seat(target_id, start_time, end_time) is not None
+        return len(self._find_booking_conflicts(target_id, target_type, start_time, end_time)) == 0

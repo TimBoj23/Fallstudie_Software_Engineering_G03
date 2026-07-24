@@ -10,7 +10,7 @@ export default function Button({
   return (
     <button type={type} className={`button button-${variant} button-${size} ${className}`} {...props}>
       {Icon && <Icon size={16} />}
-      <span>{children}</span>
+      {children && <span>{children}</span>}
     </button>
   );
 }

@@ -22,9 +22,9 @@ export default function CreateBooking({ isLoggedIn, setPage, bookingDefaults = {
   const [form, setForm] = useState({
     target_type: bookingDefaults.targetType || "room",
     target_id: bookingDefaults.targetId || "",
-    title: "",
-    start_time: "",
-    end_time: "",
+    title: bookingDefaults.title || "",
+    start_time: toDateTimeLocal(bookingDefaults.startTime || ""),
+    end_time: toDateTimeLocal(bookingDefaults.endTime || ""),
   });
   const [resources, setResources] = useState({ rooms: [], seats: [], assets: [] });
   const [state, setState] = useState({ loading: false, loadingResources: true, error: "", success: "", conflicts: [] });
@@ -61,8 +61,11 @@ export default function CreateBooking({ isLoggedIn, setPage, bookingDefaults = {
       ...current,
       target_type: bookingDefaults.targetType || "room",
       target_id: bookingDefaults.targetId || "",
+      title: bookingDefaults.title || current.title,
+      start_time: toDateTimeLocal(bookingDefaults.startTime || current.start_time),
+      end_time: toDateTimeLocal(bookingDefaults.endTime || current.end_time),
     }));
-  }, [bookingDefaults.targetId, bookingDefaults.targetType]);
+  }, [bookingDefaults.endTime, bookingDefaults.startTime, bookingDefaults.targetId, bookingDefaults.targetType, bookingDefaults.title]);
 
   const options = useMemo(() => buildOptions(form.target_type, resources), [form.target_type, resources]);
   const selectedTargetLabel = targetTypeLabels[form.target_type] || "Objekt";
@@ -82,7 +85,7 @@ export default function CreateBooking({ isLoggedIn, setPage, bookingDefaults = {
         end_time: form.end_time,
       });
       setState((current) => ({ ...current, loading: false, success: "Ihre Reservierung wurde erstellt.", conflicts: [] }));
-      setForm({ ...form, target_id: "", title: "" });
+      setForm({ ...form, title: "" });
     } catch (error) {
       setState((current) => ({
         ...current,
@@ -202,4 +205,9 @@ function formatDate(value) {
     dateStyle: "short",
     timeStyle: "short",
   }).format(new Date(value));
+}
+
+function toDateTimeLocal(value) {
+  if (!value) return "";
+  return value.slice(0, 16);
 }

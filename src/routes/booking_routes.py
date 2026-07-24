@@ -6,6 +6,7 @@ POST   /api/bookings            – Neue Buchung erstellen
 GET    /api/bookings/<id>       – Buchung abrufen
 DELETE /api/bookings/<id>       – Buchung stornieren
 GET    /api/bookings/availability – Verfügbarkeit prüfen
+GET    /api/bookings/schedule   – Zeitblock-Kalender für ein Objekt
 """
 
 from flask import Blueprint, request, jsonify, g
@@ -174,6 +175,34 @@ def check_availability():
             "conflicts": [_booking_to_response(c) for c in conflicts],
         }), 200
     except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@bookings_bp.route("/schedule", methods=["GET"])
+def get_booking_schedule():
+    """
+    Liefert stündliche Zeitblöcke von 08:00 bis 22:00 Uhr für ein Buchungsobjekt.
+
+    Query-Parameter:
+        target_id   (str): ID des Raums, Assets oder Sitzplatzes
+        target_type (str): "room" | "asset" | "seat"
+        start_date  (str): YYYY-MM-DD
+        days        (int): Anzahl Tage, Standard 7
+    """
+    try:
+        target_type = BookingTargetType(request.args.get("target_type", ""))
+        schedule = _booking_service.get_time_block_schedule(
+            target_id=request.args.get("target_id", ""),
+            target_type=target_type,
+            start_date=request.args.get("start_date", ""),
+            days=int(request.args.get("days", 7)),
+        )
+        return jsonify({
+            "target_id": request.args.get("target_id", ""),
+            "target_type": target_type.value,
+            "schedule": schedule,
+        }), 200
+    except (ValueError, TypeError) as e:
         return jsonify({"error": str(e)}), 400
 
 
