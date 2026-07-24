@@ -9,13 +9,19 @@ GET    /api/bookings/availability – Verfügbarkeit prüfen
 """
 
 from flask import Blueprint, request, jsonify, g
+from ..models.booking import BookingTargetType
+from ..repositories.asset_repository import AssetRepository
+from ..repositories.room_repository import RoomRepository
+from ..repositories.seat_repository import SeatRepository
 from ..services.booking_service import BookingService, BookingConflictError, BookingNotFoundError
 from ..services.user_service import AuthError
-from ..models.booking import BookingTargetType
 from ..utils.auth_middleware import login_required, admin_required
 
 bookings_bp = Blueprint("bookings", __name__, url_prefix="/api/bookings")
 _booking_service = BookingService()
+_room_repo = RoomRepository()
+_seat_repo = SeatRepository()
+_asset_repo = AssetRepository()
 
 
 @bookings_bp.route("", methods=["GET"])
@@ -34,7 +40,7 @@ def get_my_bookings():
             q=request.args.get("q", ""),
         )
         return jsonify({
-            "bookings": [b.to_dict() for b in bookings],
+            "bookings": [_booking_to_response(b) for b in bookings],
             "count": len(bookings),
         }), 200
     except ValueError as e:
@@ -57,7 +63,7 @@ def get_all_bookings():
             q=request.args.get("q", ""),
         )
         return jsonify({
-            "bookings": [b.to_dict() for b in bookings],
+            "bookings": [_booking_to_response(b) for b in bookings],
             "count": len(bookings),
         }), 200
     except AuthError as e:
@@ -92,11 +98,11 @@ def create_booking():
             title=data.get("title", "Buchung"),
             seat_id=data.get("seat_id"),
         )
-        return jsonify({"booking": booking.to_dict()}), 201
+        return jsonify({"booking": _booking_to_response(booking)}), 201
     except BookingConflictError as e:
         return jsonify({
             "error": str(e),
-            "conflicts": [c.to_dict() for c in e.conflicts],
+            "conflicts": [_booking_to_response(c) for c in e.conflicts],
         }), 409
     except (ValueError, KeyError) as e:
         return jsonify({"error": str(e)}), 400
@@ -110,7 +116,7 @@ def get_booking(booking_id):
         return jsonify({"error": "Buchung nicht gefunden."}), 404
     if booking.user_id != g.current_user.id and not g.current_user.is_admin():
         return jsonify({"error": "Zugriff verweigert."}), 403
-    return jsonify({"booking": booking.to_dict()}), 200
+    return jsonify({"booking": _booking_to_response(booking)}), 200
 
 
 @bookings_bp.route("/<booking_id>", methods=["DELETE"])
@@ -121,7 +127,7 @@ def cancel_booking(booking_id):
         booking = _booking_service.cancel_booking(booking_id, g.current_user)
         return jsonify({
             "message": "Buchung wurde erfolgreich storniert.",
-            "booking": booking.to_dict(),
+            "booking": _booking_to_response(booking),
         }), 200
     except BookingNotFoundError as e:
         return jsonify({"error": str(e)}), 404
@@ -150,7 +156,49 @@ def check_availability():
         )
         return jsonify({
             "available": is_available,
-            "conflicts": [c.to_dict() for c in conflicts],
+            "conflicts": [_booking_to_response(c) for c in conflicts],
         }), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
+
+
+def _booking_to_response(booking):
+    data = booking.to_dict()
+    target = _resolve_booking_target(booking)
+    if target:
+        data.update(target)
+    return data
+
+
+def _resolve_booking_target(booking):
+    if booking.target_type == BookingTargetType.ASSET:
+        asset = _asset_repo.find_by_id(booking.target_id)
+        if not asset:
+            return None
+        return {
+            "target_name": asset.name,
+            "target_meta": asset.location or asset.asset_type.value,
+            "target_image_url": asset.image_url,
+        }
+
+    if booking.target_type == BookingTargetType.SEAT:
+        seat = _seat_repo.find_by_id(booking.target_id)
+        if not seat:
+            return None
+        room = _room_repo.find_by_id(seat.room_id)
+        room_name = room.name if room else ""
+        return {
+            "target_name": f"Sitzplatz {seat.label}",
+            "target_meta": room_name,
+            "target_image_url": seat.image_url or (room.image_url if room else ""),
+            "room_name": room_name,
+        }
+
+    room = _room_repo.find_by_id(booking.target_id)
+    if not room:
+        return None
+    return {
+        "target_name": room.name,
+        "target_meta": room.location or room.number,
+        "target_image_url": room.image_url,
+    }

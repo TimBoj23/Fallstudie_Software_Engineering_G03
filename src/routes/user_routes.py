@@ -2,6 +2,7 @@
 Routes: Users API
 GET  /api/users                  - Nutzerübersicht (Admin)
 POST /api/users                  - Nutzer anlegen (Admin)
+PUT  /api/users/<id>             - Nutzer bearbeiten (Admin)
 POST /api/users/<id>/reset-password - Passwort zurücksetzen (Admin)
 """
 
@@ -61,6 +62,27 @@ def reset_user_password(user_id):
             "temporary_password": new_password,
             "user": user.to_public_dict(),
         }), 200
+    except AuthError as e:
+        return jsonify({"error": str(e)}), 403
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@users_bp.route("/<user_id>", methods=["PUT"])
+@admin_required
+def update_user(user_id):
+    data = request.get_json(silent=True) or {}
+    try:
+        role = UserRole(data["role"]) if "role" in data else None
+        user = _user_service.update_user(
+            user_id=user_id,
+            requesting_user=g.current_user,
+            name=data.get("name"),
+            email=data.get("email"),
+            role=role,
+            is_active=data.get("is_active") if "is_active" in data else None,
+        )
+        return jsonify({"user": user.to_public_dict()}), 200
     except AuthError as e:
         return jsonify({"error": str(e)}), 403
     except ValueError as e:

@@ -2,9 +2,11 @@
 import { Plus, RefreshCw } from "lucide-react";
 import { createAsset, getAssets } from "../api/assetsApi.js";
 import { getAllBookings } from "../api/bookingsApi.js";
+import { mediaUrl } from "../api/client.js";
+import { uploadPicture } from "../api/picturesApi.js";
 import { createRoom, getRooms } from "../api/roomsApi.js";
 import { createSeat, getSeats } from "../api/seatsApi.js";
-import { createUser, getUsers, resetUserPassword } from "../api/usersApi.js";
+import { createUser, getUsers, resetUserPassword, updateUser } from "../api/usersApi.js";
 import Button from "../components/Button.jsx";
 import EmptyState from "../components/EmptyState.jsx";
 import LoadingState from "../components/LoadingState.jsx";
@@ -19,6 +21,7 @@ export default function Admin({ isLoggedIn, isAdmin }) {
     seat: { room_id: "", label: "", description: "", monitor_count: 1, image_url: "" },
     asset: { name: "", asset_type: "other", location: "", description: "", image_url: "" },
     user: { name: "", email: "", password: "", role: "user" },
+    editUser: { id: "", name: "", email: "", role: "user", is_active: true },
     reset: { user_id: "", new_password: "" },
   });
 
@@ -107,6 +110,54 @@ export default function Admin({ isLoggedIn, isAdmin }) {
     }
   }
 
+  async function handlePictureFile(entity, file) {
+    if (!file) return;
+    setState((current) => ({ ...current, loading: true, error: "", success: "" }));
+    try {
+      const result = await uploadPicture(file);
+      setForms((current) => ({
+        ...current,
+        [entity]: { ...current[entity], image_url: result.image_url },
+      }));
+      setState((current) => ({ ...current, loading: false, success: "Bild wurde hochgeladen." }));
+    } catch (error) {
+      setState((current) => ({ ...current, loading: false, error: error.message, success: "" }));
+    }
+  }
+
+  function selectUser(userId) {
+    const user = (state.data.users || []).find((item) => item.id === userId);
+    setForms((current) => ({
+      ...current,
+      editUser: user
+        ? {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            is_active: user.is_active,
+          }
+        : { id: "", name: "", email: "", role: "user", is_active: true },
+    }));
+  }
+
+  async function saveUser(event) {
+    event.preventDefault();
+    setState((current) => ({ ...current, loading: true, error: "", success: "" }));
+    try {
+      await updateUser(forms.editUser.id, {
+        name: forms.editUser.name,
+        email: forms.editUser.email,
+        role: forms.editUser.role,
+        is_active: forms.editUser.is_active,
+      });
+      await load();
+      setState((current) => ({ ...current, loading: false, success: "Nutzer wurde aktualisiert." }));
+    } catch (error) {
+      setState((current) => ({ ...current, loading: false, error: error.message, success: "" }));
+    }
+  }
+
   return (
     <div className="page-stack">
       <Panel
@@ -139,7 +190,11 @@ export default function Admin({ isLoggedIn, isAdmin }) {
                   <input placeholder="Standort" value={forms.room.location} onChange={(e) => setForms({ ...forms, room: { ...forms.room, location: e.target.value } })} />
                 </div>
                 <input placeholder="Ausstattung, kommagetrennt" value={forms.room.equipment} onChange={(e) => setForms({ ...forms, room: { ...forms.room, equipment: e.target.value } })} />
-                <input placeholder="Bild-URL" value={forms.room.image_url} onChange={(e) => setForms({ ...forms, room: { ...forms.room, image_url: e.target.value } })} />
+                <PictureInput
+                  label="Raumbild"
+                  value={forms.room.image_url}
+                  onChange={(file) => handlePictureFile("room", file)}
+                />
                 <textarea placeholder="Beschreibung" value={forms.room.description} onChange={(e) => setForms({ ...forms, room: { ...forms.room, description: e.target.value } })} />
               </>
             )}
@@ -148,7 +203,11 @@ export default function Admin({ isLoggedIn, isAdmin }) {
                 <input placeholder="Zugehöriger Raum" value={forms.seat.room_id} onChange={(e) => setForms({ ...forms, seat: { ...forms.seat, room_id: e.target.value } })} required />
                 <input placeholder="Label" value={forms.seat.label} onChange={(e) => setForms({ ...forms, seat: { ...forms.seat, label: e.target.value } })} required />
                 <input type="number" min="1" placeholder="Monitore" value={forms.seat.monitor_count} onChange={(e) => setForms({ ...forms, seat: { ...forms.seat, monitor_count: e.target.value } })} />
-                <input placeholder="Bild-URL" value={forms.seat.image_url} onChange={(e) => setForms({ ...forms, seat: { ...forms.seat, image_url: e.target.value } })} />
+                <PictureInput
+                  label="Sitzplatzbild"
+                  value={forms.seat.image_url}
+                  onChange={(file) => handlePictureFile("seat", file)}
+                />
                 <textarea placeholder="Beschreibung" value={forms.seat.description} onChange={(e) => setForms({ ...forms, seat: { ...forms.seat, description: e.target.value } })} />
               </>
             )}
@@ -168,7 +227,11 @@ export default function Admin({ isLoggedIn, isAdmin }) {
                   </select>
                 </div>
                 <input placeholder="Standort" value={forms.asset.location} onChange={(e) => setForms({ ...forms, asset: { ...forms.asset, location: e.target.value } })} />
-                <input placeholder="Bild-URL" value={forms.asset.image_url} onChange={(e) => setForms({ ...forms, asset: { ...forms.asset, image_url: e.target.value } })} />
+                <PictureInput
+                  label="Assetbild"
+                  value={forms.asset.image_url}
+                  onChange={(file) => handlePictureFile("asset", file)}
+                />
                 <textarea placeholder="Beschreibung" value={forms.asset.description} onChange={(e) => setForms({ ...forms, asset: { ...forms.asset, description: e.target.value } })} />
               </>
             )}
@@ -205,6 +268,29 @@ export default function Admin({ isLoggedIn, isAdmin }) {
             </div>
             <Button type="submit" variant="secondary" disabled={state.loading}>Passwort zurücksetzen</Button>
           </form>
+          <form className="form-stack" onSubmit={saveUser}>
+            <div className="form-grid two">
+              <select value={forms.editUser.id} onChange={(e) => selectUser(e.target.value)} required>
+                <option value="">Nutzer zum Bearbeiten auswählen</option>
+                {(state.data.users || []).map((user) => (
+                  <option key={user.id} value={user.id}>{user.name} ({user.email})</option>
+                ))}
+              </select>
+              <select value={forms.editUser.role} onChange={(e) => setForms({ ...forms, editUser: { ...forms.editUser, role: e.target.value } })}>
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            <div className="form-grid two">
+              <input placeholder="Name" value={forms.editUser.name} onChange={(e) => setForms({ ...forms, editUser: { ...forms.editUser, name: e.target.value } })} required />
+              <input type="email" placeholder="E-Mail" value={forms.editUser.email} onChange={(e) => setForms({ ...forms, editUser: { ...forms.editUser, email: e.target.value } })} required />
+            </div>
+            <label className="inline-check">
+              <input type="checkbox" checked={forms.editUser.is_active} onChange={(e) => setForms({ ...forms, editUser: { ...forms.editUser, is_active: e.target.checked } })} />
+              <span>Nutzer ist aktiv</span>
+            </label>
+            <Button type="submit" variant="secondary" disabled={state.loading || !forms.editUser.id}>Nutzer speichern</Button>
+          </form>
         </Panel>
       )}
 
@@ -220,13 +306,35 @@ function AdminList({ tab, data }) {
       <div className="data-table">
         {items.length === 0 ? <EmptyState title="Keine Einträge" /> : items.map((item) => (
           <div className="data-row" key={item.id}>
-            <strong>{item.name || item.label || item.title || item.id}</strong>
-            <span>{item.number || item.asset_type || item.target_type || item.room_id || item.location}</span>
+            <strong>{item.name || item.label || item.title || item.target_name || item.id}</strong>
+            <span>{detail(item)}</span>
             <code>{item.id}</code>
           </div>
         ))}
       </div>
     </Panel>
+  );
+}
+
+function detail(item) {
+  if (item.email) {
+    return `${item.email} · ${item.role}`;
+  }
+  return item.email || item.target_name || item.number || item.asset_type || item.target_type || item.room_id || item.location || item.role;
+}
+
+function PictureInput({ label, value, onChange }) {
+  return (
+    <label className="picture-input">
+      <span>{label}</span>
+      <input type="file" accept="image/png,image/jpeg" onChange={(event) => onChange(event.target.files?.[0])} />
+      {value && (
+        <div className="picture-preview">
+          <img src={mediaUrl(value)} alt={label} />
+          <code>{value}</code>
+        </div>
+      )}
+    </label>
   );
 }
 

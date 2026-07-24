@@ -1,11 +1,12 @@
 import { CalendarPlus, MapPin, Users } from "lucide-react";
+import { mediaUrl } from "../api/client.js";
 import Button from "./Button.jsx";
 
 export default function ResourceCard({ title, meta, description, chips = [], onBook, capacity, location, imageUrl, available }) {
   return (
     <article className="resource-card">
       {imageUrl && (
-        <img className="resource-image" src={imageUrl} alt={title} loading="lazy" />
+        <img className="resource-image" src={mediaUrl(imageUrl)} alt={title} loading="lazy" />
       )}
       <div className="resource-card-main">
         <div>

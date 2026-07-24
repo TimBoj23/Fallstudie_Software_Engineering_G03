@@ -11,6 +11,7 @@
       "Videokonferenz"
     ],
     "description": "Großer Meetingraum für Teamgespräche",
+    "image_url": "/pictures/Meetingraum_Alpha.jpeg",
     "is_active": true,
     "created_at": "2026-06-01T15:02:10.127924"
   },
@@ -25,6 +26,7 @@
       "Monitor"
     ],
     "description": "Kompakter Projektraum",
+    "image_url": "/pictures/Projektraum_Beta.jpg",
     "is_active": true,
     "created_at": "2026-06-01T15:02:10.129116"
   }

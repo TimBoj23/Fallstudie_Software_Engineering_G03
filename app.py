@@ -14,7 +14,7 @@ API läuft unter: http://localhost:5002
 """
 
 import os
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
 
 
@@ -59,6 +59,7 @@ def create_app(config: dict = None) -> Flask:
     from src.routes.seat_routes import seats_bp, room_seats_bp
     from src.routes.asset_routes import assets_bp
     from src.routes.booking_routes import bookings_bp
+    from src.routes.picture_routes import pictures_bp
     from src.routes.user_routes import users_bp
 
     app.register_blueprint(auth_bp)
@@ -67,6 +68,7 @@ def create_app(config: dict = None) -> Flask:
     app.register_blueprint(room_seats_bp)
     app.register_blueprint(assets_bp)
     app.register_blueprint(bookings_bp)
+    app.register_blueprint(pictures_bp)
     app.register_blueprint(users_bp)
 
     # ── Health-Check Endpoint ──────────────────────────────────────────────────
@@ -78,6 +80,12 @@ def create_app(config: dict = None) -> Flask:
             "service": "RePlan API",
             "version": "1.0.0-mvp",
         }), 200
+
+    @app.route("/pictures/<path:filename>", methods=["GET"])
+    def pictures(filename):
+        """Liefert lokal gespeicherte Demo- und Upload-Bilder aus."""
+        pictures_dir = os.path.join(app.root_path, "data", "pictures")
+        return send_from_directory(pictures_dir, filename)
 
     # ── API-Übersicht ──────────────────────────────────────────────────────────
     @app.route("/api", methods=["GET"])
@@ -96,7 +104,12 @@ def create_app(config: dict = None) -> Flask:
                 "users": {
                     "GET  /api/users": "Alle Nutzer anzeigen [Admin]",
                     "POST /api/users": "Nutzer anlegen [Admin]",
+                    "PUT  /api/users/<id>": "Nutzer bearbeiten [Admin]",
                     "POST /api/users/<id>/reset-password": "Nutzerpasswort zurücksetzen [Admin]",
+                },
+                "pictures": {
+                    "POST /api/pictures": "Bilddatei hochladen [Admin]",
+                    "GET  /pictures/<filename>": "Lokales Bild anzeigen",
                 },
                 "rooms": {
                     "GET  /api/rooms": "Alle Räume (optional: ?q=&location=&min_capacity=&equipment=&start=&end=)",

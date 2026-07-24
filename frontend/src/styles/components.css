@@ -363,6 +363,21 @@
   gap: var(--space-4);
 }
 
+.booking-card-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.booking-image {
+  width: 108px;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  flex: 0 0 108px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface-muted);
+}
+
 .booking-title-row {
   display: flex;
   align-items: center;
@@ -374,6 +389,42 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
+}
+
+.picture-input {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.picture-input input[type="file"] {
+  padding: 8px;
+}
+
+.picture-preview {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.picture-preview img {
+  width: 72px;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface-muted);
+}
+
+.inline-check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.inline-check input {
+  width: auto;
+  min-height: auto;
 }
 
 .tabs button {

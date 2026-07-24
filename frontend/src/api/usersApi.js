@@ -17,3 +17,10 @@ export function resetUserPassword(id, payload) {
     body: payload,
   });
 }
+
+export function updateUser(id, payload) {
+  return apiRequest(`/users/${id}`, {
+    method: "PUT",
+    body: payload,
+  });
+}

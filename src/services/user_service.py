@@ -154,6 +154,42 @@ class UserService:
         self._repo.update(user)
         return user
 
+    def update_user(
+        self,
+        user_id: str,
+        requesting_user: User,
+        name: str = None,
+        email: str = None,
+        role: UserRole = None,
+        is_active: bool = None,
+    ) -> User:
+        """Bearbeitet wesentliche Nutzereigenschaften als Admin."""
+        if not requesting_user.is_admin():
+            raise AuthError("Nur Administratoren können Nutzer bearbeiten.")
+        user = self._repo.find_by_id(user_id)
+        if not user:
+            raise ValueError(f"Nutzer mit ID '{user_id}' nicht gefunden.")
+
+        if name is not None:
+            if not name.strip():
+                raise ValueError("Name darf nicht leer sein.")
+            user.name = name.strip()
+        if email is not None:
+            normalized_email = email.lower().strip()
+            if "@" not in normalized_email:
+                raise ValueError("Ungültige E-Mail-Adresse.")
+            existing = self._repo.find_by_email(normalized_email)
+            if existing and existing.id != user.id:
+                raise ValueError(f"E-Mail-Adresse '{normalized_email}' ist bereits registriert.")
+            user.email = normalized_email
+        if role is not None:
+            user.role = role
+        if is_active is not None:
+            user.is_active = bool(is_active)
+
+        self._repo.update(user)
+        return user
+
     def reset_password_by_email(self, email: str, new_password: str) -> User:
         """
         MVP-Passwort-vergessen-Funktion.
