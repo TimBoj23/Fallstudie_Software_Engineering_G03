@@ -65,26 +65,30 @@ class JsonRepository(Generic[T]):
         os.makedirs(os.path.dirname(db_path), exist_ok=True)
         conn = sqlite3.connect(db_path)
         conn.row_factory = sqlite3.Row
+        self._ensure_sqlite_schema(conn)
         return conn
+
+    def _ensure_sqlite_schema(self, conn) -> None:
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS records (
+                collection TEXT NOT NULL,
+                id TEXT NOT NULL,
+                data TEXT NOT NULL,
+                PRIMARY KEY (collection, id)
+            )
+            """
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_records_collection ON records(collection)"
+        )
 
     def _ensure_file_exists(self) -> None:
         """Legt die Datei und Verzeichnisstruktur an, wenn sie nicht existiert."""
         os.makedirs(os.path.dirname(self._filepath), exist_ok=True)
         if self._use_sqlite():
-            with self._connect() as conn:
-                conn.execute(
-                    """
-                    CREATE TABLE IF NOT EXISTS records (
-                        collection TEXT NOT NULL,
-                        id TEXT NOT NULL,
-                        data TEXT NOT NULL,
-                        PRIMARY KEY (collection, id)
-                    )
-                    """
-                )
-                conn.execute(
-                    "CREATE INDEX IF NOT EXISTS idx_records_collection ON records(collection)"
-                )
+            with self._connect():
+                pass
             return
         if not os.path.exists(self._filepath):
             with open(self._filepath, "w", encoding="utf-8") as f:
