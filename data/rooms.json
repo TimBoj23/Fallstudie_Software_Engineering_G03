@@ -10,7 +10,7 @@
       "Whiteboard",
       "Videokonferenz"
     ],
-    "description": "Großer Meetingraum für Teamgespräche",
+    "description": "Großer Meetingraum für Teamgespräche und hybride Abstimmungen.",
     "image_url": "/pictures/Meetingraum_Alpha.jpeg",
     "is_active": true,
     "created_at": "2026-06-01T15:02:10.127924"
@@ -25,9 +25,57 @@
       "Whiteboard",
       "Monitor"
     ],
-    "description": "Kompakter Projektraum",
+    "description": "Kompakter Projektraum für Workshops und Sprintplanung.",
     "image_url": "/pictures/Projektraum_Beta.jpg",
     "is_active": true,
     "created_at": "2026-06-01T15:02:10.129116"
+  },
+  {
+    "id": "0cb052f7-0d7b-4de4-8ac1-158c4af1d110",
+    "name": "Seminarraum Gamma",
+    "number": "2001-G",
+    "capacity": 24,
+    "location": "Gebäude B, 2. OG",
+    "equipment": [
+      "Smartboard",
+      "Mikrofonanlage",
+      "Streaming-Kamera"
+    ],
+    "description": "Heller Seminarraum für Schulungen, Präsentationen und größere Teams.",
+    "image_url": "/pictures/Seminarraum_Gamma.jpg",
+    "is_active": true,
+    "created_at": "2026-07-25T09:15:00"
+  },
+  {
+    "id": "6205aa93-4048-437f-9959-1bc3382098ad",
+    "name": "Seminarraum Delta",
+    "number": "2002-D",
+    "capacity": 18,
+    "location": "Gebäude B, 2. OG",
+    "equipment": [
+      "Beamer",
+      "Flipchart",
+      "Konferenzlautsprecher"
+    ],
+    "description": "Flexibler Seminarraum für Trainings und moderierte Gruppenarbeit.",
+    "image_url": "/pictures/Seminarraum_Delta.jpg",
+    "is_active": true,
+    "created_at": "2026-07-25T09:20:00"
+  },
+  {
+    "id": "55bc739c-71dc-4bb6-a46b-d115617c9ec2",
+    "name": "Chroma Studio",
+    "number": "3001-C",
+    "capacity": 8,
+    "location": "Gebäude C, Studio",
+    "equipment": [
+      "Greenscreen",
+      "Studiolicht",
+      "Kamera-Setup"
+    ],
+    "description": "Studiofläche für Videoaufnahmen, Produktdemos und Streamingformate.",
+    "image_url": "/pictures/Seminarraum_Chroma.webp",
+    "is_active": true,
+    "created_at": "2026-07-25T09:25:00"
   }
 ]

@@ -13,7 +13,7 @@ from ..utils.auth_middleware import admin_required
 
 pictures_bp = Blueprint("pictures", __name__, url_prefix="/api/pictures")
 
-ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png"}
+ALLOWED_EXTENSIONS = {".avif", ".jpg", ".jpeg", ".png", ".webp"}
 
 
 @pictures_bp.route("", methods=["POST"])
@@ -25,7 +25,7 @@ def upload_picture():
 
     _, ext = os.path.splitext(file.filename.lower())
     if ext not in ALLOWED_EXTENSIONS:
-        return jsonify({"error": "Nur PNG- und JPG-Dateien sind erlaubt."}), 400
+        return jsonify({"error": "Nur AVIF-, PNG-, JPG- und WebP-Dateien sind erlaubt."}), 400
 
     pictures_dir = os.path.join(current_app.root_path, "data", "pictures")
     os.makedirs(pictures_dir, exist_ok=True)

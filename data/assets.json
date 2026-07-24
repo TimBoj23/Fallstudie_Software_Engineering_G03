@@ -3,7 +3,7 @@
     "id": "6b13479b-4f4a-45b6-9a26-ab7e21673bcb",
     "name": "Beamer Epson EB-X51",
     "asset_type": "beamer",
-    "description": "Full-HD Beamer, HDMI/VGA",
+    "description": "Full-HD Beamer mit HDMI/VGA für Seminarräume.",
     "location": "Lager EG",
     "image_url": "/pictures/Beamer Epson EB-X51.jpeg",
     "is_active": true,
@@ -13,10 +13,40 @@
     "id": "cc0663eb-f782-4705-894a-368e3e900b3d",
     "name": "Laptop Dell XPS 15",
     "asset_type": "laptop",
-    "description": "Windows 11, Intel i7",
+    "description": "Windows 11, Intel i7, 32 GB RAM für Präsentationen und Workshops.",
     "location": "IT-Raum 003",
     "image_url": "/pictures/Laptop Dell XPS 15.jpeg",
     "is_active": true,
     "created_at": "2026-06-01T15:02:10.131313"
+  },
+  {
+    "id": "2eb5a05e-1c34-49eb-b1d6-8ea0ef74fb28",
+    "name": "Kamera mit Stativ",
+    "asset_type": "presentation_tech",
+    "description": "Kamera-Set für hybride Schulungen, Aufzeichnungen und Produktdemos.",
+    "location": "Medienlager B",
+    "image_url": "/pictures/Kamera_Stativ_Asset.jpg",
+    "is_active": true,
+    "created_at": "2026-07-25T09:30:00"
+  },
+  {
+    "id": "2b8fc472-e067-44e1-b05b-a1481337a3ea",
+    "name": "Rode Ansteckmikrofon",
+    "asset_type": "presentation_tech",
+    "description": "Kabelloses Lavalier-Mikrofon für Vorträge und Videoaufnahmen.",
+    "location": "Medienlager B",
+    "image_url": "/pictures/Rode_Ansteckmikrofon_Asset.jpeg",
+    "is_active": true,
+    "created_at": "2026-07-25T09:35:00"
+  },
+  {
+    "id": "761ecef4-7379-41ec-9a04-36b95d35c1ae",
+    "name": "Teufel Ultima Lautsprecher",
+    "asset_type": "presentation_tech",
+    "description": "Mobiles Lautsprecher-Set für größere Räume und Events.",
+    "location": "Eventlager C",
+    "image_url": "/pictures/Teufel_Lautsprecher_Ultima_Asset.jpeg",
+    "is_active": true,
+    "created_at": "2026-07-25T09:40:00"
   }
 ]

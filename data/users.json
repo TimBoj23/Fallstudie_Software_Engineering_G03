@@ -1,8 +1,8 @@
 [
   {
     "id": "bde9ac40-8c32-4f6d-a8cb-11190b41cbb7",
-    "name": "Max Mustermann (Demo)",
-    "email": "demo_fcdeb6@replan.de",
+    "name": "Max Mustermann",
+    "email": "max.mustermann@replan.de",
     "role": "user",
     "password_hash": "8330c1f3b4864852c997f8bf9ab1fd7b7e4f741daa0dc43063296444846aec29:86c5c4a99209d32b5c5572075f0e479d8afa199955b92742fcb7b4f7fc70af1f",
     "image_url": "/pictures/Max_Mustermann.jpg",
@@ -10,33 +10,43 @@
     "is_active": true
   },
   {
-    "id": "fe3a5c2b-d77e-450c-bceb-542f80fec791",
-    "name": "Max Musterfrau (Demo)",
-    "email": "demo_cc24df@replan.de",
-    "role": "user",
-    "password_hash": "f7de16d111c91edb095d3a7af45724f466d015ccec8797134f3bef5f37cbd32e:f8625abb074179be74117362d8689aa24104053c7f76ebd4b932c2c6bd2aa1e6",
-    "image_url": "/pictures/Max_Musterfrau.jpeg",
-    "created_at": "2026-06-01T15:08:43.643391",
-    "is_active": true
-  },
-  {
-    "id": "4e88b321-4aaf-48c7-81da-45da03d167cc",
-    "name": "Max Mustermann (Demo)",
-    "email": "demo_411b41@replan.de",
-    "role": "user",
-    "password_hash": "99a4ed42360bb5f126e326dda733b0095d4a17a765c2bbaca30baec72057632b:eea6b7491f2f3202ff5a405aaeac7ac210a56c6f3cbe51d96c0f498a68213e31",
-    "image_url": "/pictures/Max_Mustermann.jpg",
-    "created_at": "2026-06-16T11:51:33.189964",
-    "is_active": true
-  },
-  {
     "id": "a17c2c1a-c2ce-4f28-bdcf-a81b98cd9e63",
-    "name": "Tim",
+    "name": "Tim Strauss",
     "email": "tim@test-mail.de",
-    "role": "user",
+    "role": "admin",
     "password_hash": "20acb73af12012197dd64bc6b1bdf6bd27025049330aad3f6c99fbe8a0750fb8:c4d285cdb37b5a3a0e92486f2d35e57d104f87b5542f8da116720fb45ff53c29",
     "image_url": "/pictures/Tim_Test.jpg",
     "created_at": "2026-07-19T11:30:21.143863",
+    "is_active": true
+  },
+  {
+    "id": "1d47cfd5-c679-41d6-809e-6b4c3d122501",
+    "name": "Alexander Hoffmann",
+    "email": "alexander@replan.de",
+    "role": "user",
+    "password_hash": "5371e83680c0802eb07056f86e720502a05f2814bf08c2d067261330a05d4329:3b6e271bd82022efa930d6f9fa002dcc9b0d50405b55c737697d8b738c82c090",
+    "image_url": "/pictures/Alexander.avif",
+    "created_at": "2026-07-25T09:00:00",
+    "is_active": true
+  },
+  {
+    "id": "7823f770-60ad-4e2f-9e61-328fd9e36bd8",
+    "name": "Denis Wagner",
+    "email": "denis@replan.de",
+    "role": "user",
+    "password_hash": "c5842ca63322a283658a3d154d49bb8f27115dbcacf15a280005d0a194c2d2a5:124a5809e79e6214745d947ffb57b0eb158d1f8a6e92dbecb77b78daf583f927",
+    "image_url": "/pictures/Denis.png",
+    "created_at": "2026-07-25T09:05:00",
+    "is_active": true
+  },
+  {
+    "id": "e6105bc8-2c7f-4a67-9fa3-6ea538f1b5d1",
+    "name": "Florian Becker",
+    "email": "florian@replan.de",
+    "role": "user",
+    "password_hash": "5cfd432649db460054df98cbc1d9250651f40fc708569002cecf4e9d2f3b44b0:cdab2a9146f7595693c8d9fffd7ccbe4d5fd4093d3f87609c8f7ffd8bdd5da41",
+    "image_url": "/pictures/Florian.jpg",
+    "created_at": "2026-07-25T09:10:00",
     "is_active": true
   }
 ]

@@ -465,7 +465,7 @@ function PictureInput({ label, value, onChange }) {
   return (
     <label className="picture-input">
       <span>{label}</span>
-      <input type="file" accept="image/png,image/jpeg" onChange={(event) => onChange(event.target.files?.[0])} />
+      <input type="file" accept="image/avif,image/png,image/jpeg,image/webp" onChange={(event) => onChange(event.target.files?.[0])} />
       {value && (
         <div className="picture-preview">
           <img src={mediaUrl(value)} alt={label} />

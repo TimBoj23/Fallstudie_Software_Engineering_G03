@@ -3,7 +3,7 @@
     "id": "e3af1d4b-2603-471f-a5eb-2a3d79729bce",
     "room_id": "6a188a9c-9ee3-4165-9fdd-1e903619b192",
     "label": "A1",
-    "description": "Demo-Sitzplatz A1",
+    "description": "Arbeitsplatz am Fenster mit einem Monitor.",
     "image_url": "/pictures/BArbeitsplatz_1_Monitor.jpeg",
     "monitor_count": 1,
     "is_active": true,
@@ -13,7 +13,7 @@
     "id": "b380f9b9-aef6-4769-b4ae-db6852466ebc",
     "room_id": "6a188a9c-9ee3-4165-9fdd-1e903619b192",
     "label": "A2",
-    "description": "Demo-Sitzplatz A2",
+    "description": "Arbeitsplatz mit Dockingstation und zwei Monitoren.",
     "image_url": "/pictures/Arbeitsplatz_zwei_Monitore.jpg",
     "monitor_count": 2,
     "is_active": true,
@@ -23,10 +23,60 @@
     "id": "662a3c9c-77b5-42e7-b7c9-c1a24ea0fadf",
     "room_id": "6a188a9c-9ee3-4165-9fdd-1e903619b192",
     "label": "A3",
-    "description": "Demo-Sitzplatz A3",
+    "description": "Power-User-Arbeitsplatz mit drei Monitoren.",
     "image_url": "/pictures/Arbeitsplatz_3_Monitore.jpg",
     "monitor_count": 3,
     "is_active": true,
     "created_at": "2026-06-16T11:51:20.239290"
+  },
+  {
+    "id": "05ec50c2-799d-4117-80fb-a5c9130b2554",
+    "room_id": "19775325-1af8-409b-ac79-154a34cb9ae0",
+    "label": "B1",
+    "description": "Ruhiger Arbeitsplatz für konzentrierte Projektarbeit.",
+    "image_url": "/pictures/BArbeitsplatz_1_Monitor.jpeg",
+    "monitor_count": 1,
+    "is_active": true,
+    "created_at": "2026-07-25T09:45:00"
+  },
+  {
+    "id": "85365504-bca0-4f46-8703-9a7ed7daf3c9",
+    "room_id": "19775325-1af8-409b-ac79-154a34cb9ae0",
+    "label": "B2",
+    "description": "Doppelmonitor-Arbeitsplatz für Analyse und Entwicklung.",
+    "image_url": "/pictures/Arbeitsplatz_zwei_Monitore.jpg",
+    "monitor_count": 2,
+    "is_active": true,
+    "created_at": "2026-07-25T09:50:00"
+  },
+  {
+    "id": "ba4c9763-3efa-4e65-a2f2-9327e0fcb4fd",
+    "room_id": "0cb052f7-0d7b-4de4-8ac1-158c4af1d110",
+    "label": "G1",
+    "description": "Seminararbeitsplatz mit einem Monitor.",
+    "image_url": "/pictures/BArbeitsplatz_1_Monitor.jpeg",
+    "monitor_count": 1,
+    "is_active": true,
+    "created_at": "2026-07-25T09:55:00"
+  },
+  {
+    "id": "39fe98df-4ffe-4ef9-9810-412b598ce749",
+    "room_id": "6205aa93-4048-437f-9959-1bc3382098ad",
+    "label": "D1",
+    "description": "Arbeitsplatz für Moderation und Raumsteuerung.",
+    "image_url": "/pictures/Arbeitsplatz_zwei_Monitore.jpg",
+    "monitor_count": 2,
+    "is_active": true,
+    "created_at": "2026-07-25T10:00:00"
+  },
+  {
+    "id": "82a66eef-0d97-4da1-9f9e-aa389193db23",
+    "room_id": "55bc739c-71dc-4bb6-a46b-d115617c9ec2",
+    "label": "C1",
+    "description": "Studioarbeitsplatz für Aufnahmeleitung und Monitoring.",
+    "image_url": "/pictures/Arbeitsplatz_3_Monitore.jpg",
+    "monitor_count": 3,
+    "is_active": true,
+    "created_at": "2026-07-25T10:05:00"
   }
 ]
