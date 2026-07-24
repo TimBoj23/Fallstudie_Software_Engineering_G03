@@ -11,6 +11,7 @@ Architekturentscheidung Passwort-Hashing:
 
 import hashlib
 import os
+import secrets
 import uuid
 from typing import Optional
 
@@ -128,6 +129,49 @@ class UserService:
     def get_all(self) -> list:
         return self._repo.find_active()
 
+    def create_user(
+        self,
+        name: str,
+        email: str,
+        password: str,
+        requesting_user: User,
+        role: UserRole = UserRole.USER,
+    ) -> User:
+        """Legt als Admin einen Nutzer an."""
+        if not requesting_user.is_admin():
+            raise AuthError("Nur Administratoren können Nutzer anlegen.")
+        return self.register(name=name, email=email, password=password, role=role)
+
+    def reset_password(self, user_id: str, new_password: str, requesting_user: User) -> User:
+        """Setzt als Admin das Passwort eines Nutzers zurück."""
+        if not requesting_user.is_admin():
+            raise AuthError("Nur Administratoren können Passwörter zurücksetzen.")
+        user = self._repo.find_by_id(user_id)
+        if not user:
+            raise ValueError(f"Nutzer mit ID '{user_id}' nicht gefunden.")
+        self._validate_password(new_password)
+        user.password_hash = self._hash_password(new_password)
+        self._repo.update(user)
+        return user
+
+    def reset_password_by_email(self, email: str, new_password: str) -> User:
+        """
+        MVP-Passwort-vergessen-Funktion.
+
+        In Produktion würde hier ein zeitlich begrenzter Reset-Token per E-Mail
+        verschickt. Für die Demo wird das Passwort direkt gesetzt.
+        """
+        user = self._repo.find_by_email(email)
+        if not user:
+            raise AuthError("E-Mail-Adresse nicht gefunden.")
+        self._validate_password(new_password)
+        user.password_hash = self._hash_password(new_password)
+        self._repo.update(user)
+        return user
+
+    def generate_temporary_password(self) -> str:
+        return secrets.token_urlsafe(9)
+
     def deactivate(self, user_id: str, requesting_user: User) -> User:
         """Deaktiviert einen Nutzer (Soft-Delete). Nur Admins erlaubt."""
         if not requesting_user.is_admin():
@@ -138,6 +182,10 @@ class UserService:
         user.is_active = False
         self._repo.update(user)
         return user
+
+    def _validate_password(self, password: str) -> None:
+        if not password or len(password) < 6:
+            raise ValueError("Passwort muss mindestens 6 Zeichen lang sein.")
 
     def promote_to_admin(self, user_id: str, requesting_user: User) -> User:
         """Befördert einen Nutzer zum Admin. Nur Admins erlaubt."""

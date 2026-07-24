@@ -4,6 +4,7 @@ import { createAsset, getAssets } from "../api/assetsApi.js";
 import { getAllBookings } from "../api/bookingsApi.js";
 import { createRoom, getRooms } from "../api/roomsApi.js";
 import { createSeat, getSeats } from "../api/seatsApi.js";
+import { createUser, getUsers, resetUserPassword } from "../api/usersApi.js";
 import Button from "../components/Button.jsx";
 import EmptyState from "../components/EmptyState.jsx";
 import LoadingState from "../components/LoadingState.jsx";
@@ -14,20 +15,23 @@ export default function Admin({ isLoggedIn, isAdmin }) {
   const [tab, setTab] = useState("rooms");
   const [state, setState] = useState({ loading: false, error: "", success: "", data: {} });
   const [forms, setForms] = useState({
-    room: { name: "", number: "", capacity: 1, location: "", equipment: "", description: "" },
-    seat: { room_id: "", label: "", description: "" },
-    asset: { name: "", asset_type: "other", location: "", description: "" },
+    room: { name: "", number: "", capacity: 1, location: "", equipment: "", description: "", image_url: "" },
+    seat: { room_id: "", label: "", description: "", monitor_count: 1, image_url: "" },
+    asset: { name: "", asset_type: "other", location: "", description: "", image_url: "" },
+    user: { name: "", email: "", password: "", role: "user" },
+    reset: { user_id: "", new_password: "" },
   });
 
   async function load() {
     if (!isAdmin) return;
     setState((current) => ({ ...current, loading: true, error: "", success: "" }));
     try {
-      const [rooms, seats, assets, bookings] = await Promise.all([
+      const [rooms, seats, assets, bookings, users] = await Promise.all([
         getRooms(),
         getSeats(),
         getAssets(),
         getAllBookings(),
+        getUsers(),
       ]);
       setState({
         loading: false,
@@ -38,6 +42,7 @@ export default function Admin({ isLoggedIn, isAdmin }) {
           seats: seats.seats || [],
           assets: assets.assets || [],
           bookings: bookings.bookings || [],
+          users: users.users || [],
         },
       });
     } catch (error) {
@@ -74,8 +79,29 @@ export default function Admin({ isLoggedIn, isAdmin }) {
       if (tab === "assets") {
         await createAsset(forms.asset);
       }
+      if (tab === "users") {
+        await createUser(forms.user);
+      }
       await load();
       setState((current) => ({ ...current, success: "Eintrag wurde angelegt." }));
+    } catch (error) {
+      setState((current) => ({ ...current, loading: false, error: error.message, success: "" }));
+    }
+  }
+
+  async function resetPassword(event) {
+    event.preventDefault();
+    setState((current) => ({ ...current, loading: true, error: "", success: "" }));
+    try {
+      const result = await resetUserPassword(forms.reset.user_id, {
+        new_password: forms.reset.new_password,
+      });
+      await load();
+      setState((current) => ({
+        ...current,
+        loading: false,
+        success: `Passwort wurde zurückgesetzt: ${result.temporary_password}`,
+      }));
     } catch (error) {
       setState((current) => ({ ...current, loading: false, error: error.message, success: "" }));
     }
@@ -89,7 +115,7 @@ export default function Admin({ isLoggedIn, isAdmin }) {
         actions={<Button variant="secondary" icon={RefreshCw} onClick={load}>Aktualisieren</Button>}
       >
         <div className="tabs">
-          {["rooms", "seats", "assets", "bookings"].map((item) => (
+          {["rooms", "seats", "assets", "bookings", "users"].map((item) => (
             <button key={item} className={tab === item ? "active" : ""} onClick={() => setTab(item)} type="button">
               {label(item)}
             </button>
@@ -99,7 +125,7 @@ export default function Admin({ isLoggedIn, isAdmin }) {
         {state.success && <StatusMessage type="success">{state.success}</StatusMessage>}
       </Panel>
 
-      {tab !== "bookings" && (
+      {!["bookings", "users"].includes(tab) && (
         <Panel title={`${label(tab)} anlegen`}>
           <form className="form-stack" onSubmit={createCurrent}>
             {tab === "rooms" && (
@@ -113,6 +139,7 @@ export default function Admin({ isLoggedIn, isAdmin }) {
                   <input placeholder="Standort" value={forms.room.location} onChange={(e) => setForms({ ...forms, room: { ...forms.room, location: e.target.value } })} />
                 </div>
                 <input placeholder="Ausstattung, kommagetrennt" value={forms.room.equipment} onChange={(e) => setForms({ ...forms, room: { ...forms.room, equipment: e.target.value } })} />
+                <input placeholder="Bild-URL" value={forms.room.image_url} onChange={(e) => setForms({ ...forms, room: { ...forms.room, image_url: e.target.value } })} />
                 <textarea placeholder="Beschreibung" value={forms.room.description} onChange={(e) => setForms({ ...forms, room: { ...forms.room, description: e.target.value } })} />
               </>
             )}
@@ -120,6 +147,8 @@ export default function Admin({ isLoggedIn, isAdmin }) {
               <>
                 <input placeholder="Zugehöriger Raum" value={forms.seat.room_id} onChange={(e) => setForms({ ...forms, seat: { ...forms.seat, room_id: e.target.value } })} required />
                 <input placeholder="Label" value={forms.seat.label} onChange={(e) => setForms({ ...forms, seat: { ...forms.seat, label: e.target.value } })} required />
+                <input type="number" min="1" placeholder="Monitore" value={forms.seat.monitor_count} onChange={(e) => setForms({ ...forms, seat: { ...forms.seat, monitor_count: e.target.value } })} />
+                <input placeholder="Bild-URL" value={forms.seat.image_url} onChange={(e) => setForms({ ...forms, seat: { ...forms.seat, image_url: e.target.value } })} />
                 <textarea placeholder="Beschreibung" value={forms.seat.description} onChange={(e) => setForms({ ...forms, seat: { ...forms.seat, description: e.target.value } })} />
               </>
             )}
@@ -139,10 +168,42 @@ export default function Admin({ isLoggedIn, isAdmin }) {
                   </select>
                 </div>
                 <input placeholder="Standort" value={forms.asset.location} onChange={(e) => setForms({ ...forms, asset: { ...forms.asset, location: e.target.value } })} />
+                <input placeholder="Bild-URL" value={forms.asset.image_url} onChange={(e) => setForms({ ...forms, asset: { ...forms.asset, image_url: e.target.value } })} />
                 <textarea placeholder="Beschreibung" value={forms.asset.description} onChange={(e) => setForms({ ...forms, asset: { ...forms.asset, description: e.target.value } })} />
               </>
             )}
             <Button type="submit" icon={Plus} disabled={state.loading}>Anlegen</Button>
+          </form>
+        </Panel>
+      )}
+
+      {tab === "users" && (
+        <Panel title="Nutzer verwalten">
+          <form className="form-stack" onSubmit={createCurrent}>
+            <div className="form-grid two">
+              <input placeholder="Name" value={forms.user.name} onChange={(e) => setForms({ ...forms, user: { ...forms.user, name: e.target.value } })} required />
+              <input type="email" placeholder="E-Mail" value={forms.user.email} onChange={(e) => setForms({ ...forms, user: { ...forms.user, email: e.target.value } })} required />
+            </div>
+            <div className="form-grid two">
+              <input type="password" placeholder="Passwort" value={forms.user.password} onChange={(e) => setForms({ ...forms, user: { ...forms.user, password: e.target.value } })} required />
+              <select value={forms.user.role} onChange={(e) => setForms({ ...forms, user: { ...forms.user, role: e.target.value } })}>
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            <Button type="submit" icon={Plus} disabled={state.loading}>Nutzer anlegen</Button>
+          </form>
+          <form className="form-stack" onSubmit={resetPassword}>
+            <div className="form-grid two">
+              <select value={forms.reset.user_id} onChange={(e) => setForms({ ...forms, reset: { ...forms.reset, user_id: e.target.value } })} required>
+                <option value="">Nutzer auswählen</option>
+                {(state.data.users || []).map((user) => (
+                  <option key={user.id} value={user.id}>{user.name} ({user.email})</option>
+                ))}
+              </select>
+              <input type="password" placeholder="Neues Passwort, leer = generieren" value={forms.reset.new_password} onChange={(e) => setForms({ ...forms, reset: { ...forms.reset, new_password: e.target.value } })} />
+            </div>
+            <Button type="submit" variant="secondary" disabled={state.loading}>Passwort zurücksetzen</Button>
           </form>
         </Panel>
       )}
@@ -175,5 +236,6 @@ function label(tab) {
     seats: "Sitzplätze",
     assets: "Ausstattung",
     bookings: "Buchungen",
+    users: "Nutzer",
   }[tab];
 }

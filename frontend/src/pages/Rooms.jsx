@@ -16,7 +16,7 @@ export default function Rooms({ setPage }) {
   async function load(params = filters) {
     setState((current) => ({ ...current, loading: true, error: "" }));
     try {
-      const data = await getRooms(params);
+      const data = await getRooms(withAvailabilityMode(params));
       setState({ loading: false, error: "", rooms: data.rooms || [] });
     } catch (error) {
       setState({ loading: false, error: error.message, rooms: [] });
@@ -59,6 +59,8 @@ export default function Rooms({ setPage }) {
               capacity={room.capacity}
               description={room.description}
               chips={room.equipment || []}
+              imageUrl={room.image_url}
+              available={room.available}
               onBook={() => setPage("createBooking")}
             />
           ))}
@@ -66,4 +68,8 @@ export default function Rooms({ setPage }) {
       )}
     </div>
   );
+}
+
+function withAvailabilityMode(params) {
+  return params.start && params.end ? { ...params, availability: "all" } : params;
 }

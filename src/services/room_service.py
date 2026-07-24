@@ -46,6 +46,7 @@ class RoomService:
         location: str = "",
         equipment: list = None,
         description: str = "",
+        image_url: str = "",
         requesting_user: User = None,
     ) -> Room:
         """
@@ -83,6 +84,7 @@ class RoomService:
             location=location,
             equipment=equipment or [],
             description=description,
+            image_url=image_url,
         )
         return self._repo.save(room)
 
@@ -95,6 +97,7 @@ class RoomService:
         location: str = None,
         equipment: list = None,
         description: str = None,
+        image_url: str = None,
     ) -> Room:
         """Aktualisiert einen Raum. Erfordert Admin-Rechte."""
         if not requesting_user.is_admin():
@@ -115,6 +118,8 @@ class RoomService:
             room.equipment = equipment
         if description is not None:
             room.description = description
+        if image_url is not None:
+            room.image_url = image_url
 
         self._repo.update(room)
         return room

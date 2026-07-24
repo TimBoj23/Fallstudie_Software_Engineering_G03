@@ -3,6 +3,7 @@ Routes: Auth API
 POST /api/auth/register  – Registrierung
 POST /api/auth/login     – Login (gibt User-ID zurück, JWT-ready)
 POST /api/auth/logout    – Logout
+POST /api/auth/forgot-password – Passwort zurücksetzen (MVP)
 """
 
 from flask import Blueprint, request, jsonify
@@ -70,6 +71,31 @@ def login():
         }), 200
     except AuthError as e:
         return jsonify({"error": str(e)}), 401
+
+
+@auth_bp.route("/forgot-password", methods=["POST"])
+def forgot_password():
+    """
+    MVP-Passwort-zurücksetzen.
+
+    Body:
+        email        (str)
+        new_password (str)
+    """
+    data = request.get_json(silent=True) or {}
+    try:
+        user = _user_service.reset_password_by_email(
+            email=data.get("email", ""),
+            new_password=data.get("new_password", ""),
+        )
+        return jsonify({
+            "message": "Passwort wurde zurückgesetzt.",
+            "user": user.to_public_dict(),
+        }), 200
+    except AuthError as e:
+        return jsonify({"error": str(e)}), 404
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
 
 
 @auth_bp.route("/logout", methods=["POST"])

@@ -128,6 +128,8 @@ class BookingService:
 
         # 3. Konflikte prüfen ← KERNLOGIK
         conflicts = self._find_booking_conflicts(target_id, target_type, start_time, end_time)
+        if target_type == BookingTargetType.SEAT:
+            conflicts.extend(self._find_user_seat_conflicts(user.id, start_time, end_time))
         if conflicts:
             existing = conflicts[0]
             raise BookingConflictError(
@@ -469,6 +471,16 @@ class BookingService:
             conflicts.extend(self._find_room_seat_conflicts(target_id, start_time, end_time))
 
         return conflicts
+
+    def _find_user_seat_conflicts(
+        self, user_id: str, start_time: str, end_time: str
+    ) -> List[Booking]:
+        """Verhindert, dass ein Nutzer parallel mehrere Sitzplätze bucht."""
+        return [
+            booking for booking in self._booking_repo.find_active_by_user(user_id)
+            if booking.target_type == BookingTargetType.SEAT
+            and booking.overlaps_with(start_time, end_time)
+        ]
 
     def _find_room_seat_conflicts(
         self, room_id: str, start_time: str, end_time: str

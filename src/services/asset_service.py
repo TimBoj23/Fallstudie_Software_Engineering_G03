@@ -58,6 +58,7 @@ class AssetService:
         asset_type: AssetType,
         description: str = "",
         location: str = "",
+        image_url: str = "",
         requesting_user: User = None,
     ) -> Asset:
         """Legt ein neues Asset an. Erfordert Admin-Rechte."""
@@ -72,6 +73,7 @@ class AssetService:
             asset_type=asset_type,
             description=description,
             location=location,
+            image_url=image_url,
         )
         return self._repo.save(asset)
 
@@ -83,6 +85,7 @@ class AssetService:
         asset_type: AssetType = None,
         description: str = None,
         location: str = None,
+        image_url: str = None,
     ) -> Asset:
         """Aktualisiert ein Asset. Erfordert Admin-Rechte."""
         if not requesting_user.is_admin():
@@ -99,6 +102,8 @@ class AssetService:
             asset.description = description
         if location is not None:
             asset.location = location
+        if image_url is not None:
+            asset.image_url = image_url
 
         self._repo.update(asset)
         return asset

@@ -42,6 +42,8 @@ class SeatService:
         room_id: str,
         label: str,
         description: str = "",
+        image_url: str = "",
+        monitor_count: int = 1,
         requesting_user: User = None,
     ) -> Seat:
         """Legt einen neuen Sitzplatz an. Erfordert Admin-Rechte."""
@@ -52,12 +54,16 @@ class SeatService:
             raise ValueError("Sitzplatzbezeichnung darf nicht leer sein.")
         if self._repo.label_exists(room_id, label):
             raise ValueError(f"Sitzplatz '{label}' existiert in diesem Raum bereits.")
+        if monitor_count < 1:
+            raise ValueError("Monitoranzahl muss mindestens 1 sein.")
 
         seat = Seat(
             id=str(uuid.uuid4()),
             room_id=room_id,
             label=label.strip(),
             description=description,
+            image_url=image_url,
+            monitor_count=monitor_count,
         )
         return self._repo.save(seat)
 
@@ -67,6 +73,8 @@ class SeatService:
         requesting_user: User,
         label: str = None,
         description: str = None,
+        image_url: str = None,
+        monitor_count: int = None,
     ) -> Seat:
         """Aktualisiert einen Sitzplatz. Erfordert Admin-Rechte."""
         if not requesting_user.is_admin():
@@ -83,6 +91,12 @@ class SeatService:
             seat.label = label.strip()
         if description is not None:
             seat.description = description
+        if image_url is not None:
+            seat.image_url = image_url
+        if monitor_count is not None:
+            if monitor_count < 1:
+                raise ValueError("Monitoranzahl muss mindestens 1 sein.")
+            seat.monitor_count = monitor_count
 
         self._repo.update(seat)
         return seat

@@ -20,3 +20,10 @@ export function logoutUser() {
     body: {},
   });
 }
+
+export function forgotPassword(payload) {
+  return apiRequest("/auth/forgot-password", {
+    method: "POST",
+    body: payload,
+  });
+}

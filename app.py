@@ -59,6 +59,7 @@ def create_app(config: dict = None) -> Flask:
     from src.routes.seat_routes import seats_bp, room_seats_bp
     from src.routes.asset_routes import assets_bp
     from src.routes.booking_routes import bookings_bp
+    from src.routes.user_routes import users_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(rooms_bp)
@@ -66,6 +67,7 @@ def create_app(config: dict = None) -> Flask:
     app.register_blueprint(room_seats_bp)
     app.register_blueprint(assets_bp)
     app.register_blueprint(bookings_bp)
+    app.register_blueprint(users_bp)
 
     # ── Health-Check Endpoint ──────────────────────────────────────────────────
     @app.route("/api/health", methods=["GET"])
@@ -89,6 +91,12 @@ def create_app(config: dict = None) -> Flask:
                     "POST /api/auth/register": "Nutzer registrieren",
                     "POST /api/auth/login": "Nutzer anmelden",
                     "POST /api/auth/logout": "Nutzer abmelden",
+                    "POST /api/auth/forgot-password": "Passwort zurücksetzen [MVP]",
+                },
+                "users": {
+                    "GET  /api/users": "Alle Nutzer anzeigen [Admin]",
+                    "POST /api/users": "Nutzer anlegen [Admin]",
+                    "POST /api/users/<id>/reset-password": "Nutzerpasswort zurücksetzen [Admin]",
                 },
                 "rooms": {
                     "GET  /api/rooms": "Alle Räume (optional: ?q=&location=&min_capacity=&equipment=&start=&end=)",

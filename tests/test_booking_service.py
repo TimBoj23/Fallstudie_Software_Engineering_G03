@@ -395,6 +395,12 @@ class TestConflictPrevention:
         self, booking_service, demo_room, seat_repo, user
     ):
         """Automatische Zuweisung wählt den nächsten freien Sitzplatz."""
+        other_user = User(
+            id=str(uuid.uuid4()),
+            name="Anderer Nutzer",
+            email="other-auto@test.de",
+            role=UserRole.USER,
+        )
         s1 = Seat(id=str(uuid.uuid4()), room_id=demo_room.id, label="A1")
         s2 = Seat(id=str(uuid.uuid4()), room_id=demo_room.id, label="A2")
         seat_repo.save(s1)
@@ -410,7 +416,7 @@ class TestConflictPrevention:
             title="Sitz A1",
         )
         auto_booking = booking_service.create_booking(
-            user=user,
+            user=other_user,
             target_id=demo_room.id,
             target_type=BookingTargetType.ROOM,
             start_time=start,
@@ -419,6 +425,35 @@ class TestConflictPrevention:
         )
 
         assert auto_booking.target_id == s2.id
+
+    def test_nutzer_kann_nicht_mehrere_sitzplaetze_parallel_buchen(
+        self, booking_service, demo_room, seat_repo, user
+    ):
+        """Ein Nutzer darf im gleichen Zeitraum nur einen Sitzplatz belegen."""
+        s1 = Seat(id=str(uuid.uuid4()), room_id=demo_room.id, label="A1")
+        s2 = Seat(id=str(uuid.uuid4()), room_id=demo_room.id, label="A2")
+        seat_repo.save(s1)
+        seat_repo.save(s2)
+        start, end = future(hours=23, duration=2)
+
+        booking_service.create_booking(
+            user=user,
+            target_id=s1.id,
+            target_type=BookingTargetType.SEAT,
+            start_time=start,
+            end_time=end,
+            title="Sitz A1",
+        )
+
+        with pytest.raises(BookingConflictError):
+            booking_service.create_booking(
+                user=user,
+                target_id=s2.id,
+                target_type=BookingTargetType.SEAT,
+                start_time=start,
+                end_time=end,
+                title="Sitz A2",
+            )
 
     def test_sitzplatz_doppelbuchung_wird_verhindert(
         self, booking_service, demo_room, seat_repo, user

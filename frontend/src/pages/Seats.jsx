@@ -18,7 +18,7 @@ export default function Seats({ setPage }) {
   async function load(params = filters) {
     setState((current) => ({ ...current, loading: true, error: "" }));
     try {
-      const [seatData, roomData] = await Promise.all([getSeats(params), getRooms()]);
+      const [seatData, roomData] = await Promise.all([getSeats(withAvailabilityMode(params)), getRooms()]);
       setRooms(roomData.rooms || []);
       setState({ loading: false, error: "", seats: seatData.seats || [] });
     } catch (error) {
@@ -64,6 +64,9 @@ export default function Seats({ setPage }) {
               title={seat.label}
               meta={roomNames[seat.room_id] || "Arbeitsplatz"}
               description={seat.description}
+              chips={[`${seat.monitor_count || 1} Monitor(e)`]}
+              imageUrl={seat.image_url}
+              available={seat.available}
               onBook={() => setPage("createBooking")}
             />
           ))}
@@ -71,4 +74,8 @@ export default function Seats({ setPage }) {
       )}
     </div>
   );
+}
+
+function withAvailabilityMode(params) {
+  return params.start && params.end ? { ...params, availability: "all" } : params;
 }

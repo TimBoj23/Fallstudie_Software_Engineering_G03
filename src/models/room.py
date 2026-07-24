@@ -32,6 +32,7 @@ class Room:
     location: str = ""
     equipment: List[str] = field(default_factory=list)
     description: str = ""
+    image_url: str = ""
     is_active: bool = True
     created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
 
@@ -45,6 +46,7 @@ class Room:
             "location": self.location,
             "equipment": self.equipment,
             "description": self.description,
+            "image_url": self.image_url,
             "is_active": self.is_active,
             "created_at": self.created_at,
         }
@@ -60,6 +62,7 @@ class Room:
             location=data.get("location", ""),
             equipment=data.get("equipment", []),
             description=data.get("description", ""),
+            image_url=data.get("image_url", ""),
             is_active=data.get("is_active", True),
             created_at=data.get("created_at", datetime.utcnow().isoformat()),
         )

@@ -28,7 +28,7 @@ export default function Assets({ setPage }) {
   async function load(params = filters) {
     setState((current) => ({ ...current, loading: true, error: "" }));
     try {
-      const data = await getAssets(params);
+      const data = await getAssets(withAvailabilityMode(params));
       setState({ loading: false, error: "", assets: data.assets || [] });
     } catch (error) {
       setState({ loading: false, error: error.message, assets: [] });
@@ -70,6 +70,8 @@ export default function Assets({ setPage }) {
               location={asset.location}
               description={asset.description}
               chips={[assetTypeLabels[asset.asset_type]].filter(Boolean)}
+              imageUrl={asset.image_url}
+              available={asset.available}
               onBook={() => setPage("createBooking")}
             />
           ))}
@@ -77,4 +79,8 @@ export default function Assets({ setPage }) {
       )}
     </div>
   );
+}
+
+function withAvailabilityMode(params) {
+  return params.start && params.end ? { ...params, availability: "all" } : params;
 }
