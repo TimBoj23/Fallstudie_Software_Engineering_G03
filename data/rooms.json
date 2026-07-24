@@ -4,6 +4,7 @@
     "name": "Meetingraum Alpha",
     "number": "1001-A",
     "capacity": 10,
+    "room_type": "shared_desk",
     "location": "Gebäude A, EG",
     "equipment": [
       "Beamer",
@@ -20,6 +21,7 @@
     "name": "Projektraum Beta",
     "number": "1002-B",
     "capacity": 6,
+    "room_type": "shared_desk",
     "location": "Gebäude A, 1. OG",
     "equipment": [
       "Whiteboard",
@@ -35,6 +37,7 @@
     "name": "Seminarraum Gamma",
     "number": "2001-G",
     "capacity": 24,
+    "room_type": "seminarraum",
     "location": "Gebäude B, 2. OG",
     "equipment": [
       "Smartboard",
@@ -51,6 +54,7 @@
     "name": "Seminarraum Delta",
     "number": "2002-D",
     "capacity": 18,
+    "room_type": "seminarraum",
     "location": "Gebäude B, 2. OG",
     "equipment": [
       "Beamer",
@@ -67,6 +71,7 @@
     "name": "Chroma Studio",
     "number": "3001-C",
     "capacity": 8,
+    "room_type": "studio",
     "location": "Gebäude C, Studio",
     "equipment": [
       "Greenscreen",

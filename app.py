@@ -14,6 +14,7 @@ API läuft unter: http://localhost:5002
 """
 
 import os
+import warnings
 from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
 
@@ -36,6 +37,13 @@ def create_app(config: dict = None) -> Flask:
 
     if config:
         app.config.update(config)
+
+    if app.config["SECRET_KEY"] == "replan-dev-secret-change-in-prod":
+        warnings.warn(
+            "Using default SECRET_KEY. Set SECRET_KEY environment variable outside local demo use.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
 
     # ── CORS (für Frontend-Anbindung) ──────────────────────────────────────────
     # Erlaubt Requests vom Frontend (Entwicklung: localhost:3000 / 5173 / 5174)
@@ -100,6 +108,8 @@ def create_app(config: dict = None) -> Flask:
                     "POST /api/auth/login": "Nutzer anmelden",
                     "POST /api/auth/logout": "Nutzer abmelden",
                     "POST /api/auth/forgot-password": "Passwort zurücksetzen [MVP]",
+                    "POST /api/auth/password-reset-request": "Reset-Token anfordern [MVP]",
+                    "POST /api/auth/password-reset": "Passwort per Reset-Token setzen [MVP]",
                 },
                 "users": {
                     "GET  /api/users": "Alle Nutzer anzeigen [Admin]",
@@ -112,7 +122,7 @@ def create_app(config: dict = None) -> Flask:
                     "GET  /pictures/<filename>": "Lokales Bild anzeigen",
                 },
                 "rooms": {
-                    "GET  /api/rooms": "Alle Räume (optional: ?q=&location=&min_capacity=&equipment=&start=&end=)",
+                    "GET  /api/rooms": "Alle Räume (optional: ?q=&location=&min_capacity=&room_type=&equipment=&start=&end=)",
                     "GET  /api/rooms/<id>": "Einzelnen Raum abrufen",
                     "GET  /api/rooms/<id>/seats": "Sitzplätze eines Raums abrufen",
                     "POST /api/rooms": "Raum anlegen [Admin]",
@@ -136,8 +146,10 @@ def create_app(config: dict = None) -> Flask:
                 "bookings": {
                     "GET  /api/bookings": "Eigene Buchungen [Auth]",
                     "GET  /api/bookings/all": "Alle Buchungen [Admin]",
+                    "GET  /api/bookings/occupancy": "Aktive Raumbelegung mit Nutzerkontext [Admin]",
                     "POST /api/bookings": "Buchung erstellen [Auth]",
                     "GET  /api/bookings/<id>": "Buchung abrufen [Auth]",
+                    "POST /api/bookings/<id>/verify-access": "Passwort für geschützte Buchung prüfen",
                     "DELETE /api/bookings/<id>": "Buchung stornieren [Auth]",
                     "GET  /api/bookings/availability": "Verfügbarkeit prüfen",
                 },

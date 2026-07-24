@@ -124,6 +124,15 @@ class SeatService:
             ]
         return seats
 
+    def search_in_shared_desk_rooms(self, query: str = "", room_id: str = None) -> List[Seat]:
+        """Sitzplatzsuche für Buchungen: nur Shared-Desk-Räume werden berücksichtigt."""
+        shared_room_ids = {
+            room.id for room in self._room_repo.find_active()
+            if getattr(room, "room_type", "seminarraum") == "shared_desk"
+        }
+        seats = self.search(query=query, room_id=room_id)
+        return [seat for seat in seats if seat.room_id in shared_room_ids]
+
     def _validate_room_exists(self, room_id: str) -> None:
         room = self._room_repo.find_by_id(room_id)
         if not room or not room.is_active:

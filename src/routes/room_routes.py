@@ -38,6 +38,7 @@ def get_rooms():
             query=request.args.get("q", ""),
             location=request.args.get("location", ""),
             min_capacity=int(min_capacity) if min_capacity else None,
+            room_type=request.args.get("room_type", ""),
             equipment=equipment,
         )
     except ValueError:
@@ -78,6 +79,7 @@ def create_room():
             name=data.get("name", ""),
             number=data.get("number", ""),
             capacity=data.get("capacity", 0),
+            room_type=data.get("room_type", "seminarraum"),
             location=data.get("location", ""),
             equipment=data.get("equipment", []),
             description=data.get("description", ""),
@@ -100,6 +102,7 @@ def update_room(room_id):
             requesting_user=g.current_user,
             name=data.get("name"),
             capacity=data.get("capacity"),
+            room_type=data.get("room_type"),
             location=data.get("location"),
             equipment=data.get("equipment"),
             description=data.get("description"),

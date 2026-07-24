@@ -15,6 +15,7 @@ from ..repositories.room_repository import RoomRepository
 from ..repositories.seat_repository import SeatRepository
 from ..repositories.user_repository import UserRepository
 from ..services.booking_service import BookingService, BookingConflictError, BookingNotFoundError
+from ..services.notification_service import NotificationService
 from ..services.user_service import AuthError
 from ..utils.auth_middleware import login_required, admin_required
 
@@ -24,6 +25,7 @@ _room_repo = RoomRepository()
 _seat_repo = SeatRepository()
 _asset_repo = AssetRepository()
 _user_repo = UserRepository()
+_notification_service = NotificationService()
 
 
 @bookings_bp.route("", methods=["GET"])
@@ -99,8 +101,19 @@ def create_booking():
             end_time=data.get("end_time", ""),
             title=data.get("title", "Buchung"),
             seat_id=data.get("seat_id"),
+            access_password=data.get("access_password", ""),
+            invitation_emails=data.get("invitation_emails", []),
         )
-        return jsonify({"booking": _booking_to_response(booking)}), 201
+        response_booking = _booking_to_response(booking)
+        confirmation = _notification_service.booking_confirmation(
+            g.current_user,
+            booking,
+            response_booking.get("target_name", ""),
+        )
+        return jsonify({
+            "booking": response_booking,
+            "confirmation": confirmation,
+        }), 201
     except BookingConflictError as e:
         return jsonify({
             "error": str(e),
@@ -164,8 +177,43 @@ def check_availability():
         return jsonify({"error": str(e)}), 400
 
 
+@bookings_bp.route("/<booking_id>/verify-access", methods=["POST"])
+def verify_booking_access(booking_id):
+    """Prüft ein Zugangspasswort für eine geschützte Seminarraumbuchung."""
+    data = request.get_json(silent=True) or {}
+    allowed = _booking_service.verify_booking_access(
+        booking_id=booking_id,
+        access_password=data.get("access_password", ""),
+    )
+    return jsonify({"allowed": allowed}), 200
+
+
+@bookings_bp.route("/occupancy", methods=["GET"])
+@admin_required
+def get_room_occupancy():
+    """Admin-Übersicht aktiver Buchungen je Raum inklusive Nutzerkontext."""
+    try:
+        entries = _booking_service.get_active_room_occupancy(g.current_user)
+        response = []
+        for entry in entries:
+            user = _user_repo.find_by_id(entry["user_id"])
+            if user:
+                entry.update({
+                    "user_name": user.name,
+                    "user_email": user.email,
+                    "user_image_url": user.image_url,
+                    "user_initials": _initials(user.name or user.email),
+                })
+            response.append(entry)
+        return jsonify({"occupancy": response, "count": len(response)}), 200
+    except AuthError as e:
+        return jsonify({"error": str(e)}), 403
+
+
 def _booking_to_response(booking):
     data = booking.to_dict()
+    data["has_access_password"] = bool(data.get("access_password_hash"))
+    data.pop("access_password_hash", None)
     target = _resolve_booking_target(booking)
     if target:
         data.update(target)

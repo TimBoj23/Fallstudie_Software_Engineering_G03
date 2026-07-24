@@ -4,6 +4,8 @@ POST /api/auth/register  – Registrierung
 POST /api/auth/login     – Login (gibt User-ID zurück, JWT-ready)
 POST /api/auth/logout    – Logout
 POST /api/auth/forgot-password – Passwort zurücksetzen (MVP)
+POST /api/auth/password-reset-request – Reset-Token anfordern
+POST /api/auth/password-reset – Passwort per Reset-Token setzen
 """
 
 from flask import Blueprint, request, jsonify
@@ -95,6 +97,39 @@ def forgot_password():
         }), 200
     except AuthError as e:
         return jsonify({"error": str(e)}), 404
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@auth_bp.route("/password-reset-request", methods=["POST"])
+def password_reset_request():
+    """Fordert ein Reset-Token an. Im MVP wird das Token direkt zurückgegeben."""
+    data = request.get_json(silent=True) or {}
+    try:
+        reset = _user_service.request_password_reset(email=data.get("email", ""))
+        return jsonify({
+            "message": "Reset-Token wurde erzeugt.",
+            "reset": reset,
+        }), 200
+    except AuthError as e:
+        return jsonify({"error": str(e)}), 404
+
+
+@auth_bp.route("/password-reset", methods=["POST"])
+def password_reset():
+    """Setzt ein Passwort mit gültigem Reset-Token."""
+    data = request.get_json(silent=True) or {}
+    try:
+        user = _user_service.reset_password_with_token(
+            token=data.get("token", ""),
+            new_password=data.get("new_password", ""),
+        )
+        return jsonify({
+            "message": "Passwort wurde zurückgesetzt.",
+            "user": user.to_public_dict(),
+        }), 200
+    except AuthError as e:
+        return jsonify({"error": str(e)}), 400
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 

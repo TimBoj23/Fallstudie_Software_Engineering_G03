@@ -5,8 +5,10 @@ Dieses Modell ist zentral für die Konfliktprüfung.
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime
 from enum import Enum
+from typing import List
+
+from ..utils.time import utc_now_iso
 
 
 class BookingStatus(str, Enum):
@@ -50,8 +52,10 @@ class Booking:
     end_time: str
     room_id: str = ""
     auto_assigned_seat: bool = False
+    access_password_hash: str = ""
+    invitation_emails: List[str] = field(default_factory=list)
     status: BookingStatus = BookingStatus.ACTIVE
-    created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    created_at: str = field(default_factory=utc_now_iso)
 
     def to_dict(self) -> dict:
         """Serialisiert die Buchung für JSON-Persistenz."""
@@ -65,6 +69,8 @@ class Booking:
             "end_time": self.end_time,
             "room_id": self.room_id,
             "auto_assigned_seat": self.auto_assigned_seat,
+            "access_password_hash": self.access_password_hash,
+            "invitation_emails": self.invitation_emails,
             "status": self.status.value if isinstance(self.status, BookingStatus) else self.status,
             "created_at": self.created_at,
         }
@@ -82,8 +88,10 @@ class Booking:
             end_time=data["end_time"],
             room_id=data.get("room_id", ""),
             auto_assigned_seat=data.get("auto_assigned_seat", False),
+            access_password_hash=data.get("access_password_hash", ""),
+            invitation_emails=data.get("invitation_emails", []),
             status=BookingStatus(data.get("status", BookingStatus.ACTIVE.value)),
-            created_at=data.get("created_at", datetime.utcnow().isoformat()),
+            created_at=data.get("created_at", utc_now_iso()),
         )
 
     def is_active(self) -> bool:
@@ -99,6 +107,8 @@ class Booking:
 
         Diese Methode ist der Kern der Konfliktprüfung im BookingService.
         """
+        if not self.is_active():
+            return False
         return self.start_time < end and self.end_time > start
 
     def __repr__(self) -> str:

@@ -143,13 +143,13 @@ python app.py
 Das Backend läuft anschließend unter:
 
 ```text
-http://localhost:5000
+http://localhost:5002
 ```
 
 API-Test:
 
 ```text
-http://localhost:5000/api/health
+http://localhost:5002/api/health
 ```
 
 ### 3. Frontend einrichten
@@ -267,6 +267,58 @@ Wichtige Testfälle:
 - Nutzer kann eigene Buchung stornieren.
 - Administrator kann Räume verwalten.
 - Administrator kann Ressourcen verwalten.
+
+Frontend-Build prüfen:
+
+```bash
+cd frontend
+npm run build
+```
+
+## Konfiguration
+
+Für lokale Demo-Zwecke kann das Backend ohne zusätzliche Umgebungsvariablen gestartet werden. Für jede Umgebung außerhalb der lokalen Demo muss ein eigener Flask Secret Key gesetzt werden:
+
+```bash
+export SECRET_KEY="bitte-einen-langen-zufaelligen-wert-setzen"
+```
+
+Optionale Speicher-Konfiguration:
+
+```bash
+export REPLAN_STORAGE=sqlite
+export REPLAN_DB_PATH=data/replan.sqlite
+```
+
+Standardmäßig nutzt das Projekt SQLite über `data/replan.sqlite`. Die Repository-Schicht migriert vorhandene JSON-Daten beim ersten Zugriff in SQLite.
+
+## Verwendete Frameworks und Bibliotheken
+
+| Bereich | Technologie | Hinweis |
+| --- | --- | --- |
+| Backend | Python, Flask, Flask-CORS | Web-API und CORS-Anbindung |
+| Persistenz | SQLite, JSON | SQLite-backed Repository mit JSON-Migration |
+| Tests | pytest | Backend-Unit- und Service-Tests |
+| Frontend | React, Vite | Weboberfläche |
+| UI | lucide-react | Icons im Frontend |
+
+Die genauen Versionen stehen in `requirements.txt` und `frontend/package.json`.
+
+Hinweis zur Prüfung auf einem weiteren Rechner: Backend-Setup, Frontend-Setup, `pytest` und `npm run build` sind dokumentiert. Der finale Test auf einem fremden Gerät sollte vor der Abgabe mit dieser Anleitung durchgeführt und im Team bestätigt werden.
+
+## KI-Nutzung
+
+Die Nutzung von KI-Unterstützung ist transparent dokumentiert:
+
+- [`docs/KI_Nutzung.md`](./docs/KI_Nutzung.md)
+
+## Abschluss- und Qualitätsdokumente
+
+- [`docs/Testdokumentation.md`](./docs/Testdokumentation.md)
+- [`docs/Engineering_Reflexion.md`](./docs/Engineering_Reflexion.md)
+- [`docs/Abschlussdokumentation.md`](./docs/Abschlussdokumentation.md)
+- [`docs/Qualitaetssheet.html`](./docs/Qualitaetssheet.html)
+- [`docs/Projektposter.pdf`](./docs/Projektposter.pdf)
 
 ## Wichtige Projektdokumente
 

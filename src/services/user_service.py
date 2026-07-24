@@ -13,10 +13,12 @@ import hashlib
 import os
 import secrets
 import uuid
+from datetime import timedelta
 from typing import Optional
 
 from ..models.user import User, UserRole
 from ..repositories.user_repository import UserRepository
+from ..utils.time import parse_iso_datetime, utc_now
 
 
 class AuthError(Exception):
@@ -210,6 +212,44 @@ class UserService:
         user.password_hash = self._hash_password(new_password)
         self._repo.update(user)
         return user
+
+    def request_password_reset(self, email: str) -> dict:
+        """
+        Generiert ein zeitlich begrenztes Reset-Token.
+
+        Für die Demo wird das Token in der API-Antwort zurückgegeben. In einer
+        produktiven Umgebung würde nur ein Link per E-Mail versendet.
+        """
+        user = self._repo.find_by_email(email)
+        if not user:
+            raise AuthError("E-Mail-Adresse nicht gefunden.")
+        token = secrets.token_urlsafe(24)
+        expires_at = (utc_now() + timedelta(hours=1)).isoformat()
+        user.reset_token = token
+        user.reset_token_expires_at = expires_at
+        self._repo.update(user)
+        return {
+            "email": user.email,
+            "reset_token": token,
+            "expires_at": expires_at,
+        }
+
+    def reset_password_with_token(self, token: str, new_password: str) -> User:
+        """Setzt ein Passwort anhand eines gültigen Reset-Tokens."""
+        if not token:
+            raise AuthError("Reset-Token fehlt.")
+        self._validate_password(new_password)
+        for user in self._repo.find_active():
+            if user.reset_token != token:
+                continue
+            if not user.reset_token_expires_at or parse_iso_datetime(user.reset_token_expires_at) < utc_now():
+                raise AuthError("Reset-Token ist abgelaufen.")
+            user.password_hash = self._hash_password(new_password)
+            user.reset_token = ""
+            user.reset_token_expires_at = ""
+            self._repo.update(user)
+            return user
+        raise AuthError("Reset-Token ist ungültig.")
 
     def generate_temporary_password(self) -> str:
         return secrets.token_urlsafe(9)
