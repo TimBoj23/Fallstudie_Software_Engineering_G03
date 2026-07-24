@@ -29,11 +29,11 @@ def get_seats():
     end = request.args.get("end")
     availability_mode = request.args.get("availability", "available")
 
-    include_all_rooms = request.args.get("include_all_rooms", "").lower() == "true"
-    if include_all_rooms:
-        seats = _seat_service.search(query=query, room_id=room_id)
-    else:
+    shared_desk_only = request.args.get("shared_desk_only", "").lower() == "true"
+    if shared_desk_only:
         seats = _seat_service.search_in_shared_desk_rooms(query=query, room_id=room_id)
+    else:
+        seats = _seat_service.search(query=query, room_id=room_id)
     if start and end:
         try:
             if room_id:
