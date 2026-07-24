@@ -42,12 +42,13 @@ class TestRoomService:
     def test_raum_anlegen(self, room_service, admin):
         room = room_service.create(
             name="Testraum", number="T-001", capacity=8,
-            location="EG", requesting_user=admin,
+            room_type="shared_desk", location="EG", requesting_user=admin,
         )
         assert room.id is not None
         assert room.name == "Testraum"
         assert room.number == "T-001"
         assert room.capacity == 8
+        assert room.room_type == "shared_desk"
         assert room.is_active is True
 
     def test_raum_ohne_admin_wird_abgelehnt(self, room_service, user):
@@ -101,3 +102,16 @@ class TestRoomService:
         room_service.create(name="Groß", number="K-002", capacity=20, requesting_user=admin)
         big = room_service.filter_by_capacity(10)
         assert all(r.capacity >= 10 for r in big)
+
+    def test_filter_nach_room_type(self, room_service, admin):
+        room_service.create(
+            name="Desk", number="RT-001", capacity=4,
+            room_type="shared_desk", requesting_user=admin,
+        )
+        room_service.create(
+            name="Seminar", number="RT-002", capacity=20,
+            room_type="seminarraum", requesting_user=admin,
+        )
+        rooms = room_service.search(room_type="shared_desk")
+        assert len(rooms) == 1
+        assert rooms[0].name == "Desk"

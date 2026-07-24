@@ -27,19 +27,31 @@ def get_seats():
     query = request.args.get("q", "")
     start = request.args.get("start")
     end = request.args.get("end")
+    availability_mode = request.args.get("availability", "available")
 
-    seats = _seat_service.search(query=query, room_id=room_id)
+    shared_desk_only = request.args.get("shared_desk_only", "").lower() == "true"
+    if shared_desk_only:
+        seats = _seat_service.search_in_shared_desk_rooms(query=query, room_id=room_id)
+    else:
+        seats = _seat_service.search(query=query, room_id=room_id)
     if start and end:
         try:
             if room_id:
                 available_ids = set(_booking_service.get_available_seats(room_id, start, end))
             else:
                 available_ids = set(_booking_service.get_available_seat_ids(start, end))
-            seats = [s for s in seats if s.id in available_ids]
+            if availability_mode != "all":
+                seats = [s for s in seats if s.id in available_ids]
         except ValueError as e:
             return jsonify({"error": str(e)}), 400
 
-    return jsonify({"seats": [s.to_dict() for s in seats], "count": len(seats)}), 200
+    response_seats = []
+    for seat in seats:
+        data = seat.to_dict()
+        if start and end:
+            data["available"] = seat.id in available_ids
+        response_seats.append(data)
+    return jsonify({"seats": response_seats, "count": len(response_seats)}), 200
 
 
 @room_seats_bp.route("/<room_id>/seats", methods=["GET"])
@@ -69,6 +81,8 @@ def create_seat():
             room_id=data.get("room_id", ""),
             label=data.get("label", ""),
             description=data.get("description", ""),
+            image_url=data.get("image_url", ""),
+            monitor_count=int(data.get("monitor_count", 1)),
             requesting_user=g.current_user,
         )
         return jsonify({"seat": seat.to_dict()}), 201
@@ -86,6 +100,8 @@ def update_seat(seat_id):
             requesting_user=g.current_user,
             label=data.get("label"),
             description=data.get("description"),
+            image_url=data.get("image_url"),
+            monitor_count=int(data["monitor_count"]) if "monitor_count" in data else None,
         )
         return jsonify({"seat": seat.to_dict()}), 200
     except ValueError as e:

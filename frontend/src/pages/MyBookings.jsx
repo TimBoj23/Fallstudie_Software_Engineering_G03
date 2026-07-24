@@ -10,12 +10,13 @@ import StatusMessage from "../components/StatusMessage.jsx";
 
 export default function MyBookings({ isLoggedIn, setPage }) {
   const [state, setState] = useState({ loading: false, error: "", success: "", bookings: [] });
+  const [filters, setFilters] = useState({ target_type: "", start: "", end: "" });
 
-  async function load() {
+  async function load(params = filters) {
     if (!isLoggedIn) return;
     setState((current) => ({ ...current, loading: true, error: "", success: "" }));
     try {
-      const data = await getBookings();
+      const data = await getBookings(params);
       setState({ loading: false, error: "", success: "", bookings: data.bookings || [] });
     } catch (error) {
       setState({ loading: false, error: error.message, success: "", bookings: [] });
@@ -30,7 +31,7 @@ export default function MyBookings({ isLoggedIn, setPage }) {
     setState((current) => ({ ...current, loading: true, error: "", success: "" }));
     try {
       await cancelBooking(id);
-      const data = await getBookings();
+      const data = await getBookings(filters);
       setState({ loading: false, error: "", success: "Buchung wurde storniert.", bookings: data.bookings || [] });
     } catch (error) {
       setState((current) => ({ ...current, loading: false, error: error.message, success: "" }));
@@ -58,6 +59,17 @@ export default function MyBookings({ isLoggedIn, setPage }) {
       >
         {state.error && <StatusMessage type="danger">{state.error}</StatusMessage>}
         {state.success && <StatusMessage type="success">{state.success}</StatusMessage>}
+        <form className="filter-bar" onSubmit={(event) => { event.preventDefault(); load(filters); }}>
+          <select value={filters.target_type} onChange={(event) => setFilters({ ...filters, target_type: event.target.value })}>
+            <option value="">Alle Typen</option>
+            <option value="room">Seminarräume</option>
+            <option value="seat">Sitzplätze</option>
+            <option value="asset">Assets</option>
+          </select>
+          <input type="datetime-local" value={filters.start} onChange={(event) => setFilters({ ...filters, start: event.target.value })} />
+          <input type="datetime-local" value={filters.end} onChange={(event) => setFilters({ ...filters, end: event.target.value })} />
+          <Button type="submit" variant="secondary">Historie filtern</Button>
+        </form>
       </Panel>
 
       {state.loading ? <LoadingState /> : (

@@ -27,6 +27,7 @@ def get_rooms():
     """
     start = request.args.get("start")
     end = request.args.get("end")
+    availability_mode = request.args.get("availability", "available")
     min_capacity = request.args.get("min_capacity")
     equipment = request.args.getlist("equipment")
     if not equipment and request.args.get("equipment"):
@@ -37,6 +38,7 @@ def get_rooms():
             query=request.args.get("q", ""),
             location=request.args.get("location", ""),
             min_capacity=int(min_capacity) if min_capacity else None,
+            room_type=request.args.get("room_type", ""),
             equipment=equipment,
         )
     except ValueError:
@@ -45,11 +47,18 @@ def get_rooms():
     if start and end:
         try:
             available_ids = set(_booking_service.get_available_rooms(start, end))
-            rooms = [r for r in rooms if r.id in available_ids]
+            if availability_mode != "all":
+                rooms = [r for r in rooms if r.id in available_ids]
         except ValueError as e:
             return jsonify({"error": str(e)}), 400
 
-    return jsonify({"rooms": [r.to_dict() for r in rooms], "count": len(rooms)}), 200
+    response_rooms = []
+    for room in rooms:
+        data = room.to_dict()
+        if start and end:
+            data["available"] = room.id in available_ids
+        response_rooms.append(data)
+    return jsonify({"rooms": response_rooms, "count": len(response_rooms)}), 200
 
 
 @rooms_bp.route("/<room_id>", methods=["GET"])
@@ -70,9 +79,11 @@ def create_room():
             name=data.get("name", ""),
             number=data.get("number", ""),
             capacity=data.get("capacity", 0),
+            room_type=data.get("room_type", "seminarraum"),
             location=data.get("location", ""),
             equipment=data.get("equipment", []),
             description=data.get("description", ""),
+            image_url=data.get("image_url", ""),
             requesting_user=g.current_user,
         )
         return jsonify({"room": room.to_dict()}), 201
@@ -91,9 +102,11 @@ def update_room(room_id):
             requesting_user=g.current_user,
             name=data.get("name"),
             capacity=data.get("capacity"),
+            room_type=data.get("room_type"),
             location=data.get("location"),
             equipment=data.get("equipment"),
             description=data.get("description"),
+            image_url=data.get("image_url"),
         )
         return jsonify({"room": room.to_dict()}), 200
     except ValueError as e:

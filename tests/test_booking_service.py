@@ -15,7 +15,7 @@ import uuid
 import tempfile
 import shutil
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 # Projekt-Root zum Path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -24,7 +24,7 @@ from src.models.user import User, UserRole
 from src.models.room import Room
 from src.models.seat import Seat
 from src.models.asset import Asset, AssetType
-from src.models.booking import BookingTargetType, BookingStatus
+from src.models.booking import Booking, BookingTargetType, BookingStatus
 from src.repositories.booking_repository import BookingRepository
 from src.repositories.room_repository import RoomRepository
 from src.repositories.seat_repository import SeatRepository
@@ -145,9 +145,9 @@ def booking_service(booking_repo, room_repo, seat_repo, asset_repo):
 
 def future(hours=2, duration=2):
     """Gibt ISO-8601 Zeitraum in der Zukunft zurück."""
-    start = datetime.utcnow() + timedelta(hours=hours)
+    start = datetime.now(timezone.utc) + timedelta(hours=hours)
     end = start + timedelta(hours=duration)
-    return start.strftime("%Y-%m-%dT%H:%M:%S"), end.strftime("%Y-%m-%dT%H:%M:%S")
+    return start.isoformat(), end.isoformat()
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -233,9 +233,11 @@ class TestCreateBooking:
         assert booking.auto_assigned_seat is False
 
     def test_raumbuchung_ohne_sitzplatz_weist_freien_sitzplatz_zu(
-        self, booking_service, demo_room, seat_repo, user
+        self, booking_service, demo_room, room_repo, seat_repo, user
     ):
-        """Wenn ein Raum Sitzplätze hat, wird ohne Auswahl automatisch ein freier Platz gewählt."""
+        """Shared-Desk-Räume weisen ohne Auswahl automatisch einen freien Platz zu."""
+        demo_room.room_type = "shared_desk"
+        room_repo.update(demo_room)
         seat = Seat(id=str(uuid.uuid4()), room_id=demo_room.id, label="A1")
         seat_repo.save(seat)
         start, end = future(hours=5, duration=1)
@@ -255,9 +257,11 @@ class TestCreateBooking:
         assert booking.auto_assigned_seat is True
 
     def test_raumbuchung_mit_explizitem_sitzplatz(
-        self, booking_service, demo_room, seat_repo, user
+        self, booking_service, demo_room, room_repo, seat_repo, user
     ):
         """Bei einer Raumbuchung kann ein konkreter Sitzplatz angegeben werden."""
+        demo_room.room_type = "shared_desk"
+        room_repo.update(demo_room)
         seat = Seat(id=str(uuid.uuid4()), room_id=demo_room.id, label="Fenster")
         seat_repo.save(seat)
         start, end = future(hours=6, duration=1)
@@ -275,6 +279,27 @@ class TestCreateBooking:
         assert booking.target_type == BookingTargetType.SEAT
         assert booking.target_id == seat.id
         assert booking.auto_assigned_seat is False
+
+    def test_seminarraum_wird_als_ganzraum_gebucht(
+        self, booking_service, demo_room, room_repo, seat_repo, user
+    ):
+        """Seminarräume werden trotz vorhandener Sitzplätze als ganzer Raum gebucht."""
+        demo_room.room_type = "seminarraum"
+        room_repo.update(demo_room)
+        seat_repo.save(Seat(id=str(uuid.uuid4()), room_id=demo_room.id, label="S1"))
+        start, end = future(hours=7, duration=1)
+
+        booking = booking_service.create_booking(
+            user=user,
+            target_id=demo_room.id,
+            target_type=BookingTargetType.ROOM,
+            start_time=start,
+            end_time=end,
+            title="Seminar",
+        )
+
+        assert booking.target_type == BookingTargetType.ROOM
+        assert booking.target_id == demo_room.id
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -304,7 +329,7 @@ class TestConflictPrevention:
         """Neue Buchung beginnt VOR Ende der bestehenden → Konflikt."""
         # Bestehend: 10:00–12:00
         # Neu:       11:00–13:00  → Überschneidung!
-        base = datetime.utcnow() + timedelta(hours=5)
+        base = datetime.now(timezone.utc) + timedelta(hours=5)
         existing_start = base.strftime("%Y-%m-%dT%H:%M:%S")
         existing_end   = (base + timedelta(hours=2)).strftime("%Y-%m-%dT%H:%M:%S")
         overlap_start  = (base + timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%S")
@@ -326,7 +351,7 @@ class TestConflictPrevention:
 
     def test_ueberschneidung_am_ende(self, booking_service, demo_room, user):
         """Neue Buchung endet NACH Beginn der bestehenden → Konflikt."""
-        base = datetime.utcnow() + timedelta(hours=8)
+        base = datetime.now(timezone.utc) + timedelta(hours=8)
         existing_start = (base + timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%S")
         existing_end   = (base + timedelta(hours=3)).strftime("%Y-%m-%dT%H:%M:%S")
         overlap_start  = base.strftime("%Y-%m-%dT%H:%M:%S")
@@ -348,7 +373,7 @@ class TestConflictPrevention:
 
     def test_eingebettete_buchung_wird_verhindert(self, booking_service, demo_room, user):
         """Neue Buchung liegt VOLLSTÄNDIG innerhalb bestehender → Konflikt."""
-        base = datetime.utcnow() + timedelta(hours=12)
+        base = datetime.now(timezone.utc) + timedelta(hours=12)
         outer_start = base.strftime("%Y-%m-%dT%H:%M:%S")
         outer_end   = (base + timedelta(hours=4)).strftime("%Y-%m-%dT%H:%M:%S")
         inner_start = (base + timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%S")
@@ -370,7 +395,7 @@ class TestConflictPrevention:
 
     def test_direkt_angrenzende_buchungen_erlaubt(self, booking_service, demo_room, user):
         """Buchung direkt nach Ende der vorherigen → KEIN Konflikt."""
-        base = datetime.utcnow() + timedelta(hours=20)
+        base = datetime.now(timezone.utc) + timedelta(hours=20)
         first_start  = base.strftime("%Y-%m-%dT%H:%M:%S")
         first_end    = (base + timedelta(hours=2)).strftime("%Y-%m-%dT%H:%M:%S")
         second_start = first_end  # Genau am Ende der ersten!
@@ -392,9 +417,17 @@ class TestConflictPrevention:
         assert b2 is not None
 
     def test_belegter_sitzplatz_wird_bei_autozuweisung_uebersprungen(
-        self, booking_service, demo_room, seat_repo, user
+        self, booking_service, demo_room, room_repo, seat_repo, user
     ):
         """Automatische Zuweisung wählt den nächsten freien Sitzplatz."""
+        demo_room.room_type = "shared_desk"
+        room_repo.update(demo_room)
+        other_user = User(
+            id=str(uuid.uuid4()),
+            name="Anderer Nutzer",
+            email="other-auto@test.de",
+            role=UserRole.USER,
+        )
         s1 = Seat(id=str(uuid.uuid4()), room_id=demo_room.id, label="A1")
         s2 = Seat(id=str(uuid.uuid4()), room_id=demo_room.id, label="A2")
         seat_repo.save(s1)
@@ -410,7 +443,7 @@ class TestConflictPrevention:
             title="Sitz A1",
         )
         auto_booking = booking_service.create_booking(
-            user=user,
+            user=other_user,
             target_id=demo_room.id,
             target_type=BookingTargetType.ROOM,
             start_time=start,
@@ -419,6 +452,35 @@ class TestConflictPrevention:
         )
 
         assert auto_booking.target_id == s2.id
+
+    def test_nutzer_kann_nicht_mehrere_sitzplaetze_parallel_buchen(
+        self, booking_service, demo_room, seat_repo, user
+    ):
+        """Ein Nutzer darf im gleichen Zeitraum nur einen Sitzplatz belegen."""
+        s1 = Seat(id=str(uuid.uuid4()), room_id=demo_room.id, label="A1")
+        s2 = Seat(id=str(uuid.uuid4()), room_id=demo_room.id, label="A2")
+        seat_repo.save(s1)
+        seat_repo.save(s2)
+        start, end = future(hours=23, duration=2)
+
+        booking_service.create_booking(
+            user=user,
+            target_id=s1.id,
+            target_type=BookingTargetType.SEAT,
+            start_time=start,
+            end_time=end,
+            title="Sitz A1",
+        )
+
+        with pytest.raises(BookingConflictError):
+            booking_service.create_booking(
+                user=user,
+                target_id=s2.id,
+                target_type=BookingTargetType.SEAT,
+                start_time=start,
+                end_time=end,
+                title="Sitz A2",
+            )
 
     def test_sitzplatz_doppelbuchung_wird_verhindert(
         self, booking_service, demo_room, seat_repo, user
@@ -447,9 +509,11 @@ class TestConflictPrevention:
             )
 
     def test_ganze_raumbuchung_blockiert_sitzplaetze(
-        self, booking_service, demo_room, seat_repo, user
+        self, booking_service, demo_room, room_repo, seat_repo, user
     ):
         """Eine klassische Raumbuchung ohne Sitzplatzdaten blockiert spätere Sitzplatzbuchungen."""
+        demo_room.room_type = "seminarraum"
+        room_repo.update(demo_room)
         seat = Seat(id=str(uuid.uuid4()), room_id=demo_room.id, label="A1")
         start, end = future(hours=26, duration=2)
 
@@ -472,6 +536,37 @@ class TestConflictPrevention:
                 end_time=end,
                 title="Sitzplatz im blockierten Raum",
             )
+
+    def test_stornierte_buchung_ueberschneidet_nicht(self):
+        start, end = future(hours=28, duration=2)
+        booking = Booking(
+            id=str(uuid.uuid4()),
+            user_id=str(uuid.uuid4()),
+            target_id=str(uuid.uuid4()),
+            target_type=BookingTargetType.ROOM,
+            title="Storniert",
+            start_time=start,
+            end_time=end,
+            status=BookingStatus.CANCELLED,
+        )
+        assert booking.overlaps_with(start, end) is False
+
+    def test_suche_akzeptiert_room_id_none(self, booking_service, booking_repo, user):
+        start, end = future(hours=29, duration=2)
+        booking = Booking(
+            id=str(uuid.uuid4()),
+            user_id=user.id,
+            target_id="target-1",
+            target_type=BookingTargetType.ASSET,
+            title="Laptop",
+            start_time=start,
+            end_time=end,
+            room_id=None,
+        )
+        booking_repo.save(booking)
+
+        results = booking_service.search_bookings(requesting_user=user, q="laptop")
+        assert len(results) == 1
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -550,7 +645,7 @@ class TestValidation:
 
     def test_start_nach_ende_wird_abgelehnt(self, booking_service, demo_room, user):
         """start_time >= end_time → ValueError."""
-        base = datetime.utcnow() + timedelta(hours=50)
+        base = datetime.now(timezone.utc) + timedelta(hours=50)
         start = base.strftime("%Y-%m-%dT%H:%M:%S")
         end   = (base - timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%S")
         with pytest.raises(ValueError):
@@ -630,9 +725,11 @@ class TestAvailability:
         assert len(conflicts) > 0
 
     def test_raum_mit_freiem_sitzplatz_bleibt_verfuegbar(
-        self, booking_service, demo_room, seat_repo, user
+        self, booking_service, demo_room, room_repo, seat_repo, user
     ):
         """Bei Sitzplatzräumen reicht ein freier Sitzplatz für Raum-Verfügbarkeit."""
+        demo_room.room_type = "shared_desk"
+        room_repo.update(demo_room)
         s1 = Seat(id=str(uuid.uuid4()), room_id=demo_room.id, label="A1")
         s2 = Seat(id=str(uuid.uuid4()), room_id=demo_room.id, label="A2")
         seat_repo.save(s1)

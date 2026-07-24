@@ -76,3 +76,13 @@ class TestUserService:
         found = user_service.get_by_id(created.id)
         assert found is not None
         assert found.id == created.id
+
+    def test_passwort_reset_token(self, user_service):
+        user_service.register("Reset", "reset@test.de", "altpass123")
+        reset = user_service.request_password_reset("reset@test.de")
+        updated = user_service.reset_password_with_token(reset["reset_token"], "neupass123")
+
+        assert updated.email == "reset@test.de"
+        assert user_service.login("reset@test.de", "neupass123") is not None
+        with pytest.raises(AuthError):
+            user_service.login("reset@test.de", "altpass123")

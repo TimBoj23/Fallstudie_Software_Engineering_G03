@@ -5,6 +5,7 @@ import Button from "../components/Button.jsx";
 import DateTimeRangeFields from "../components/DateTimeRangeFields.jsx";
 import EmptyState from "../components/EmptyState.jsx";
 import LoadingState from "../components/LoadingState.jsx";
+import ObjectCalendar from "../components/ObjectCalendar.jsx";
 import Panel from "../components/Panel.jsx";
 import ResourceCard from "../components/ResourceCard.jsx";
 import StatusMessage from "../components/StatusMessage.jsx";
@@ -21,14 +22,15 @@ const assetTypeLabels = {
   other: "Sonstiges",
 };
 
-export default function Assets({ setPage }) {
+export default function Assets({ openCreateBooking }) {
   const [filters, setFilters] = useState({ q: "", type: "", start: "", end: "" });
   const [state, setState] = useState({ loading: true, error: "", assets: [] });
+  const [selectedAsset, setSelectedAsset] = useState(null);
 
   async function load(params = filters) {
     setState((current) => ({ ...current, loading: true, error: "" }));
     try {
-      const data = await getAssets(params);
+      const data = await getAssets(withAvailabilityMode(params));
       setState({ loading: false, error: "", assets: data.assets || [] });
     } catch (error) {
       setState({ loading: false, error: error.message, assets: [] });
@@ -58,6 +60,17 @@ export default function Assets({ setPage }) {
       </Panel>
 
       {state.error && <StatusMessage type="danger">{state.error}</StatusMessage>}
+      {selectedAsset && (
+        <ObjectCalendar
+          target={{
+            id: selectedAsset.id,
+            targetType: "asset",
+            name: selectedAsset.name,
+            meta: selectedAsset.location || assetTypeLabels[selectedAsset.asset_type] || "Ausstattung",
+          }}
+          onSelectBlock={(defaults) => openCreateBooking(defaults)}
+        />
+      )}
       {state.loading ? <LoadingState /> : (
         <div className="resource-grid">
           {state.assets.length === 0 ? (
@@ -70,11 +83,18 @@ export default function Assets({ setPage }) {
               location={asset.location}
               description={asset.description}
               chips={[assetTypeLabels[asset.asset_type]].filter(Boolean)}
-              onBook={() => setPage("createBooking")}
+              imageUrl={asset.image_url}
+              available={asset.available}
+              onViewCalendar={() => setSelectedAsset(asset)}
+              onBook={() => openCreateBooking({ targetType: "asset", targetId: asset.id })}
             />
           ))}
         </div>
       )}
     </div>
   );
+}
+
+function withAvailabilityMode(params) {
+  return params.start && params.end ? { ...params, availability: "all" } : params;
 }

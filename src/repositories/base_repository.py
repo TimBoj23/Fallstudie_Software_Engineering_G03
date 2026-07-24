@@ -16,6 +16,7 @@ Skalierungsnotiz:
 
 import json
 import os
+import sqlite3
 import threading
 from typing import Any, Dict, Generic, List, Optional, TypeVar
 
@@ -42,24 +43,112 @@ class JsonRepository(Generic[T]):
         """
         self._filepath = filepath
         self._lock = threading.Lock()
+        self._storage = os.environ.get("REPLAN_STORAGE", "sqlite").lower()
+        self._db_path = os.environ.get(
+            "REPLAN_DB_PATH",
+            os.path.join(os.path.dirname(self._filepath), "replan.sqlite"),
+        )
         self._ensure_file_exists()
+
+    def _use_sqlite(self) -> bool:
+        return getattr(self, "_storage", os.environ.get("REPLAN_STORAGE", "sqlite")).lower() == "sqlite"
+
+    def _collection_name(self) -> str:
+        return os.path.splitext(os.path.basename(self._filepath))[0]
+
+    def _connect(self):
+        db_path = getattr(
+            self,
+            "_db_path",
+            os.environ.get("REPLAN_DB_PATH", os.path.join(os.path.dirname(self._filepath), "replan.sqlite")),
+        )
+        os.makedirs(os.path.dirname(db_path), exist_ok=True)
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
+        self._ensure_sqlite_schema(conn)
+        return conn
+
+    def _ensure_sqlite_schema(self, conn) -> None:
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS records (
+                collection TEXT NOT NULL,
+                id TEXT NOT NULL,
+                data TEXT NOT NULL,
+                PRIMARY KEY (collection, id)
+            )
+            """
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_records_collection ON records(collection)"
+        )
 
     def _ensure_file_exists(self) -> None:
         """Legt die Datei und Verzeichnisstruktur an, wenn sie nicht existiert."""
         os.makedirs(os.path.dirname(self._filepath), exist_ok=True)
+        if self._use_sqlite():
+            with self._connect():
+                pass
+            return
         if not os.path.exists(self._filepath):
             with open(self._filepath, "w", encoding="utf-8") as f:
                 json.dump([], f)
 
     def _read_all_raw(self) -> List[Dict[str, Any]]:
         """Liest alle Einträge als rohe Dictionaries aus der JSON-Datei."""
+        if self._use_sqlite():
+            self._migrate_json_if_needed()
+            with self._connect() as conn:
+                rows = conn.execute(
+                    "SELECT data FROM records WHERE collection = ? ORDER BY rowid",
+                    (self._collection_name(),),
+                ).fetchall()
+            return [json.loads(row["data"]) for row in rows]
         with open(self._filepath, "r", encoding="utf-8") as f:
             return json.load(f)
 
     def _write_all_raw(self, data: List[Dict[str, Any]]) -> None:
         """Schreibt alle Einträge als Dictionaries in die JSON-Datei."""
+        if self._use_sqlite():
+            collection = self._collection_name()
+            with self._connect() as conn:
+                conn.execute("DELETE FROM records WHERE collection = ?", (collection,))
+                conn.executemany(
+                    "INSERT INTO records(collection, id, data) VALUES (?, ?, ?)",
+                    [
+                        (collection, str(item.get("id")), json.dumps(item, ensure_ascii=False))
+                        for item in data
+                    ],
+                )
+            return
         with open(self._filepath, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
+
+    def _migrate_json_if_needed(self) -> None:
+        """Importiert vorhandene JSON-Dateien einmalig in SQLite."""
+        if not os.path.exists(self._filepath):
+            return
+        collection = self._collection_name()
+        with self._connect() as conn:
+            existing = conn.execute(
+                "SELECT COUNT(*) AS count FROM records WHERE collection = ?",
+                (collection,),
+            ).fetchone()["count"]
+            if existing:
+                return
+            try:
+                with open(self._filepath, "r", encoding="utf-8") as f:
+                    raw = json.load(f)
+            except (json.JSONDecodeError, OSError):
+                raw = []
+            conn.executemany(
+                "INSERT OR REPLACE INTO records(collection, id, data) VALUES (?, ?, ?)",
+                [
+                    (collection, str(item.get("id")), json.dumps(item, ensure_ascii=False))
+                    for item in raw
+                    if item.get("id")
+                ],
+            )
 
     def from_dict(self, data: Dict[str, Any]) -> T:
         """Konvertiert ein Dictionary in ein typisiertes Objekt. Muss überschrieben werden."""

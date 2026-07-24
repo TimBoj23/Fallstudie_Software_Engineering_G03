@@ -43,9 +43,11 @@ class RoomService:
         name: str,
         number: str,
         capacity: int,
+        room_type: str = "seminarraum",
         location: str = "",
         equipment: list = None,
         description: str = "",
+        image_url: str = "",
         requesting_user: User = None,
     ) -> Room:
         """
@@ -80,9 +82,11 @@ class RoomService:
             name=name.strip(),
             number=number.strip(),
             capacity=capacity,
+            room_type=self._normalize_room_type(room_type),
             location=location,
             equipment=equipment or [],
             description=description,
+            image_url=image_url,
         )
         return self._repo.save(room)
 
@@ -92,9 +96,11 @@ class RoomService:
         requesting_user: User,
         name: str = None,
         capacity: int = None,
+        room_type: str = None,
         location: str = None,
         equipment: list = None,
         description: str = None,
+        image_url: str = None,
     ) -> Room:
         """Aktualisiert einen Raum. Erfordert Admin-Rechte."""
         if not requesting_user.is_admin():
@@ -109,12 +115,16 @@ class RoomService:
             if capacity <= 0:
                 raise ValueError("Kapazität muss größer als 0 sein.")
             room.capacity = capacity
+        if room_type is not None:
+            room.room_type = self._normalize_room_type(room_type)
         if location is not None:
             room.location = location
         if equipment is not None:
             room.equipment = equipment
         if description is not None:
             room.description = description
+        if image_url is not None:
+            room.image_url = image_url
 
         self._repo.update(room)
         return room
@@ -138,6 +148,7 @@ class RoomService:
         query: str = "",
         location: str = "",
         min_capacity: int = None,
+        room_type: str = "",
         equipment: list = None,
     ) -> List[Room]:
         """Backend-Such- und Filterlogik für Räume."""
@@ -156,6 +167,9 @@ class RoomService:
             rooms = [r for r in rooms if loc in r.location.lower()]
         if min_capacity is not None:
             rooms = [r for r in rooms if r.capacity >= min_capacity]
+        if room_type:
+            normalized_type = self._normalize_room_type(room_type)
+            rooms = [r for r in rooms if r.room_type == normalized_type]
         if equipment:
             wanted = [e.lower().strip() for e in equipment if e.strip()]
             rooms = [
@@ -166,3 +180,23 @@ class RoomService:
                 )
             ]
         return rooms
+
+    def get_shared_desk_rooms(self) -> List[Room]:
+        """Gibt nur Räume zurück, die für Arbeitsplatz-/Sitzplatzbuchungen gedacht sind."""
+        return [room for room in self.get_all() if room.room_type == "shared_desk"]
+
+    def _normalize_room_type(self, room_type: str) -> str:
+        value = (room_type or "seminarraum").strip().lower()
+        aliases = {
+            "arbeitsplatz": "shared_desk",
+            "shared desk": "shared_desk",
+            "shared-desk": "shared_desk",
+            "seminar": "seminarraum",
+            "seminar_room": "seminarraum",
+            "meeting": "meetingraum",
+        }
+        value = aliases.get(value, value)
+        allowed = {"shared_desk", "seminarraum", "meetingraum", "studio"}
+        if value not in allowed:
+            raise ValueError("room_type muss shared_desk, seminarraum, meetingraum oder studio sein.")
+        return value

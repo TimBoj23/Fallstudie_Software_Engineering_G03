@@ -10,7 +10,7 @@ import Panel from "../components/Panel.jsx";
 import ResourceCard from "../components/ResourceCard.jsx";
 import StatusMessage from "../components/StatusMessage.jsx";
 
-export default function Seats({ setPage }) {
+export default function Seats({ openCreateBooking }) {
   const [filters, setFilters] = useState({ q: "", room_id: "", start: "", end: "" });
   const [state, setState] = useState({ loading: true, error: "", seats: [] });
   const [rooms, setRooms] = useState([]);
@@ -18,7 +18,7 @@ export default function Seats({ setPage }) {
   async function load(params = filters) {
     setState((current) => ({ ...current, loading: true, error: "" }));
     try {
-      const [seatData, roomData] = await Promise.all([getSeats(params), getRooms()]);
+      const [seatData, roomData] = await Promise.all([getSeats(withAvailabilityMode(params)), getRooms()]);
       setRooms(roomData.rooms || []);
       setState({ loading: false, error: "", seats: seatData.seats || [] });
     } catch (error) {
@@ -64,11 +64,18 @@ export default function Seats({ setPage }) {
               title={seat.label}
               meta={roomNames[seat.room_id] || "Arbeitsplatz"}
               description={seat.description}
-              onBook={() => setPage("createBooking")}
+              chips={[`${seat.monitor_count || 1} Monitor(e)`]}
+              imageUrl={seat.image_url}
+              available={seat.available}
+              onBook={() => openCreateBooking({ targetType: "seat", targetId: seat.id })}
             />
           ))}
         </div>
       )}
     </div>
   );
+}
+
+function withAvailabilityMode(params) {
+  return params.start && params.end ? { ...params, availability: "all" } : params;
 }

@@ -6,16 +6,27 @@ POST   /api/bookings            – Neue Buchung erstellen
 GET    /api/bookings/<id>       – Buchung abrufen
 DELETE /api/bookings/<id>       – Buchung stornieren
 GET    /api/bookings/availability – Verfügbarkeit prüfen
+GET    /api/bookings/schedule   – Zeitblock-Kalender für ein Objekt
 """
 
 from flask import Blueprint, request, jsonify, g
-from ..services.booking_service import BookingService, BookingConflictError, BookingNotFoundError
-from ..services.user_service import AuthError
 from ..models.booking import BookingTargetType
+from ..repositories.asset_repository import AssetRepository
+from ..repositories.room_repository import RoomRepository
+from ..repositories.seat_repository import SeatRepository
+from ..repositories.user_repository import UserRepository
+from ..services.booking_service import BookingService, BookingConflictError, BookingNotFoundError
+from ..services.notification_service import NotificationService
+from ..services.user_service import AuthError
 from ..utils.auth_middleware import login_required, admin_required
 
 bookings_bp = Blueprint("bookings", __name__, url_prefix="/api/bookings")
 _booking_service = BookingService()
+_room_repo = RoomRepository()
+_seat_repo = SeatRepository()
+_asset_repo = AssetRepository()
+_user_repo = UserRepository()
+_notification_service = NotificationService()
 
 
 @bookings_bp.route("", methods=["GET"])
@@ -34,7 +45,7 @@ def get_my_bookings():
             q=request.args.get("q", ""),
         )
         return jsonify({
-            "bookings": [b.to_dict() for b in bookings],
+            "bookings": [_booking_to_response(b) for b in bookings],
             "count": len(bookings),
         }), 200
     except ValueError as e:
@@ -57,7 +68,7 @@ def get_all_bookings():
             q=request.args.get("q", ""),
         )
         return jsonify({
-            "bookings": [b.to_dict() for b in bookings],
+            "bookings": [_booking_to_response(b) for b in bookings],
             "count": len(bookings),
         }), 200
     except AuthError as e:
@@ -91,12 +102,23 @@ def create_booking():
             end_time=data.get("end_time", ""),
             title=data.get("title", "Buchung"),
             seat_id=data.get("seat_id"),
+            access_password=data.get("access_password", ""),
+            invitation_emails=data.get("invitation_emails", []),
         )
-        return jsonify({"booking": booking.to_dict()}), 201
+        response_booking = _booking_to_response(booking)
+        confirmation = _notification_service.booking_confirmation(
+            g.current_user,
+            booking,
+            response_booking.get("target_name", ""),
+        )
+        return jsonify({
+            "booking": response_booking,
+            "confirmation": confirmation,
+        }), 201
     except BookingConflictError as e:
         return jsonify({
             "error": str(e),
-            "conflicts": [c.to_dict() for c in e.conflicts],
+            "conflicts": [_booking_to_response(c) for c in e.conflicts],
         }), 409
     except (ValueError, KeyError) as e:
         return jsonify({"error": str(e)}), 400
@@ -110,7 +132,7 @@ def get_booking(booking_id):
         return jsonify({"error": "Buchung nicht gefunden."}), 404
     if booking.user_id != g.current_user.id and not g.current_user.is_admin():
         return jsonify({"error": "Zugriff verweigert."}), 403
-    return jsonify({"booking": booking.to_dict()}), 200
+    return jsonify({"booking": _booking_to_response(booking)}), 200
 
 
 @bookings_bp.route("/<booking_id>", methods=["DELETE"])
@@ -121,7 +143,7 @@ def cancel_booking(booking_id):
         booking = _booking_service.cancel_booking(booking_id, g.current_user)
         return jsonify({
             "message": "Buchung wurde erfolgreich storniert.",
-            "booking": booking.to_dict(),
+            "booking": _booking_to_response(booking),
         }), 200
     except BookingNotFoundError as e:
         return jsonify({"error": str(e)}), 404
@@ -150,7 +172,127 @@ def check_availability():
         )
         return jsonify({
             "available": is_available,
-            "conflicts": [c.to_dict() for c in conflicts],
+            "conflicts": [_booking_to_response(c) for c in conflicts],
         }), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
+
+
+@bookings_bp.route("/schedule", methods=["GET"])
+def get_booking_schedule():
+    """
+    Liefert stündliche Zeitblöcke von 08:00 bis 22:00 Uhr für ein Buchungsobjekt.
+
+    Query-Parameter:
+        target_id   (str): ID des Raums, Assets oder Sitzplatzes
+        target_type (str): "room" | "asset" | "seat"
+        start_date  (str): YYYY-MM-DD
+        days        (int): Anzahl Tage, Standard 7
+    """
+    try:
+        target_type = BookingTargetType(request.args.get("target_type", ""))
+        schedule = _booking_service.get_time_block_schedule(
+            target_id=request.args.get("target_id", ""),
+            target_type=target_type,
+            start_date=request.args.get("start_date", ""),
+            days=int(request.args.get("days", 7)),
+        )
+        return jsonify({
+            "target_id": request.args.get("target_id", ""),
+            "target_type": target_type.value,
+            "schedule": schedule,
+        }), 200
+    except (ValueError, TypeError) as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@bookings_bp.route("/<booking_id>/verify-access", methods=["POST"])
+def verify_booking_access(booking_id):
+    """Prüft ein Zugangspasswort für eine geschützte Seminarraumbuchung."""
+    data = request.get_json(silent=True) or {}
+    allowed = _booking_service.verify_booking_access(
+        booking_id=booking_id,
+        access_password=data.get("access_password", ""),
+    )
+    return jsonify({"allowed": allowed}), 200
+
+
+@bookings_bp.route("/occupancy", methods=["GET"])
+@admin_required
+def get_room_occupancy():
+    """Admin-Übersicht aktiver Buchungen je Raum inklusive Nutzerkontext."""
+    try:
+        entries = _booking_service.get_active_room_occupancy(g.current_user)
+        response = []
+        for entry in entries:
+            user = _user_repo.find_by_id(entry["user_id"])
+            if user:
+                entry.update({
+                    "user_name": user.name,
+                    "user_email": user.email,
+                    "user_image_url": user.image_url,
+                    "user_initials": _initials(user.name or user.email),
+                })
+            response.append(entry)
+        return jsonify({"occupancy": response, "count": len(response)}), 200
+    except AuthError as e:
+        return jsonify({"error": str(e)}), 403
+
+
+def _booking_to_response(booking):
+    data = booking.to_dict()
+    data["has_access_password"] = bool(data.get("access_password_hash"))
+    data.pop("access_password_hash", None)
+    target = _resolve_booking_target(booking)
+    if target:
+        data.update(target)
+    user = _user_repo.find_by_id(booking.user_id)
+    if user:
+        data.update({
+            "user_name": user.name,
+            "user_email": user.email,
+            "user_image_url": user.image_url,
+            "user_initials": _initials(user.name or user.email),
+        })
+    return data
+
+
+def _resolve_booking_target(booking):
+    if booking.target_type == BookingTargetType.ASSET:
+        asset = _asset_repo.find_by_id(booking.target_id)
+        if not asset:
+            return None
+        return {
+            "target_name": asset.name,
+            "target_meta": asset.location or asset.asset_type.value,
+            "target_image_url": asset.image_url,
+        }
+
+    if booking.target_type == BookingTargetType.SEAT:
+        seat = _seat_repo.find_by_id(booking.target_id)
+        if not seat:
+            return None
+        room = _room_repo.find_by_id(seat.room_id)
+        room_name = room.name if room else ""
+        return {
+            "target_name": f"Sitzplatz {seat.label}",
+            "target_meta": room_name,
+            "target_image_url": seat.image_url or (room.image_url if room else ""),
+            "room_name": room_name,
+        }
+
+    room = _room_repo.find_by_id(booking.target_id)
+    if not room:
+        return None
+    return {
+        "target_name": room.name,
+        "target_meta": room.location or room.number,
+        "target_image_url": room.image_url,
+    }
+
+
+def _initials(value: str) -> str:
+    parts = [part for part in value.replace("@", " ").replace(".", " ").split() if part]
+    if not parts:
+        return "?"
+    return "".join(part[0] for part in parts[:2]).upper()

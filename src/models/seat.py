@@ -4,7 +4,8 @@ Repräsentiert einen einzelnen buchbaren Sitzplatz innerhalb eines Raums.
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime
+
+from ..utils.time import utc_now_iso
 
 
 @dataclass
@@ -24,8 +25,10 @@ class Seat:
     room_id: str
     label: str
     description: str = ""
+    image_url: str = ""
+    monitor_count: int = 1
     is_active: bool = True
-    created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    created_at: str = field(default_factory=utc_now_iso)
 
     def to_dict(self) -> dict:
         """Serialisiert den Sitzplatz für JSON-Persistenz."""
@@ -34,6 +37,8 @@ class Seat:
             "room_id": self.room_id,
             "label": self.label,
             "description": self.description,
+            "image_url": self.image_url,
+            "monitor_count": self.monitor_count,
             "is_active": self.is_active,
             "created_at": self.created_at,
         }
@@ -46,8 +51,10 @@ class Seat:
             room_id=data["room_id"],
             label=data["label"],
             description=data.get("description", ""),
+            image_url=data.get("image_url", ""),
+            monitor_count=int(data.get("monitor_count", 1)),
             is_active=data.get("is_active", True),
-            created_at=data.get("created_at", datetime.utcnow().isoformat()),
+            created_at=data.get("created_at", utc_now_iso()),
         )
 
     def __repr__(self) -> str:

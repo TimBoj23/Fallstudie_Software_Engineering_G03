@@ -19,3 +19,7 @@ export function cancelBooking(id) {
 export function checkAvailability(params) {
   return apiRequest("/bookings/availability", { params });
 }
+
+export function getBookingSchedule(params) {
+  return apiRequest("/bookings/schedule", { params });
+}

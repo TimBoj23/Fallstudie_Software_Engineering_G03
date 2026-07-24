@@ -5,9 +5,10 @@ Rollen: 'user' (Mitarbeitender) | 'admin' (Administrator)
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime
 from enum import Enum
 from typing import Optional
+
+from ..utils.time import utc_now_iso
 
 
 class UserRole(str, Enum):
@@ -34,7 +35,10 @@ class User:
     email: str
     role: UserRole = UserRole.USER
     password_hash: str = ""
-    created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    image_url: str = ""
+    reset_token: str = ""
+    reset_token_expires_at: str = ""
+    created_at: str = field(default_factory=utc_now_iso)
     is_active: bool = True
 
     def to_dict(self) -> dict:
@@ -45,6 +49,9 @@ class User:
             "email": self.email,
             "role": self.role.value if isinstance(self.role, UserRole) else self.role,
             "password_hash": self.password_hash,
+            "image_url": self.image_url,
+            "reset_token": self.reset_token,
+            "reset_token_expires_at": self.reset_token_expires_at,
             "created_at": self.created_at,
             "is_active": self.is_active,
         }
@@ -53,6 +60,8 @@ class User:
         """Serialisiert ohne sensitives Passwort-Hash (für API-Responses)."""
         d = self.to_dict()
         d.pop("password_hash", None)
+        d.pop("reset_token", None)
+        d.pop("reset_token_expires_at", None)
         return d
 
     @classmethod
@@ -64,7 +73,10 @@ class User:
             email=data["email"],
             role=UserRole(data.get("role", UserRole.USER.value)),
             password_hash=data.get("password_hash", ""),
-            created_at=data.get("created_at", datetime.utcnow().isoformat()),
+            image_url=data.get("image_url", ""),
+            reset_token=data.get("reset_token", ""),
+            reset_token_expires_at=data.get("reset_token_expires_at", ""),
+            created_at=data.get("created_at", utc_now_iso()),
             is_active=data.get("is_active", True),
         )
 

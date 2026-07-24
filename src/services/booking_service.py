@@ -30,7 +30,8 @@ Skalierungshinweis:
 """
 
 import uuid
-from datetime import datetime
+import hashlib
+from datetime import date, timedelta
 from typing import List, Optional, Tuple
 
 from ..models.booking import Booking, BookingStatus, BookingTargetType
@@ -40,6 +41,7 @@ from ..repositories.room_repository import RoomRepository
 from ..repositories.seat_repository import SeatRepository
 from ..repositories.asset_repository import AssetRepository
 from ..services.user_service import AuthError
+from ..utils.time import parse_iso_datetime, utc_now
 
 
 class BookingConflictError(Exception):
@@ -89,6 +91,8 @@ class BookingService:
         end_time: str,
         title: str = "Buchung",
         seat_id: str = None,
+        access_password: str = "",
+        invitation_emails: list = None,
     ) -> Booking:
         """
         Erstellt eine neue Buchung nach erfolgreicher Konfliktprüfung.
@@ -128,6 +132,8 @@ class BookingService:
 
         # 3. Konflikte prüfen ← KERNLOGIK
         conflicts = self._find_booking_conflicts(target_id, target_type, start_time, end_time)
+        if target_type == BookingTargetType.SEAT:
+            conflicts.extend(self._find_user_seat_conflicts(user.id, start_time, end_time))
         if conflicts:
             existing = conflicts[0]
             raise BookingConflictError(
@@ -148,6 +154,8 @@ class BookingService:
             end_time=end_time,
             room_id=room_id,
             auto_assigned_seat=auto_assigned_seat,
+            access_password_hash=self._hash_access_password(access_password),
+            invitation_emails=self._normalize_invitation_emails(invitation_emails),
         )
         return self._booking_repo.save(booking)
 
@@ -246,8 +254,8 @@ class BookingService:
             bookings = [
                 b for b in bookings
                 if query in b.title.lower()
-                or query in b.target_id.lower()
-                or query in b.room_id.lower()
+                or query in (b.target_id or "").lower()
+                or query in (b.room_id or "").lower()
             ]
         return bookings
 
@@ -278,6 +286,75 @@ class BookingService:
 
         conflicts = self._find_booking_conflicts(target_id, target_type, start_time, end_time)
         return len(conflicts) == 0, conflicts
+
+    def get_time_block_schedule(
+        self,
+        target_id: str,
+        target_type: BookingTargetType,
+        start_date: str = "",
+        days: int = 7,
+        first_hour: int = 8,
+        last_hour: int = 22,
+    ) -> List[dict]:
+        """Erzeugt eine Kalenderansicht mit stündlichen Buchungsblöcken."""
+        self._validate_target_exists(target_id, target_type)
+        try:
+            current_date = date.fromisoformat(start_date) if start_date else date.today()
+        except ValueError:
+            raise ValueError("start_date muss im Format YYYY-MM-DD angegeben werden.")
+
+        day_count = max(1, min(int(days or 7), 31))
+        schedule = []
+        for day_offset in range(day_count):
+            block_date = current_date + timedelta(days=day_offset)
+            slots = []
+            booked_blocks = 0
+            unavailable_blocks = 0
+
+            for hour in range(first_hour, last_hour):
+                block_start = f"{block_date.isoformat()}T{hour:02d}:00:00"
+                block_end = f"{block_date.isoformat()}T{hour + 1:02d}:00:00"
+                conflicts = self._find_booking_conflicts(
+                    target_id,
+                    target_type,
+                    block_start,
+                    block_end,
+                )
+                available = self._is_block_available(
+                    target_id,
+                    target_type,
+                    block_start,
+                    block_end,
+                )
+                if conflicts:
+                    booked_blocks += 1
+                if not available:
+                    unavailable_blocks += 1
+                slots.append({
+                    "start_time": block_start,
+                    "end_time": block_end,
+                    "label": f"{hour:02d}:00-{hour + 1:02d}:00",
+                    "available": available,
+                    "booked": bool(conflicts),
+                    "conflict_count": len(conflicts),
+                })
+
+            total_blocks = len(slots)
+            if booked_blocks == 0:
+                status = "free"
+            elif unavailable_blocks == total_blocks:
+                status = "full"
+            else:
+                status = "partial"
+            schedule.append({
+                "date": block_date.isoformat(),
+                "status": status,
+                "booked_blocks": booked_blocks,
+                "available_blocks": total_blocks - unavailable_blocks,
+                "total_blocks": total_blocks,
+                "slots": slots,
+            })
+        return schedule
 
     def get_available_rooms(
         self, start_time: str, end_time: str
@@ -359,8 +436,8 @@ class BookingService:
             - Buchungen in der Vergangenheit sind nicht erlaubt
         """
         try:
-            start_dt = datetime.fromisoformat(start_time)
-            end_dt = datetime.fromisoformat(end_time)
+            start_dt = parse_iso_datetime(start_time)
+            end_dt = parse_iso_datetime(end_time)
         except (ValueError, TypeError):
             raise ValueError(
                 "Ungültiges Zeitformat. Bitte ISO-8601 verwenden (z. B. '2026-06-15T09:00:00')."
@@ -369,7 +446,7 @@ class BookingService:
         if start_dt >= end_dt:
             raise ValueError("Die Startzeit muss vor der Endzeit liegen.")
 
-        if not allow_past and start_dt < datetime.utcnow():
+        if not allow_past and start_dt < utc_now():
             raise ValueError("Buchungen können nicht in der Vergangenheit erstellt werden.")
 
     def _validate_target_exists(
@@ -418,14 +495,19 @@ class BookingService:
         if target_type != BookingTargetType.ROOM:
             return target_id, target_type, "", False
 
+        room = self._room_repo.find_by_id(target_id)
+        is_shared_desk = room and getattr(room, "room_type", "seminarraum") == "shared_desk"
+
         if seat_id:
+            if not is_shared_desk:
+                raise ValueError("Sitzplätze können nur in Shared-Desk-Räumen separat gebucht werden.")
             seat = self._seat_repo.find_by_id(seat_id)
             if not seat or not seat.is_active or seat.room_id != target_id:
                 raise ValueError("Der angegebene Sitzplatz gehört nicht zum Raum oder ist nicht verfügbar.")
             return seat.id, BookingTargetType.SEAT, target_id, False
 
         seats = self._seat_repo.find_by_room(target_id)
-        if not seats:
+        if not seats or not is_shared_desk:
             return target_id, BookingTargetType.ROOM, "", False
 
         seat = self._find_available_seat(target_id, start_time, end_time)
@@ -470,6 +552,68 @@ class BookingService:
 
         return conflicts
 
+    def verify_booking_access(self, booking_id: str, access_password: str) -> bool:
+        """Prüft das Passwort einer geschützten Seminarraumbuchung."""
+        booking = self._booking_repo.find_by_id(booking_id)
+        if not booking or not booking.access_password_hash:
+            return False
+        return booking.access_password_hash == self._hash_access_password(access_password)
+
+    def get_active_room_occupancy(self, requesting_user: User) -> List[dict]:
+        """Admin-Übersicht: aktive Personen/Buchungen je Raum."""
+        if not requesting_user.is_admin():
+            raise AuthError("Nur Administratoren können die Raumbelegung einsehen.")
+
+        occupancy = []
+        for booking in self._booking_repo.find_active():
+            room_id = booking.room_id
+            if booking.target_type == BookingTargetType.ROOM:
+                room_id = booking.target_id
+            elif booking.target_type == BookingTargetType.SEAT and not room_id:
+                seat = self._seat_repo.find_by_id(booking.target_id)
+                room_id = seat.room_id if seat else ""
+            if not room_id:
+                continue
+            room = self._room_repo.find_by_id(room_id)
+            occupancy.append({
+                "room_id": room_id,
+                "room_name": room.name if room else "",
+                "booking_id": booking.id,
+                "user_id": booking.user_id,
+                "title": booking.title,
+                "target_type": booking.target_type.value,
+                "target_id": booking.target_id,
+                "start_time": booking.start_time,
+                "end_time": booking.end_time,
+                "status": booking.status.value,
+            })
+        return occupancy
+
+    def _hash_access_password(self, access_password: str) -> str:
+        if not access_password:
+            return ""
+        return hashlib.sha256(access_password.encode("utf-8")).hexdigest()
+
+    def _normalize_invitation_emails(self, invitation_emails: list) -> List[str]:
+        if not invitation_emails:
+            return []
+        cleaned = []
+        for email in invitation_emails:
+            value = str(email).strip().lower()
+            if value and "@" in value and value not in cleaned:
+                cleaned.append(value)
+        return cleaned
+
+    def _find_user_seat_conflicts(
+        self, user_id: str, start_time: str, end_time: str
+    ) -> List[Booking]:
+        """Verhindert, dass ein Nutzer parallel mehrere Sitzplätze bucht."""
+        return [
+            booking for booking in self._booking_repo.find_active_by_user(user_id)
+            if booking.target_type == BookingTargetType.SEAT
+            and booking.overlaps_with(start_time, end_time)
+        ]
+
     def _find_room_seat_conflicts(
         self, room_id: str, start_time: str, end_time: str
     ) -> List[Booking]:
@@ -481,3 +625,17 @@ class BookingService:
                 )
             )
         return conflicts
+
+    def _is_block_available(
+        self,
+        target_id: str,
+        target_type: BookingTargetType,
+        start_time: str,
+        end_time: str,
+    ) -> bool:
+        if target_type == BookingTargetType.ROOM:
+            room = self._room_repo.find_by_id(target_id)
+            seats = self._seat_repo.find_by_room(target_id)
+            if seats and room and getattr(room, "room_type", "seminarraum") == "shared_desk":
+                return self._find_available_seat(target_id, start_time, end_time) is not None
+        return len(self._find_booking_conflicts(target_id, target_type, start_time, end_time)) == 0

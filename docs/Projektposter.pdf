@@ -1,0 +1,60 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Length 1945 >>
+stream
+q
+0.96 0.98 1 rg
+0 730 595 112 re f
+Q
+BT /F1 28 Tf 30 790 Td (RePlan Workspace) Tj ET
+BT /F1 13 Tf 30 756 Td (Raum-, Sitzplatz- und Assetbuchung fuer Shared Offices und Seminarräume) Tj ET
+BT /F1 18 Tf 30 710 Td (Team) Tj ET
+BT /F1 11 Tf 48 685 Td (Tim Strauss: Backend, Scrummaster, Qualitätsmanager) Tj ET
+BT /F1 11 Tf 48 667 Td (Alexander Vetrenko: Backend, Requirements Engineering) Tj ET
+BT /F1 11 Tf 48 649 Td (Florian Haentjes: Frontend, Projektmanagement, GitHub Issues) Tj ET
+BT /F1 11 Tf 48 631 Td (Denis Nickel: Frontend) Tj ET
+BT /F1 18 Tf 30 588 Td (Problemstellung) Tj ET
+BT /F1 11 Tf 48 563 Td (Räume, Arbeitsplätze und Ausstattung werden in Unternehmen oft ueber E-Mail, Kalender) Tj ET
+BT /F1 11 Tf 48 545 Td (oder Tabellen koordiniert. Dadurch entstehen Doppelbuchungen und fehlende Transparenz.) Tj ET
+BT /F1 18 Tf 30 504 Td (Loesung) Tj ET
+BT /F1 11 Tf 48 479 Td (RePlan stellt eine zentrale Web-App bereit: suchen, filtern, buchen, verwalten.) Tj ET
+BT /F1 11 Tf 48 461 Td (Seminarräume werden ganz gebucht, Shared-Desk-Sitzplätze separat oder automatisch.) Tj ET
+BT /F1 18 Tf 30 420 Td (Architektur) Tj ET
+BT /F1 11 Tf 48 395 Td (React + Vite Frontend  ->  Flask REST API  ->  Services  ->  Repositories  ->  SQLite) Tj ET
+BT /F1 18 Tf 30 354 Td (Features) Tj ET
+BT /F1 11 Tf 48 329 Td (- Login, Logout, Passwort-Reset) Tj ET
+BT /F1 11 Tf 48 311 Td (- Buchung von Seminarräumen, Sitzplätzen und Assets) Tj ET
+BT /F1 11 Tf 48 293 Td (- Konfliktprüfung und Verfügbarkeitsfilter) Tj ET
+BT /F1 11 Tf 48 275 Td (- Admin-Ansicht fuer Nutzer, Rollen, Bilder und Buchungen) Tj ET
+BT /F1 11 Tf 48 257 Td (- Realistische Demo-Daten und Qualitätssheet) Tj ET
+BT /F1 18 Tf 30 216 Td (Technologie-Stack) Tj ET
+BT /F1 11 Tf 48 191 Td (Python, Flask, SQLite, pytest, React, Vite, GitHub Issues) Tj ET
+BT /F1 18 Tf 30 150 Td (Repository) Tj ET
+BT /F1 11 Tf 48 125 Td (https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03) Tj ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000000311 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+2307
+%%EOF

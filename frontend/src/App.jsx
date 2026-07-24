@@ -17,6 +17,7 @@ export default function App() {
   const initialAuth = useMemo(() => loadAuthState(), []);
   const [page, setPage] = useState("dashboard");
   const [auth, setAuth] = useState(initialAuth);
+  const [bookingDefaults, setBookingDefaults] = useState({});
 
   const isLoggedIn = Boolean(auth.token && auth.user);
   const isAdmin = auth.user?.role === "admin";
@@ -40,15 +41,27 @@ export default function App() {
     setPage("dashboard");
   }
 
+  function navigate(pageId) {
+    if (pageId === "createBooking") {
+      setBookingDefaults({});
+    }
+    setPage(pageId);
+  }
+
+  function openCreateBooking(defaults) {
+    setBookingDefaults(defaults || {});
+    setPage("createBooking");
+  }
+
   const pages = {
-    dashboard: <Dashboard setPage={setPage} isLoggedIn={isLoggedIn} />,
-    login: <Login onLogin={handleLogin} setPage={setPage} />,
-    register: <Register setPage={setPage} />,
-    rooms: <Rooms setPage={setPage} />,
-    seats: <Seats setPage={setPage} />,
-    assets: <Assets setPage={setPage} />,
-    bookings: <MyBookings isLoggedIn={isLoggedIn} setPage={setPage} />,
-    createBooking: <CreateBooking isLoggedIn={isLoggedIn} setPage={setPage} />,
+    dashboard: <Dashboard setPage={navigate} isLoggedIn={isLoggedIn} />,
+    login: <Login onLogin={handleLogin} setPage={navigate} />,
+    register: <Register setPage={navigate} />,
+    rooms: <Rooms setPage={navigate} openCreateBooking={openCreateBooking} />,
+    seats: <Seats setPage={navigate} openCreateBooking={openCreateBooking} />,
+    assets: <Assets setPage={navigate} openCreateBooking={openCreateBooking} />,
+    bookings: <MyBookings isLoggedIn={isLoggedIn} setPage={navigate} />,
+    createBooking: <CreateBooking isLoggedIn={isLoggedIn} setPage={navigate} bookingDefaults={bookingDefaults} />,
     availability: <Availability />,
     admin: <Admin isAdmin={isAdmin} isLoggedIn={isLoggedIn} />,
   };
@@ -56,7 +69,7 @@ export default function App() {
   return (
     <AppShell
       page={page}
-      setPage={setPage}
+      setPage={navigate}
       user={auth.user}
       isLoggedIn={isLoggedIn}
       isAdmin={isAdmin}

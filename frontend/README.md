@@ -5,7 +5,7 @@ React/Vite-Frontend für die Raum- und Ressourcenplanung.
 ## Voraussetzungen
 
 - Node.js
-- laufendes Flask-Backend unter `http://localhost:5000`
+- laufendes Flask-Backend unter `http://localhost:5002`
 
 ## Installation
 
@@ -31,13 +31,13 @@ http://localhost:5173
 Standard:
 
 ```text
-http://localhost:5000/api
+http://localhost:5002/api
 ```
 
 Optional kann die API-Basis per Umgebungsvariable gesetzt werden:
 
 ```text
-VITE_API_BASE_URL=http://localhost:5000/api
+VITE_API_BASE_URL=http://localhost:5002/api
 ```
 
 ## Design-System

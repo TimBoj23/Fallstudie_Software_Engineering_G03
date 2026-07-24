@@ -5,8 +5,9 @@ Beispiele: Beamer, Whiteboard, Laptop, Monitor, Adapter
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime
 from enum import Enum
+
+from ..utils.time import utc_now_iso
 
 
 class AssetType(str, Enum):
@@ -39,8 +40,9 @@ class Asset:
     asset_type: AssetType = AssetType.OTHER
     description: str = ""
     location: str = ""
+    image_url: str = ""
     is_active: bool = True
-    created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    created_at: str = field(default_factory=utc_now_iso)
 
     def to_dict(self) -> dict:
         """Serialisiert das Asset für JSON-Persistenz."""
@@ -50,6 +52,7 @@ class Asset:
             "asset_type": self.asset_type.value if isinstance(self.asset_type, AssetType) else self.asset_type,
             "description": self.description,
             "location": self.location,
+            "image_url": self.image_url,
             "is_active": self.is_active,
             "created_at": self.created_at,
         }
@@ -63,8 +66,9 @@ class Asset:
             asset_type=AssetType(data.get("asset_type", AssetType.OTHER.value)),
             description=data.get("description", ""),
             location=data.get("location", ""),
+            image_url=data.get("image_url", ""),
             is_active=data.get("is_active", True),
-            created_at=data.get("created_at", datetime.utcnow().isoformat()),
+            created_at=data.get("created_at", utc_now_iso()),
         )
 
     def __repr__(self) -> str:

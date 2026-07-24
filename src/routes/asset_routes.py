@@ -23,6 +23,7 @@ def get_assets():
     """Alle aktiven Assets, optional nach Zeitraum und Typ gefiltert."""
     start = request.args.get("start")
     end = request.args.get("end")
+    availability_mode = request.args.get("availability", "available")
     asset_type_str = request.args.get("type")
     query = request.args.get("q", "")
 
@@ -37,11 +38,18 @@ def get_assets():
     if start and end:
         try:
             available_ids = set(_booking_service.get_available_assets(start, end))
-            assets = [a for a in assets if a.id in available_ids]
+            if availability_mode != "all":
+                assets = [a for a in assets if a.id in available_ids]
         except ValueError as e:
             return jsonify({"error": str(e)}), 400
 
-    return jsonify({"assets": [a.to_dict() for a in assets], "count": len(assets)}), 200
+    response_assets = []
+    for asset in assets:
+        data = asset.to_dict()
+        if start and end:
+            data["available"] = asset.id in available_ids
+        response_assets.append(data)
+    return jsonify({"assets": response_assets, "count": len(response_assets)}), 200
 
 
 @assets_bp.route("/<asset_id>", methods=["GET"])
@@ -63,6 +71,7 @@ def create_asset():
             asset_type=atype,
             description=data.get("description", ""),
             location=data.get("location", ""),
+            image_url=data.get("image_url", ""),
             requesting_user=g.current_user,
         )
         return jsonify({"asset": asset.to_dict()}), 201
@@ -83,6 +92,7 @@ def update_asset(asset_id):
             asset_type=atype,
             description=data.get("description"),
             location=data.get("location"),
+            image_url=data.get("image_url"),
         )
         return jsonify({"asset": asset.to_dict()}), 200
     except ValueError as e:
