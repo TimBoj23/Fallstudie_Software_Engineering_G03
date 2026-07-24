@@ -24,6 +24,12 @@ export default function Admin({ isLoggedIn, isAdmin }) {
     editUser: { id: "", name: "", email: "", role: "user", is_active: true },
     reset: { user_id: "", new_password: "" },
   });
+  const [bookingFilters, setBookingFilters] = useState({
+    user_id: "",
+    target_type: "",
+    status: "",
+    q: "",
+  });
 
   async function load() {
     if (!isAdmin) return;
@@ -294,13 +300,30 @@ export default function Admin({ isLoggedIn, isAdmin }) {
         </Panel>
       )}
 
-      {state.loading ? <LoadingState /> : <AdminList tab={tab} data={state.data} />}
+      {state.loading ? <LoadingState /> : (
+        <AdminList
+          tab={tab}
+          data={state.data}
+          bookingFilters={bookingFilters}
+          setBookingFilters={setBookingFilters}
+        />
+      )}
     </div>
   );
 }
 
-function AdminList({ tab, data }) {
+function AdminList({ tab, data, bookingFilters, setBookingFilters }) {
   const items = data[tab] || [];
+  if (tab === "bookings") {
+    return (
+      <BookingAdminList
+        bookings={items}
+        users={data.users || []}
+        filters={bookingFilters}
+        setFilters={setBookingFilters}
+      />
+    );
+  }
   return (
     <Panel title={`${label(tab)} Übersicht`}>
       <div className="data-table">
@@ -314,6 +337,78 @@ function AdminList({ tab, data }) {
       </div>
     </Panel>
   );
+}
+
+function BookingAdminList({ bookings, users, filters, setFilters }) {
+  const visibleBookings = bookings.filter((booking) => {
+    const search = filters.q.trim().toLowerCase();
+    const matchesUser = !filters.user_id || booking.user_id === filters.user_id;
+    const matchesType = !filters.target_type || booking.target_type === filters.target_type;
+    const matchesStatus = !filters.status || booking.status === filters.status;
+    const searchable = [
+      booking.title,
+      booking.target_name,
+      booking.target_meta,
+      booking.user_name,
+      booking.user_email,
+    ].filter(Boolean).join(" ").toLowerCase();
+    return matchesUser && matchesType && matchesStatus && (!search || searchable.includes(search));
+  });
+
+  return (
+    <Panel title="Buchungen Übersicht">
+      <div className="booking-admin-filters">
+        <select value={filters.user_id} onChange={(event) => setFilters({ ...filters, user_id: event.target.value })}>
+          <option value="">Alle Nutzer</option>
+          {users.map((user) => (
+            <option key={user.id} value={user.id}>{user.name} ({user.email})</option>
+          ))}
+        </select>
+        <select value={filters.target_type} onChange={(event) => setFilters({ ...filters, target_type: event.target.value })}>
+          <option value="">Alle Typen</option>
+          <option value="room">Räume</option>
+          <option value="seat">Sitzplätze</option>
+          <option value="asset">Ausstattung</option>
+        </select>
+        <select value={filters.status} onChange={(event) => setFilters({ ...filters, status: event.target.value })}>
+          <option value="">Alle Status</option>
+          <option value="active">Aktiv</option>
+          <option value="cancelled">Storniert</option>
+        </select>
+        <input placeholder="Suchen" value={filters.q} onChange={(event) => setFilters({ ...filters, q: event.target.value })} />
+      </div>
+      <div className="data-table">
+        {visibleBookings.length === 0 ? <EmptyState title="Keine Buchungen" /> : visibleBookings.map((booking) => (
+          <div className="booking-admin-row" key={booking.id}>
+            <UserBadge booking={booking} />
+            <div className="booking-admin-main">
+              <strong>{booking.title || "Buchung"}</strong>
+              <span>{booking.target_name || booking.target_id}</span>
+            </div>
+            <span className="booking-admin-meta">{booking.user_name || booking.user_email || booking.user_id}</span>
+            <span className={`badge ${booking.status === "active" ? "success" : "muted"}`}>
+              {booking.status === "active" ? "Aktiv" : "Storniert"}
+            </span>
+            <code>{booking.id}</code>
+          </div>
+        ))}
+      </div>
+    </Panel>
+  );
+}
+
+function UserBadge({ booking }) {
+  const initials = booking.user_initials || initialsFrom(booking.user_name || booking.user_email || booking.user_id);
+  return (
+    <span className="user-initials" title={booking.user_email || booking.user_name || booking.user_id}>
+      {initials}
+    </span>
+  );
+}
+
+function initialsFrom(value) {
+  const parts = String(value || "?").replace("@", " ").replace(".", " ").split(/\s+/).filter(Boolean);
+  return parts.slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "?";
 }
 
 function detail(item) {

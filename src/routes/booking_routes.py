@@ -13,6 +13,7 @@ from ..models.booking import BookingTargetType
 from ..repositories.asset_repository import AssetRepository
 from ..repositories.room_repository import RoomRepository
 from ..repositories.seat_repository import SeatRepository
+from ..repositories.user_repository import UserRepository
 from ..services.booking_service import BookingService, BookingConflictError, BookingNotFoundError
 from ..services.user_service import AuthError
 from ..utils.auth_middleware import login_required, admin_required
@@ -22,6 +23,7 @@ _booking_service = BookingService()
 _room_repo = RoomRepository()
 _seat_repo = SeatRepository()
 _asset_repo = AssetRepository()
+_user_repo = UserRepository()
 
 
 @bookings_bp.route("", methods=["GET"])
@@ -167,6 +169,13 @@ def _booking_to_response(booking):
     target = _resolve_booking_target(booking)
     if target:
         data.update(target)
+    user = _user_repo.find_by_id(booking.user_id)
+    if user:
+        data.update({
+            "user_name": user.name,
+            "user_email": user.email,
+            "user_initials": _initials(user.name or user.email),
+        })
     return data
 
 
@@ -202,3 +211,10 @@ def _resolve_booking_target(booking):
         "target_meta": room.location or room.number,
         "target_image_url": room.image_url,
     }
+
+
+def _initials(value: str) -> str:
+    parts = [part for part in value.replace("@", " ").replace(".", " ").split() if part]
+    if not parts:
+        return "?"
+    return "".join(part[0] for part in parts[:2]).upper()
