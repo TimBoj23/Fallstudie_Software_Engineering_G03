@@ -21,7 +21,7 @@
   },
   {
     "id": "1d47cfd5-c679-41d6-809e-6b4c3d122501",
-    "name": "Alexander Hoffmann",
+    "name": "Alexander Vetrenko",
     "email": "alexander@replan.de",
     "role": "user",
     "password_hash": "5371e83680c0802eb07056f86e720502a05f2814bf08c2d067261330a05d4329:3b6e271bd82022efa930d6f9fa002dcc9b0d50405b55c737697d8b738c82c090",
@@ -31,7 +31,7 @@
   },
   {
     "id": "7823f770-60ad-4e2f-9e61-328fd9e36bd8",
-    "name": "Denis Wagner",
+    "name": "Denis Nickel",
     "email": "denis@replan.de",
     "role": "user",
     "password_hash": "c5842ca63322a283658a3d154d49bb8f27115dbcacf15a280005d0a194c2d2a5:124a5809e79e6214745d947ffb57b0eb158d1f8a6e92dbecb77b78daf583f927",
@@ -41,7 +41,7 @@
   },
   {
     "id": "e6105bc8-2c7f-4a67-9fa3-6ea538f1b5d1",
-    "name": "Florian Becker",
+    "name": "Florian Häntjes",
     "email": "florian@replan.de",
     "role": "user",
     "password_hash": "5cfd432649db460054df98cbc1d9250651f40fc708569002cecf4e9d2f3b44b0:cdab2a9146f7595693c8d9fffd7ccbe4d5fd4093d3f87609c8f7ffd8bdd5da41",
