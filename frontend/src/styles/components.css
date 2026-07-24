@@ -425,7 +425,7 @@
 
 .booking-admin-row {
   display: grid;
-  grid-template-columns: auto minmax(220px, 1.3fr) minmax(180px, 1fr) auto minmax(160px, auto);
+  grid-template-columns: auto minmax(220px, 1.3fr) minmax(180px, 1fr) auto;
   align-items: center;
   gap: var(--space-3);
   border-bottom: 1px solid var(--color-border);
@@ -464,6 +464,69 @@
   font-weight: 800;
 }
 
+.user-avatar {
+  width: 38px;
+  height: 38px;
+  object-fit: cover;
+  border: 2px solid #bbf7d0;
+  border-radius: 50%;
+  background: var(--color-surface-muted);
+}
+
+.user-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-3);
+}
+
+.user-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 92px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  color: var(--color-text);
+  background: var(--color-surface);
+  text-align: left;
+}
+
+.user-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
+}
+
+.user-card span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.user-card small {
+  overflow: hidden;
+  color: var(--color-text-soft);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-photo {
+  width: 58px;
+  height: 58px;
+  flex: 0 0 58px;
+  object-fit: cover;
+  border-radius: 50%;
+  background: var(--color-surface-muted);
+}
+
+.user-photo.fallback {
+  display: inline-grid;
+  place-items: center;
+  color: #166534;
+  background: #dcfce7;
+  font-weight: 800;
+}
+
 .inline-check {
   display: flex;
   align-items: center;
@@ -492,7 +555,7 @@
 
 .data-row {
   display: grid;
-  grid-template-columns: minmax(160px, 1fr) minmax(100px, 180px) minmax(120px, 260px);
+  grid-template-columns: minmax(160px, 1fr) minmax(100px, 240px);
   gap: var(--space-3);
   align-items: center;
   border-bottom: 1px solid var(--color-border);

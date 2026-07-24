@@ -37,6 +37,7 @@ def create_user():
             email=data.get("email", ""),
             password=data.get("password", ""),
             role=role,
+            image_url=data.get("image_url", ""),
             requesting_user=g.current_user,
         )
         return jsonify({"user": user.to_public_dict()}), 201
@@ -80,6 +81,7 @@ def update_user(user_id):
             name=data.get("name"),
             email=data.get("email"),
             role=role,
+            image_url=data.get("image_url"),
             is_active=data.get("is_active") if "is_active" in data else None,
         )
         return jsonify({"user": user.to_public_dict()}), 200

@@ -174,6 +174,7 @@ def _booking_to_response(booking):
         data.update({
             "user_name": user.name,
             "user_email": user.email,
+            "user_image_url": user.image_url,
             "user_initials": _initials(user.name or user.email),
         })
     return data

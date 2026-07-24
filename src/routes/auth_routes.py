@@ -38,6 +38,7 @@ def register():
             email=data.get("email", ""),
             password=data.get("password", ""),
             role=role,
+            image_url=data.get("image_url", ""),
         )
         return jsonify({"user": user.to_public_dict()}), 201
     except ValueError as e:

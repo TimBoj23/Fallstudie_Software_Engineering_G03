@@ -34,6 +34,7 @@ class User:
     email: str
     role: UserRole = UserRole.USER
     password_hash: str = ""
+    image_url: str = ""
     created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
     is_active: bool = True
 
@@ -45,6 +46,7 @@ class User:
             "email": self.email,
             "role": self.role.value if isinstance(self.role, UserRole) else self.role,
             "password_hash": self.password_hash,
+            "image_url": self.image_url,
             "created_at": self.created_at,
             "is_active": self.is_active,
         }
@@ -64,6 +66,7 @@ class User:
             email=data["email"],
             role=UserRole(data.get("role", UserRole.USER.value)),
             password_hash=data.get("password_hash", ""),
+            image_url=data.get("image_url", ""),
             created_at=data.get("created_at", datetime.utcnow().isoformat()),
             is_active=data.get("is_active", True),
         )

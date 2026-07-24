@@ -5,15 +5,17 @@
     "email": "demo_fcdeb6@replan.de",
     "role": "user",
     "password_hash": "8330c1f3b4864852c997f8bf9ab1fd7b7e4f741daa0dc43063296444846aec29:86c5c4a99209d32b5c5572075f0e479d8afa199955b92742fcb7b4f7fc70af1f",
+    "image_url": "/pictures/Max_Mustermann.jpg",
     "created_at": "2026-06-01T15:02:10.183504",
     "is_active": true
   },
   {
     "id": "fe3a5c2b-d77e-450c-bceb-542f80fec791",
-    "name": "Max Mustermann (Demo)",
+    "name": "Max Musterfrau (Demo)",
     "email": "demo_cc24df@replan.de",
     "role": "user",
     "password_hash": "f7de16d111c91edb095d3a7af45724f466d015ccec8797134f3bef5f37cbd32e:f8625abb074179be74117362d8689aa24104053c7f76ebd4b932c2c6bd2aa1e6",
+    "image_url": "/pictures/Max_Musterfrau.jpeg",
     "created_at": "2026-06-01T15:08:43.643391",
     "is_active": true
   },
@@ -23,6 +25,7 @@
     "email": "demo_411b41@replan.de",
     "role": "user",
     "password_hash": "99a4ed42360bb5f126e326dda733b0095d4a17a765c2bbaca30baec72057632b:eea6b7491f2f3202ff5a405aaeac7ac210a56c6f3cbe51d96c0f498a68213e31",
+    "image_url": "/pictures/Max_Mustermann.jpg",
     "created_at": "2026-06-16T11:51:33.189964",
     "is_active": true
   },
@@ -32,6 +35,7 @@
     "email": "tim@test-mail.de",
     "role": "user",
     "password_hash": "20acb73af12012197dd64bc6b1bdf6bd27025049330aad3f6c99fbe8a0750fb8:c4d285cdb37b5a3a0e92486f2d35e57d104f87b5542f8da116720fb45ff53c29",
+    "image_url": "/pictures/Tim_Test.jpg",
     "created_at": "2026-07-19T11:30:21.143863",
     "is_active": true
   }

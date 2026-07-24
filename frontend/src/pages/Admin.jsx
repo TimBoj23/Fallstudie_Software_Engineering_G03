@@ -20,8 +20,8 @@ export default function Admin({ isLoggedIn, isAdmin }) {
     room: { name: "", number: "", capacity: 1, location: "", equipment: "", description: "", image_url: "" },
     seat: { room_id: "", label: "", description: "", monitor_count: 1, image_url: "" },
     asset: { name: "", asset_type: "other", location: "", description: "", image_url: "" },
-    user: { name: "", email: "", password: "", role: "user" },
-    editUser: { id: "", name: "", email: "", role: "user", is_active: true },
+    user: { name: "", email: "", password: "", role: "user", image_url: "" },
+    editUser: { id: "", name: "", email: "", role: "user", image_url: "", is_active: true },
     reset: { user_id: "", new_password: "" },
   });
   const [bookingFilters, setBookingFilters] = useState({
@@ -141,9 +141,10 @@ export default function Admin({ isLoggedIn, isAdmin }) {
             name: user.name,
             email: user.email,
             role: user.role,
+            image_url: user.image_url || "",
             is_active: user.is_active,
           }
-        : { id: "", name: "", email: "", role: "user", is_active: true },
+        : { id: "", name: "", email: "", role: "user", image_url: "", is_active: true },
     }));
   }
 
@@ -155,6 +156,7 @@ export default function Admin({ isLoggedIn, isAdmin }) {
         name: forms.editUser.name,
         email: forms.editUser.email,
         role: forms.editUser.role,
+        image_url: forms.editUser.image_url,
         is_active: forms.editUser.is_active,
       });
       await load();
@@ -260,6 +262,11 @@ export default function Admin({ isLoggedIn, isAdmin }) {
                 <option value="admin">Admin</option>
               </select>
             </div>
+            <PictureInput
+              label="Nutzerfoto"
+              value={forms.user.image_url}
+              onChange={(file) => handlePictureFile("user", file)}
+            />
             <Button type="submit" icon={Plus} disabled={state.loading}>Nutzer anlegen</Button>
           </form>
           <form className="form-stack" onSubmit={resetPassword}>
@@ -291,6 +298,11 @@ export default function Admin({ isLoggedIn, isAdmin }) {
               <input placeholder="Name" value={forms.editUser.name} onChange={(e) => setForms({ ...forms, editUser: { ...forms.editUser, name: e.target.value } })} required />
               <input type="email" placeholder="E-Mail" value={forms.editUser.email} onChange={(e) => setForms({ ...forms, editUser: { ...forms.editUser, email: e.target.value } })} required />
             </div>
+            <PictureInput
+              label="Nutzerfoto"
+              value={forms.editUser.image_url}
+              onChange={(file) => handlePictureFile("editUser", file)}
+            />
             <label className="inline-check">
               <input type="checkbox" checked={forms.editUser.is_active} onChange={(e) => setForms({ ...forms, editUser: { ...forms.editUser, is_active: e.target.checked } })} />
               <span>Nutzer ist aktiv</span>
@@ -306,13 +318,14 @@ export default function Admin({ isLoggedIn, isAdmin }) {
           data={state.data}
           bookingFilters={bookingFilters}
           setBookingFilters={setBookingFilters}
+          selectUser={selectUser}
         />
       )}
     </div>
   );
 }
 
-function AdminList({ tab, data, bookingFilters, setBookingFilters }) {
+function AdminList({ tab, data, bookingFilters, setBookingFilters, selectUser }) {
   const items = data[tab] || [];
   if (tab === "bookings") {
     return (
@@ -324,15 +337,36 @@ function AdminList({ tab, data, bookingFilters, setBookingFilters }) {
       />
     );
   }
+  if (tab === "users") {
+    return <UserAdminList users={items} selectUser={selectUser} />;
+  }
   return (
     <Panel title={`${label(tab)} Übersicht`}>
       <div className="data-table">
         {items.length === 0 ? <EmptyState title="Keine Einträge" /> : items.map((item) => (
           <div className="data-row" key={item.id}>
-            <strong>{item.name || item.label || item.title || item.target_name || item.id}</strong>
+            <strong>{item.name || item.label || item.title || item.target_name || "Eintrag"}</strong>
             <span>{detail(item)}</span>
-            <code>{item.id}</code>
           </div>
+        ))}
+      </div>
+    </Panel>
+  );
+}
+
+function UserAdminList({ users, selectUser }) {
+  return (
+    <Panel title="Nutzer Übersicht">
+      <div className="user-card-grid">
+        {users.length === 0 ? <EmptyState title="Keine Nutzer" /> : users.map((user) => (
+          <button className="user-card" key={user.id} type="button" onClick={() => selectUser(user.id)}>
+            <UserPhoto user={user} />
+            <span>
+              <strong>{user.name}</strong>
+              <small>{user.email}</small>
+              <small>{user.role === "admin" ? "Admin" : "User"} · {user.is_active ? "aktiv" : "inaktiv"}</small>
+            </span>
+          </button>
         ))}
       </div>
     </Panel>
@@ -383,13 +417,12 @@ function BookingAdminList({ bookings, users, filters, setFilters }) {
             <UserBadge booking={booking} />
             <div className="booking-admin-main">
               <strong>{booking.title || "Buchung"}</strong>
-              <span>{booking.target_name || booking.target_id}</span>
+              <span>{booking.target_name || "Gebuchtes Objekt"}</span>
             </div>
-            <span className="booking-admin-meta">{booking.user_name || booking.user_email || booking.user_id}</span>
+            <span className="booking-admin-meta">{booking.user_name || booking.user_email || "Unbekannter Nutzer"}</span>
             <span className={`badge ${booking.status === "active" ? "success" : "muted"}`}>
               {booking.status === "active" ? "Aktiv" : "Storniert"}
             </span>
-            <code>{booking.id}</code>
           </div>
         ))}
       </div>
@@ -399,11 +432,21 @@ function BookingAdminList({ bookings, users, filters, setFilters }) {
 
 function UserBadge({ booking }) {
   const initials = booking.user_initials || initialsFrom(booking.user_name || booking.user_email || booking.user_id);
+  if (booking.user_image_url) {
+    return <img className="user-avatar" src={mediaUrl(booking.user_image_url)} alt={booking.user_name || booking.user_email || "Nutzer"} loading="lazy" />;
+  }
   return (
     <span className="user-initials" title={booking.user_email || booking.user_name || booking.user_id}>
       {initials}
     </span>
   );
+}
+
+function UserPhoto({ user }) {
+  if (user.image_url) {
+    return <img className="user-photo" src={mediaUrl(user.image_url)} alt={user.name} loading="lazy" />;
+  }
+  return <span className="user-photo fallback">{initialsFrom(user.name || user.email)}</span>;
 }
 
 function initialsFrom(value) {
@@ -426,7 +469,6 @@ function PictureInput({ label, value, onChange }) {
       {value && (
         <div className="picture-preview">
           <img src={mediaUrl(value)} alt={label} />
-          <code>{value}</code>
         </div>
       )}
     </label>

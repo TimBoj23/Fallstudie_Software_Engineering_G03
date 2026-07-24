@@ -70,6 +70,7 @@ class UserService:
         email: str,
         password: str,
         role: UserRole = UserRole.USER,
+        image_url: str = "",
     ) -> User:
         """
         Registriert einen neuen Nutzer.
@@ -101,6 +102,7 @@ class UserService:
             email=email.lower().strip(),
             role=role,
             password_hash=self._hash_password(password),
+            image_url=image_url,
         )
         return self._repo.save(user)
 
@@ -136,11 +138,12 @@ class UserService:
         password: str,
         requesting_user: User,
         role: UserRole = UserRole.USER,
+        image_url: str = "",
     ) -> User:
         """Legt als Admin einen Nutzer an."""
         if not requesting_user.is_admin():
             raise AuthError("Nur Administratoren können Nutzer anlegen.")
-        return self.register(name=name, email=email, password=password, role=role)
+        return self.register(name=name, email=email, password=password, role=role, image_url=image_url)
 
     def reset_password(self, user_id: str, new_password: str, requesting_user: User) -> User:
         """Setzt als Admin das Passwort eines Nutzers zurück."""
@@ -161,6 +164,7 @@ class UserService:
         name: str = None,
         email: str = None,
         role: UserRole = None,
+        image_url: str = None,
         is_active: bool = None,
     ) -> User:
         """Bearbeitet wesentliche Nutzereigenschaften als Admin."""
@@ -184,6 +188,8 @@ class UserService:
             user.email = normalized_email
         if role is not None:
             user.role = role
+        if image_url is not None:
+            user.image_url = image_url
         if is_active is not None:
             user.is_active = bool(is_active)
 
