@@ -9,7 +9,7 @@ import Panel from "../components/Panel.jsx";
 import ResourceCard from "../components/ResourceCard.jsx";
 import StatusMessage from "../components/StatusMessage.jsx";
 
-export default function Rooms({ setPage }) {
+export default function Rooms({ openCreateBooking }) {
   const [filters, setFilters] = useState({ q: "", location: "", min_capacity: "", equipment: "", start: "", end: "" });
   const [state, setState] = useState({ loading: true, error: "", rooms: [] });
 
@@ -61,7 +61,7 @@ export default function Rooms({ setPage }) {
               chips={room.equipment || []}
               imageUrl={room.image_url}
               available={room.available}
-              onBook={() => setPage("createBooking")}
+              onBook={() => openCreateBooking({ targetType: "room", targetId: room.id })}
             />
           ))}
         </div>

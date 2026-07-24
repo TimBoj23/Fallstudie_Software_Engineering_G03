@@ -21,7 +21,7 @@ const assetTypeLabels = {
   other: "Sonstiges",
 };
 
-export default function Assets({ setPage }) {
+export default function Assets({ openCreateBooking }) {
   const [filters, setFilters] = useState({ q: "", type: "", start: "", end: "" });
   const [state, setState] = useState({ loading: true, error: "", assets: [] });
 
@@ -72,7 +72,7 @@ export default function Assets({ setPage }) {
               chips={[assetTypeLabels[asset.asset_type]].filter(Boolean)}
               imageUrl={asset.image_url}
               available={asset.available}
-              onBook={() => setPage("createBooking")}
+              onBook={() => openCreateBooking({ targetType: "asset", targetId: asset.id })}
             />
           ))}
         </div>

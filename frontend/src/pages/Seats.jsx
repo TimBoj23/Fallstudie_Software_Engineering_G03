@@ -10,7 +10,7 @@ import Panel from "../components/Panel.jsx";
 import ResourceCard from "../components/ResourceCard.jsx";
 import StatusMessage from "../components/StatusMessage.jsx";
 
-export default function Seats({ setPage }) {
+export default function Seats({ openCreateBooking }) {
   const [filters, setFilters] = useState({ q: "", room_id: "", start: "", end: "" });
   const [state, setState] = useState({ loading: true, error: "", seats: [] });
   const [rooms, setRooms] = useState([]);
@@ -67,7 +67,7 @@ export default function Seats({ setPage }) {
               chips={[`${seat.monitor_count || 1} Monitor(e)`]}
               imageUrl={seat.image_url}
               available={seat.available}
-              onBook={() => setPage("createBooking")}
+              onBook={() => openCreateBooking({ targetType: "seat", targetId: seat.id })}
             />
           ))}
         </div>

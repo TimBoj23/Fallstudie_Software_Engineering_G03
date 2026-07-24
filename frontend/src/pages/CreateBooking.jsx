@@ -11,21 +11,24 @@ import Panel from "../components/Panel.jsx";
 import StatusMessage from "../components/StatusMessage.jsx";
 
 const targetTypes = [
-  { value: "room", label: "Raum" },
+  { value: "room", label: "Seminarraum" },
   { value: "seat", label: "Arbeitsplatz" },
   { value: "asset", label: "Ausstattung" },
 ];
 
-export default function CreateBooking({ isLoggedIn, setPage }) {
+const targetTypeLabels = Object.fromEntries(targetTypes.map((type) => [type.value, type.label]));
+
+export default function CreateBooking({ isLoggedIn, setPage, bookingDefaults = {} }) {
   const [form, setForm] = useState({
-    target_type: "room",
-    target_id: "",
+    target_type: bookingDefaults.targetType || "room",
+    target_id: bookingDefaults.targetId || "",
     title: "",
     start_time: "",
     end_time: "",
   });
   const [resources, setResources] = useState({ rooms: [], seats: [], assets: [] });
   const [state, setState] = useState({ loading: false, loadingResources: true, error: "", success: "", conflicts: [] });
+  const fixedTargetType = Boolean(bookingDefaults.targetType);
 
   useEffect(() => {
     if (!isLoggedIn) return;
@@ -53,7 +56,19 @@ export default function CreateBooking({ isLoggedIn, setPage }) {
     };
   }, [isLoggedIn]);
 
+  useEffect(() => {
+    setForm((current) => ({
+      ...current,
+      target_type: bookingDefaults.targetType || "room",
+      target_id: bookingDefaults.targetId || "",
+    }));
+  }, [bookingDefaults.targetId, bookingDefaults.targetType]);
+
   const options = useMemo(() => buildOptions(form.target_type, resources), [form.target_type, resources]);
+  const selectedTargetLabel = targetTypeLabels[form.target_type] || "Objekt";
+  const panelCaption = fixedTargetType
+    ? `${selectedTargetLabel} auswählen und Zeitraum festlegen.`
+    : "Wählen Sie Seminarraum, Arbeitsplatz oder Ausstattung und legen Sie den Zeitraum fest.";
 
   async function submit(event) {
     event.preventDefault();
@@ -93,24 +108,26 @@ export default function CreateBooking({ isLoggedIn, setPage }) {
 
   return (
     <div className="page-stack">
-      <Panel title="Buchung erstellen" caption="Wählen Sie Raum, Arbeitsplatz oder Ausstattung und legen Sie den Zeitraum fest.">
+      <Panel title="Buchung erstellen" caption={panelCaption}>
         {state.loadingResources ? <LoadingState label="Auswahl wird geladen..." /> : (
           <form className="form-stack" onSubmit={submit}>
             {state.error && <StatusMessage type="danger">{state.error}</StatusMessage>}
             {state.success && <StatusMessage type="success">{state.success}</StatusMessage>}
 
-            <div className="form-grid two">
+            <div className={`form-grid ${fixedTargetType ? "" : "two"}`}>
+              {!fixedTargetType && (
+                <label>
+                  <span>Was möchten Sie reservieren?</span>
+                  <select
+                    value={form.target_type}
+                    onChange={(event) => setForm({ ...form, target_type: event.target.value, target_id: "" })}
+                  >
+                    {targetTypes.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
+                  </select>
+                </label>
+              )}
               <label>
-                <span>Was möchten Sie reservieren?</span>
-                <select
-                  value={form.target_type}
-                  onChange={(event) => setForm({ ...form, target_type: event.target.value, target_id: "" })}
-                >
-                  {targetTypes.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
-                </select>
-              </label>
-              <label>
-                <span>Auswahl</span>
+                <span>{selectedTargetLabel}</span>
                 <select
                   value={form.target_id}
                   onChange={(event) => setForm({ ...form, target_id: event.target.value })}
