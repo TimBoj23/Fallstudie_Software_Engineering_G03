@@ -48,5 +48,45 @@
     "image_url": "/pictures/Teufel_Lautsprecher_Ultima_Asset.jpeg",
     "is_active": true,
     "created_at": "2026-07-25T09:40:00"
+  },
+  {
+    "id": "c1e93c38-23bc-4fc5-9464-29908a4ca8de",
+    "name": "Mobiles Whiteboard",
+    "asset_type": "whiteboard",
+    "description": "Beidseitig beschreibbares Whiteboard auf Rollen inklusive Markerablage.",
+    "location": "Seminarlager A",
+    "image_url": "/pictures/Mobiles_Whiteboard.jpeg",
+    "is_active": true,
+    "created_at": "2026-07-26T14:25:00"
+  },
+  {
+    "id": "0f79b56b-fb24-4e13-a017-e7e108267dc5",
+    "name": "Monitor Dell 27 Zoll",
+    "asset_type": "monitor",
+    "description": "Mobiler QHD-Monitor mit HDMI und USB-C für temporäre Arbeitsplätze.",
+    "location": "IT-Raum 003",
+    "image_url": "/pictures/Monitor_Dell_27.jpg",
+    "is_active": true,
+    "created_at": "2026-07-26T14:26:00"
+  },
+  {
+    "id": "34157454-90e8-4f16-9d87-2a739f3726e0",
+    "name": "USB-C Adapterkoffer",
+    "asset_type": "adapter",
+    "description": "Adapterset mit HDMI, DisplayPort, Ethernet und USB-A für Präsentationen.",
+    "location": "IT-Raum 003",
+    "image_url": "/pictures/USB-C_Adapterkoffer.png",
+    "is_active": true,
+    "created_at": "2026-07-26T14:27:00"
+  },
+  {
+    "id": "3a7e533a-2419-44a1-8757-a422ad1823ea",
+    "name": "Moderationskoffer",
+    "asset_type": "moderation",
+    "description": "Komplettset mit Karten, Markern, Klebepunkten, Magneten und Timer.",
+    "location": "Seminarlager A",
+    "image_url": "/pictures/Moderationskoffer.png",
+    "is_active": true,
+    "created_at": "2026-07-26T14:28:00"
   }
 ]

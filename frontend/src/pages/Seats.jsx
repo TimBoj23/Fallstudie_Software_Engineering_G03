@@ -10,7 +10,7 @@ import Panel from "../components/Panel.jsx";
 import ResourceCard from "../components/ResourceCard.jsx";
 import StatusMessage from "../components/StatusMessage.jsx";
 
-export default function Seats({ openCreateBooking }) {
+export default function Seats({ openCreateBooking, favorites = [], onToggleFavorite }) {
   const [filters, setFilters] = useState({ q: "", room_id: "", start: "", end: "" });
   const [state, setState] = useState({ loading: true, error: "", seats: [] });
   const [rooms, setRooms] = useState([]);
@@ -18,7 +18,7 @@ export default function Seats({ openCreateBooking }) {
   async function load(params = filters) {
     setState((current) => ({ ...current, loading: true, error: "" }));
     try {
-      const [seatData, roomData] = await Promise.all([getSeats(withAvailabilityMode(params)), getRooms()]);
+      const [seatData, roomData] = await Promise.all([getSeats(withAvailabilityMode(params)), getRooms({ room_type: "shared_desk" })]);
       setRooms(roomData.rooms || []);
       setState({ loading: false, error: "", seats: seatData.seats || [] });
     } catch (error) {
@@ -67,6 +67,8 @@ export default function Seats({ openCreateBooking }) {
               chips={[`${seat.monitor_count || 1} Monitor(e)`]}
               imageUrl={seat.image_url}
               available={seat.available}
+              favorite={favorites.some((favorite) => favorite.key === `seat:${seat.id}`)}
+              onToggleFavorite={onToggleFavorite ? () => onToggleFavorite("seat", seat.id) : null}
               onBook={() => openCreateBooking({ targetType: "seat", targetId: seat.id })}
             />
           ))}

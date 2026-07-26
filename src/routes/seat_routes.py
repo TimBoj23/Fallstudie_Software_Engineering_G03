@@ -12,11 +12,13 @@ from flask import Blueprint, request, jsonify, g
 
 from ..services.booking_service import BookingService
 from ..services.seat_service import SeatService
+from ..services.audit_service import AuditService
 from ..utils.auth_middleware import admin_required
 
 seats_bp = Blueprint("seats", __name__, url_prefix="/api/seats")
 room_seats_bp = Blueprint("room_seats", __name__, url_prefix="/api/rooms")
 _seat_service = SeatService()
+_audit_service = AuditService()
 _booking_service = BookingService()
 
 
@@ -85,6 +87,7 @@ def create_seat():
             monitor_count=int(data.get("monitor_count", 1)),
             requesting_user=g.current_user,
         )
+        _audit_service.record(g.current_user.id, "seat.created", "seat", seat.id, f"Arbeitsplatz {seat.label} wurde angelegt.")
         return jsonify({"seat": seat.to_dict()}), 201
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
@@ -103,6 +106,7 @@ def update_seat(seat_id):
             image_url=data.get("image_url"),
             monitor_count=int(data["monitor_count"]) if "monitor_count" in data else None,
         )
+        _audit_service.record(g.current_user.id, "seat.updated", "seat", seat.id, f"Arbeitsplatz {seat.label} wurde aktualisiert.")
         return jsonify({"seat": seat.to_dict()}), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
@@ -113,6 +117,7 @@ def update_seat(seat_id):
 def deactivate_seat(seat_id):
     try:
         seat = _seat_service.deactivate(seat_id, g.current_user)
+        _audit_service.record(g.current_user.id, "seat.deactivated", "seat", seat.id, f"Arbeitsplatz {seat.label} wurde deaktiviert.")
         return jsonify({"message": f"Sitzplatz '{seat.label}' wurde deaktiviert."}), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 404

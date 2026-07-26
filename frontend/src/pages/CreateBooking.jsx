@@ -25,9 +25,12 @@ export default function CreateBooking({ isLoggedIn, setPage, bookingDefaults = {
     title: bookingDefaults.title || "",
     start_time: toDateTimeLocal(bookingDefaults.startTime || ""),
     end_time: toDateTimeLocal(bookingDefaults.endTime || ""),
+    access_password: "",
+    invitation_emails: "",
   });
   const [resources, setResources] = useState({ rooms: [], seats: [], assets: [] });
-  const [state, setState] = useState({ loading: false, loadingResources: true, error: "", success: "", conflicts: [] });
+  const [recurrenceCount, setRecurrenceCount] = useState(1);
+  const [state, setState] = useState({ loading: false, loadingResources: true, error: "", success: "", conflicts: [], suggestions: [] });
   const fixedTargetType = Boolean(bookingDefaults.targetType);
 
   useEffect(() => {
@@ -35,7 +38,11 @@ export default function CreateBooking({ isLoggedIn, setPage, bookingDefaults = {
     let ignore = false;
     async function loadResources() {
       try {
-        const [rooms, seats, assets] = await Promise.all([getRooms(), getSeats(), getAssets()]);
+        const [rooms, seats, assets] = await Promise.all([
+          getRooms(),
+          getSeats({ shared_desk_only: true }),
+          getAssets(),
+        ]);
         if (!ignore) {
           setResources({
             rooms: rooms.rooms || [],
@@ -75,17 +82,34 @@ export default function CreateBooking({ isLoggedIn, setPage, bookingDefaults = {
 
   async function submit(event) {
     event.preventDefault();
-    setState((current) => ({ ...current, loading: true, error: "", success: "", conflicts: [] }));
+    setState((current) => ({ ...current, loading: true, error: "", success: "", conflicts: [], suggestions: [] }));
     try {
-      await createBooking({
+      const result = await createBooking({
         target_type: form.target_type,
         target_id: form.target_id,
         title: form.title || "Reservierung",
         start_time: form.start_time,
         end_time: form.end_time,
+        access_password: form.target_type === "room" ? form.access_password : "",
+        invitation_emails: form.target_type === "room"
+          ? parseEmails(form.invitation_emails)
+          : [],
+        recurrence_count: Number(recurrenceCount),
+        recurrence_interval: "weekly",
       });
-      setState((current) => ({ ...current, loading: false, success: "Ihre Reservierung wurde erstellt.", conflicts: [] }));
-      setForm({ ...form, title: "" });
+      const invitationCount = result.invitations?.length || 0;
+      setState((current) => ({
+        ...current,
+        loading: false,
+        success: result.series_count > 1
+          ? `${result.series_count} wöchentliche Reservierungen wurden erstellt.`
+          : invitationCount
+          ? `Ihre Reservierung wurde erstellt und ${invitationCount} Einladung(en) wurden vorbereitet.`
+          : "Ihre Reservierung wurde erstellt.",
+        conflicts: [],
+        suggestions: [],
+      }));
+      setForm({ ...form, title: "", access_password: "", invitation_emails: "" });
     } catch (error) {
       setState((current) => ({
         ...current,
@@ -93,6 +117,7 @@ export default function CreateBooking({ isLoggedIn, setPage, bookingDefaults = {
         error: error.message,
         success: "",
         conflicts: error.data?.conflicts || [],
+        suggestions: error.data?.suggestions || [],
       }));
     }
   }
@@ -149,6 +174,28 @@ export default function CreateBooking({ isLoggedIn, setPage, bookingDefaults = {
               <input placeholder="z.B. Teammeeting oder Arbeitsplatz Vormittag" value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} />
             </label>
 
+            {form.target_type === "room" && (
+              <div className="form-grid two">
+                <label>
+                  <span>Buchungspasswort (optional)</span>
+                  <input
+                    type="password"
+                    value={form.access_password}
+                    onChange={(event) => setForm({ ...form, access_password: event.target.value })}
+                    placeholder="Für externe Teilnehmende"
+                  />
+                </label>
+                <label>
+                  <span>Einladungen (optional)</span>
+                  <textarea
+                    value={form.invitation_emails}
+                    onChange={(event) => setForm({ ...form, invitation_emails: event.target.value })}
+                    placeholder="anna@example.de, max@example.de"
+                  />
+                </label>
+              </div>
+            )}
+
             <div className="form-grid two">
               <label>
                 <span>Start</span>
@@ -159,6 +206,17 @@ export default function CreateBooking({ isLoggedIn, setPage, bookingDefaults = {
                 <input type="datetime-local" value={form.end_time} onChange={(event) => setForm({ ...form, end_time: event.target.value })} required />
               </label>
             </div>
+
+            <label>
+              <span>Wiederholung</span>
+              <select value={recurrenceCount} onChange={(event) => setRecurrenceCount(Number(event.target.value))}>
+                <option value={1}>Einmalig</option>
+                <option value={2}>2 Wochen</option>
+                <option value={4}>4 Wochen</option>
+                <option value={8}>8 Wochen</option>
+                <option value={12}>12 Wochen</option>
+              </select>
+            </label>
 
             <Button type="submit" icon={CalendarPlus} disabled={state.loading}>
               {state.loading ? "Reservierung wird erstellt..." : "Reservierung erstellen"}
@@ -172,6 +230,21 @@ export default function CreateBooking({ isLoggedIn, setPage, bookingDefaults = {
           <div className="conflict-list">
             {state.conflicts.map((conflict) => (
               <span className="conflict-item" key={conflict.id}>{conflict.title}: {formatDate(conflict.start_time)} bis {formatDate(conflict.end_time)}</span>
+            ))}
+          </div>
+        </Panel>
+      )}
+      {state.suggestions.length > 0 && (
+        <Panel title="Alternative Zeiten" caption="Diese freien Zeitfenster können direkt übernommen werden.">
+          <div className="suggestion-grid">
+            {state.suggestions.map((suggestion) => (
+              <Button
+                key={suggestion.start_time}
+                variant="secondary"
+                onClick={() => setForm({ ...form, start_time: toDateTimeLocal(suggestion.start_time), end_time: toDateTimeLocal(suggestion.end_time) })}
+              >
+                {formatDate(suggestion.start_time)} – {formatDate(suggestion.end_time)}
+              </Button>
             ))}
           </div>
         </Panel>
@@ -210,4 +283,11 @@ function formatDate(value) {
 function toDateTimeLocal(value) {
   if (!value) return "";
   return value.slice(0, 16);
+}
+
+export function parseEmails(value) {
+  return String(value || "")
+    .split(/[\s,;]+/)
+    .map((email) => email.trim().toLowerCase())
+    .filter((email, index, values) => email.includes("@") && values.indexOf(email) === index);
 }

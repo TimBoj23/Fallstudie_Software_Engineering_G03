@@ -9,6 +9,8 @@ GET    /api/bookings/availability – Verfügbarkeit prüfen
 GET    /api/bookings/schedule   – Zeitblock-Kalender für ein Objekt
 """
 
+import os
+
 from flask import Blueprint, request, jsonify, g
 from ..models.booking import BookingTargetType
 from ..repositories.asset_repository import AssetRepository
@@ -17,8 +19,10 @@ from ..repositories.seat_repository import SeatRepository
 from ..repositories.user_repository import UserRepository
 from ..services.booking_service import BookingService, BookingConflictError, BookingNotFoundError
 from ..services.notification_service import NotificationService
+from ..services.audit_service import AuditService
 from ..services.user_service import AuthError
 from ..utils.auth_middleware import login_required, admin_required
+from ..utils.tokens import create_checkin_token, decode_checkin_token
 
 bookings_bp = Blueprint("bookings", __name__, url_prefix="/api/bookings")
 _booking_service = BookingService()
@@ -27,6 +31,7 @@ _seat_repo = SeatRepository()
 _asset_repo = AssetRepository()
 _user_repo = UserRepository()
 _notification_service = NotificationService()
+_audit_service = AuditService()
 
 
 @bookings_bp.route("", methods=["GET"])
@@ -94,7 +99,7 @@ def create_booking():
     data = request.get_json(silent=True) or {}
     try:
         target_type = BookingTargetType(data.get("target_type", ""))
-        booking = _booking_service.create_booking(
+        bookings = _booking_service.create_recurring_bookings(
             user=g.current_user,
             target_id=data.get("target_id", ""),
             target_type=target_type,
@@ -104,21 +109,48 @@ def create_booking():
             seat_id=data.get("seat_id"),
             access_password=data.get("access_password", ""),
             invitation_emails=data.get("invitation_emails", []),
+            recurrence_count=data.get("recurrence_count", 1),
+            recurrence_interval=data.get("recurrence_interval", "weekly"),
         )
+        booking = bookings[0]
         response_booking = _booking_to_response(booking)
         confirmation = _notification_service.booking_confirmation(
             g.current_user,
             booking,
             response_booking.get("target_name", ""),
         )
+        invitations = _notification_service.booking_invitations(
+            booking,
+            response_booking.get("target_name", ""),
+        )
+        _audit_service.record(
+            g.current_user.id,
+            "booking.series_created" if len(bookings) > 1 else "booking.created",
+            "booking",
+            booking.series_id or booking.id,
+            f"{len(bookings)} Buchung(en) wurden erstellt.",
+        )
         return jsonify({
             "booking": response_booking,
+            "bookings": [_booking_to_response(item) for item in bookings],
+            "series_count": len(bookings),
             "confirmation": confirmation,
+            "invitations": invitations,
         }), 201
     except BookingConflictError as e:
+        suggestions = []
+        try:
+            target_type = BookingTargetType(data.get("target_type", ""))
+            suggestions = _booking_service.suggest_alternatives(
+                data.get("target_id", ""), target_type,
+                data.get("start_time", ""), data.get("end_time", ""),
+            )
+        except (ValueError, TypeError):
+            pass
         return jsonify({
             "error": str(e),
             "conflicts": [_booking_to_response(c) for c in e.conflicts],
+            "suggestions": suggestions,
         }), 409
     except (ValueError, KeyError) as e:
         return jsonify({"error": str(e)}), 400
@@ -141,6 +173,7 @@ def cancel_booking(booking_id):
     """Storniert eine Buchung (eigene oder als Admin jede)."""
     try:
         booking = _booking_service.cancel_booking(booking_id, g.current_user)
+        _audit_service.record(g.current_user.id, "booking.cancelled", "booking", booking.id, "Buchung wurde storniert.")
         return jsonify({
             "message": "Buchung wurde erfolgreich storniert.",
             "booking": _booking_to_response(booking),
@@ -149,6 +182,86 @@ def cancel_booking(booking_id):
         return jsonify({"error": str(e)}), 404
     except AuthError as e:
         return jsonify({"error": str(e)}), 403
+
+
+@bookings_bp.route("/<booking_id>/check-in", methods=["POST"])
+@login_required
+def check_in_booking(booking_id):
+    """Checkt den Buchungsinhaber in eine aktuell laufende Buchung ein."""
+    try:
+        booking = _booking_service.check_in_booking(booking_id, g.current_user)
+        _audit_service.record(g.current_user.id, "booking.checked_in", "booking", booking.id, "Check-in wurde durchgeführt.")
+        return jsonify({
+            "message": "Check-in erfolgreich.",
+            "booking": _booking_to_response(booking),
+        }), 200
+    except BookingNotFoundError as e:
+        return jsonify({"error": str(e)}), 404
+    except AuthError as e:
+        return jsonify({"error": str(e)}), 403
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@bookings_bp.route("/<booking_id>/check-out", methods=["POST"])
+@login_required
+def check_out_booking(booking_id):
+    """Checkt den Buchungsinhaber aus einer Belegung aus."""
+    try:
+        booking = _booking_service.check_out_booking(booking_id, g.current_user)
+        _audit_service.record(g.current_user.id, "booking.checked_out", "booking", booking.id, "Check-out wurde durchgeführt.")
+        return jsonify({
+            "message": "Check-out erfolgreich.",
+            "booking": _booking_to_response(booking),
+        }), 200
+    except BookingNotFoundError as e:
+        return jsonify({"error": str(e)}), 404
+    except AuthError as e:
+        return jsonify({"error": str(e)}), 403
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@bookings_bp.route("/<booking_id>/check-in-code", methods=["GET"])
+@login_required
+def get_check_in_code(booking_id):
+    booking = _booking_service.get_by_id(booking_id)
+    if not booking:
+        return jsonify({"error": "Buchung nicht gefunden."}), 404
+    if booking.user_id != g.current_user.id and not g.current_user.is_admin():
+        return jsonify({"error": "Zugriff verweigert."}), 403
+    token = create_checkin_token(booking.id, booking.user_id)
+    frontend_url = (
+        os.environ.get("FRONTEND_URL")
+        or request.headers.get("Origin")
+        or "http://localhost:5173"
+    ).rstrip("/")
+    return jsonify({
+        "token": token,
+        "check_in_url": f"{frontend_url}/?checkin={token}",
+        "booking_id": booking.id,
+    }), 200
+
+
+@bookings_bp.route("/qr-check-in", methods=["POST"])
+@login_required
+def qr_check_in():
+    data = request.get_json(silent=True) or {}
+    payload = decode_checkin_token(data.get("token", ""))
+    if not payload:
+        return jsonify({"error": "Der QR-Code ist ungültig oder abgelaufen."}), 400
+    if payload.get("user_id") != g.current_user.id and not g.current_user.is_admin():
+        return jsonify({"error": "Dieser QR-Code gehört zu einem anderen Konto."}), 403
+    try:
+        booking = _booking_service.check_in_booking(payload.get("booking_id", ""), g.current_user)
+        _audit_service.record(g.current_user.id, "booking.qr_checked_in", "booking", booking.id, "QR-Check-in wurde durchgeführt.")
+        return jsonify({"message": "QR-Check-in erfolgreich.", "booking": _booking_to_response(booking)}), 200
+    except BookingNotFoundError as e:
+        return jsonify({"error": str(e)}), 404
+    except AuthError as e:
+        return jsonify({"error": str(e)}), 403
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
 
 
 @bookings_bp.route("/availability", methods=["GET"])
@@ -217,10 +330,32 @@ def verify_booking_access(booking_id):
     return jsonify({"allowed": allowed}), 200
 
 
+@bookings_bp.route("/<booking_id>/join", methods=["POST"])
+def join_booking(booking_id):
+    """Registriert eine externe Person für eine passwortgeschützte Raumbuchung."""
+    data = request.get_json(silent=True) or {}
+    try:
+        booking = _booking_service.join_protected_booking(
+            booking_id=booking_id,
+            email=data.get("email", ""),
+            access_password=data.get("access_password", ""),
+        )
+        return jsonify({
+            "message": "Sie wurden erfolgreich in das Seminar eingebucht.",
+            "booking": _booking_to_response(booking),
+        }), 200
+    except BookingNotFoundError as e:
+        return jsonify({"error": str(e)}), 404
+    except AuthError as e:
+        return jsonify({"error": str(e)}), 403
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+
+
 @bookings_bp.route("/occupancy", methods=["GET"])
 @admin_required
 def get_room_occupancy():
-    """Admin-Übersicht aktiver Buchungen je Raum inklusive Nutzerkontext."""
+    """Admin-Übersicht tatsächlich eingecheckter Personen je Raum."""
     try:
         entries = _booking_service.get_active_room_occupancy(g.current_user)
         response = []
@@ -237,6 +372,17 @@ def get_room_occupancy():
         return jsonify({"occupancy": response, "count": len(response)}), 200
     except AuthError as e:
         return jsonify({"error": str(e)}), 403
+
+
+@bookings_bp.route("/analytics", methods=["GET"])
+@admin_required
+def get_booking_analytics():
+    try:
+        return jsonify({"analytics": _booking_service.get_utilization_stats(
+            g.current_user, request.args.get("days", 30)
+        )}), 200
+    except (AuthError, ValueError, TypeError) as e:
+        return jsonify({"error": str(e)}), 400
 
 
 def _booking_to_response(booking):

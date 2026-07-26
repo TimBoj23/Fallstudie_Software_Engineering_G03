@@ -10,8 +10,8 @@ import Panel from "../components/Panel.jsx";
 import ResourceCard from "../components/ResourceCard.jsx";
 import StatusMessage from "../components/StatusMessage.jsx";
 
-export default function Rooms({ openCreateBooking }) {
-  const [filters, setFilters] = useState({ q: "", location: "", min_capacity: "", equipment: "", start: "", end: "" });
+export default function Rooms({ openCreateBooking, favorites = [], onToggleFavorite }) {
+  const [filters, setFilters] = useState({ q: "", location: "", min_capacity: "", room_type: "", equipment: "", start: "", end: "" });
   const [state, setState] = useState({ loading: true, error: "", rooms: [] });
   const [selectedRoom, setSelectedRoom] = useState(null);
 
@@ -41,6 +41,13 @@ export default function Rooms({ openCreateBooking }) {
           <input placeholder="Suchbegriff" value={filters.q} onChange={(event) => setFilters({ ...filters, q: event.target.value })} />
           <input placeholder="Standort" value={filters.location} onChange={(event) => setFilters({ ...filters, location: event.target.value })} />
           <input type="number" min="0" placeholder="Kapazität ab" value={filters.min_capacity} onChange={(event) => setFilters({ ...filters, min_capacity: event.target.value })} />
+          <select value={filters.room_type} onChange={(event) => setFilters({ ...filters, room_type: event.target.value })}>
+            <option value="">Alle Raumtypen</option>
+            <option value="shared_desk">Shared Desk</option>
+            <option value="seminarraum">Seminarraum</option>
+            <option value="meetingraum">Meetingraum</option>
+            <option value="studio">Studio</option>
+          </select>
           <input placeholder="Ausstattung" value={filters.equipment} onChange={(event) => setFilters({ ...filters, equipment: event.target.value })} />
           <DateTimeRangeFields values={filters} onChange={setFilters} />
           <Button type="submit" icon={Search}>Suchen</Button>
@@ -71,9 +78,11 @@ export default function Rooms({ openCreateBooking }) {
               location={room.location}
               capacity={room.capacity}
               description={room.description}
-              chips={room.equipment || []}
+              chips={[roomTypeLabel(room.room_type), ...(room.equipment || [])]}
               imageUrl={room.image_url}
               available={room.available}
+              favorite={favorites.some((favorite) => favorite.key === `room:${room.id}`)}
+              onToggleFavorite={onToggleFavorite ? () => onToggleFavorite("room", room.id) : null}
               onViewCalendar={() => setSelectedRoom(room)}
               onBook={() => openCreateBooking({ targetType: "room", targetId: room.id })}
             />
@@ -82,6 +91,15 @@ export default function Rooms({ openCreateBooking }) {
       )}
     </div>
   );
+}
+
+function roomTypeLabel(type) {
+  return {
+    shared_desk: "Shared Desk",
+    seminarraum: "Seminarraum",
+    meetingraum: "Meetingraum",
+    studio: "Studio",
+  }[type] || "Raum";
 }
 
 function withAvailabilityMode(params) {

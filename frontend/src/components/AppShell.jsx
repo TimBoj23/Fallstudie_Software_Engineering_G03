@@ -1,7 +1,7 @@
 import Sidebar from "./Sidebar.jsx";
 import Header from "./Header.jsx";
 
-export default function AppShell({ children, page, setPage, user, isLoggedIn, isAdmin, onLogout }) {
+export default function AppShell({ children, page, setPage, user, isLoggedIn, isAdmin, onLogout, theme, onToggleTheme }) {
   return (
     <div className="app-shell">
       <Sidebar
@@ -11,7 +11,14 @@ export default function AppShell({ children, page, setPage, user, isLoggedIn, is
         isAdmin={isAdmin}
       />
       <div className="app-main">
-        <Header user={user} isLoggedIn={isLoggedIn} onLogout={onLogout} setPage={setPage} />
+        <Header
+          user={user}
+          isLoggedIn={isLoggedIn}
+          onLogout={onLogout}
+          setPage={setPage}
+          theme={theme}
+          onToggleTheme={onToggleTheme}
+        />
         <main className="content">{children}</main>
       </div>
     </div>

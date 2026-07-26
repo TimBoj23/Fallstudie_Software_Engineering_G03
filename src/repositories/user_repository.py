@@ -18,14 +18,20 @@ class UserRepository(JsonRepository[User]):
 
     def find_by_email(self, email: str) -> Optional[User]:
         """Sucht einen aktiven Nutzer anhand seiner E-Mail-Adresse."""
+        user = self.find_any_by_email(email)
+        return user if user and user.is_active else None
+
+    def find_any_by_email(self, email: str) -> Optional[User]:
+        """Sucht unabhängig vom Aktivstatus nach einer E-Mail-Adresse."""
+        normalized_email = str(email or "").lower().strip()
         with self._lock:
             for d in self._read_all_raw():
-                if d.get("email", "").lower() == email.lower() and d.get("is_active", True):
+                if d.get("email", "").lower().strip() == normalized_email:
                     return User.from_dict(d)
         return None
 
     def email_exists(self, email: str) -> bool:
-        return self.find_by_email(email) is not None
+        return self.find_any_by_email(email) is not None
 
     def find_active(self) -> list:
         return [u for u in self.find_all() if u.is_active]

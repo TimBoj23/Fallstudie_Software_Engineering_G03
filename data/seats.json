@@ -56,7 +56,7 @@
     "description": "Seminararbeitsplatz mit einem Monitor.",
     "image_url": "/pictures/BArbeitsplatz_1_Monitor.jpeg",
     "monitor_count": 1,
-    "is_active": true,
+    "is_active": false,
     "created_at": "2026-07-25T09:55:00"
   },
   {
@@ -66,7 +66,7 @@
     "description": "Arbeitsplatz für Moderation und Raumsteuerung.",
     "image_url": "/pictures/Arbeitsplatz_zwei_Monitore.jpg",
     "monitor_count": 2,
-    "is_active": true,
+    "is_active": false,
     "created_at": "2026-07-25T10:00:00"
   },
   {
@@ -76,7 +76,7 @@
     "description": "Studioarbeitsplatz für Aufnahmeleitung und Monitoring.",
     "image_url": "/pictures/Arbeitsplatz_3_Monitore.jpg",
     "monitor_count": 3,
-    "is_active": true,
+    "is_active": false,
     "created_at": "2026-07-25T10:05:00"
   }
 ]

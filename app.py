@@ -14,6 +14,7 @@ API läuft unter: http://localhost:5002
 """
 
 import os
+import re
 import warnings
 from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
@@ -57,6 +58,7 @@ def create_app(config: dict = None) -> Flask:
                 "http://127.0.0.1:5174",
                 "http://localhost:4200",   # Angular
                 "http://127.0.0.1:3000",
+                re.compile(r"^http://(?:192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+):(?:3000|5173|5174)$"),
             ]
         }
     })
@@ -69,6 +71,7 @@ def create_app(config: dict = None) -> Flask:
     from src.routes.booking_routes import bookings_bp
     from src.routes.picture_routes import pictures_bp
     from src.routes.user_routes import users_bp
+    from src.routes.audit_routes import audit_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(rooms_bp)
@@ -78,6 +81,7 @@ def create_app(config: dict = None) -> Flask:
     app.register_blueprint(bookings_bp)
     app.register_blueprint(pictures_bp)
     app.register_blueprint(users_bp)
+    app.register_blueprint(audit_bp)
 
     # ── Health-Check Endpoint ──────────────────────────────────────────────────
     @app.route("/api/health", methods=["GET"])
@@ -107,18 +111,21 @@ def create_app(config: dict = None) -> Flask:
                     "POST /api/auth/register": "Nutzer registrieren",
                     "POST /api/auth/login": "Nutzer anmelden",
                     "POST /api/auth/logout": "Nutzer abmelden",
-                    "POST /api/auth/forgot-password": "Passwort zurücksetzen [MVP]",
                     "POST /api/auth/password-reset-request": "Reset-Token anfordern [MVP]",
                     "POST /api/auth/password-reset": "Passwort per Reset-Token setzen [MVP]",
                 },
                 "users": {
-                    "GET  /api/users": "Alle Nutzer anzeigen [Admin]",
+                    "GET  /api/users": "Nutzer suchen und filtern [Admin]",
                     "POST /api/users": "Nutzer anlegen [Admin]",
                     "PUT  /api/users/<id>": "Nutzer bearbeiten [Admin]",
                     "POST /api/users/<id>/reset-password": "Nutzerpasswort zurücksetzen [Admin]",
+                    "GET/PUT /api/users/me/favorites": "Eigene Favoriten verwalten [Auth]",
+                    "GET/PUT/DELETE /api/users/me": "Eigenes Profil abrufen, bearbeiten oder anonymisiert löschen [Auth]",
+                    "POST /api/users/me/change-password": "Eigenes Passwort ändern [Auth]",
                 },
                 "pictures": {
                     "POST /api/pictures": "Bilddatei hochladen [Admin]",
+                    "POST /api/pictures/profile": "Eigenes Profilbild hochladen [Auth]",
                     "GET  /pictures/<filename>": "Lokales Bild anzeigen",
                 },
                 "rooms": {
@@ -147,11 +154,20 @@ def create_app(config: dict = None) -> Flask:
                     "GET  /api/bookings": "Eigene Buchungen [Auth]",
                     "GET  /api/bookings/all": "Alle Buchungen [Admin]",
                     "GET  /api/bookings/occupancy": "Aktive Raumbelegung mit Nutzerkontext [Admin]",
-                    "POST /api/bookings": "Buchung erstellen [Auth]",
+                    "GET  /api/bookings/analytics": "Auslastungsstatistik [Admin]",
+                    "POST /api/bookings": "Einzel- oder Serienbuchung erstellen [Auth]",
                     "GET  /api/bookings/<id>": "Buchung abrufen [Auth]",
                     "POST /api/bookings/<id>/verify-access": "Passwort für geschützte Buchung prüfen",
+                    "POST /api/bookings/<id>/join": "Externe Person per Buchungspasswort einbuchen",
                     "DELETE /api/bookings/<id>": "Buchung stornieren [Auth]",
+                    "POST /api/bookings/<id>/check-in": "In laufende Buchung einchecken [Auth]",
+                    "POST /api/bookings/<id>/check-out": "Aus laufender Buchung auschecken [Auth]",
+                    "GET  /api/bookings/<id>/check-in-code": "Signierten QR-Check-in-Link erzeugen [Auth]",
+                    "POST /api/bookings/qr-check-in": "Per QR-Token einchecken [Auth]",
                     "GET  /api/bookings/availability": "Verfügbarkeit prüfen",
+                },
+                "audit": {
+                    "GET /api/audit": "Änderungsprotokoll anzeigen [Admin]",
                 },
             },
         }), 200

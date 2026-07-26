@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState } from "react";
 import { PlusCircle, RefreshCw } from "lucide-react";
-import { cancelBooking, getBookings } from "../api/bookingsApi.js";
+import { cancelBooking, checkInBooking, checkOutBooking, getBookings } from "../api/bookingsApi.js";
 import BookingCard from "../components/BookingCard.jsx";
 import Button from "../components/Button.jsx";
 import EmptyState from "../components/EmptyState.jsx";
@@ -8,7 +8,7 @@ import LoadingState from "../components/LoadingState.jsx";
 import Panel from "../components/Panel.jsx";
 import StatusMessage from "../components/StatusMessage.jsx";
 
-export default function MyBookings({ isLoggedIn, setPage }) {
+export default function MyBookings({ isLoggedIn, setPage, openCreateBooking }) {
   const [state, setState] = useState({ loading: false, error: "", success: "", bookings: [] });
   const [filters, setFilters] = useState({ target_type: "", start: "", end: "" });
 
@@ -33,6 +33,23 @@ export default function MyBookings({ isLoggedIn, setPage }) {
       await cancelBooking(id);
       const data = await getBookings(filters);
       setState({ loading: false, error: "", success: "Buchung wurde storniert.", bookings: data.bookings || [] });
+    } catch (error) {
+      setState((current) => ({ ...current, loading: false, error: error.message, success: "" }));
+    }
+  }
+
+  async function handleAttendance(id, action) {
+    setState((current) => ({ ...current, loading: true, error: "", success: "" }));
+    try {
+      if (action === "check-in") await checkInBooking(id);
+      else await checkOutBooking(id);
+      const data = await getBookings(filters);
+      setState({
+        loading: false,
+        error: "",
+        success: action === "check-in" ? "Check-in erfolgreich." : "Check-out erfolgreich.",
+        bookings: data.bookings || [],
+      });
     } catch (error) {
       setState((current) => ({ ...current, loading: false, error: error.message, success: "" }));
     }
@@ -81,7 +98,17 @@ export default function MyBookings({ isLoggedIn, setPage }) {
               action={<Button icon={PlusCircle} onClick={() => setPage("createBooking")}>Buchung erstellen</Button>}
             />
           ) : state.bookings.map((booking) => (
-            <BookingCard key={booking.id} booking={booking} onCancel={handleCancel} />
+            <BookingCard
+              key={booking.id}
+              booking={booking}
+              onCancel={handleCancel}
+              onAttendance={handleAttendance}
+              onCopy={(item) => openCreateBooking({
+                targetType: item.target_type,
+                targetId: item.target_id,
+                title: item.title,
+              })}
+            />
           ))}
         </div>
       )}

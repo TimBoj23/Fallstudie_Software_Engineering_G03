@@ -95,6 +95,7 @@ class RoomService:
         room_id: str,
         requesting_user: User,
         name: str = None,
+        number: str = None,
         capacity: int = None,
         room_type: str = None,
         location: str = None,
@@ -110,7 +111,16 @@ class RoomService:
             raise ValueError(f"Raum mit ID '{room_id}' nicht gefunden.")
 
         if name is not None:
+            if not name.strip():
+                raise ValueError("Raumname darf nicht leer sein.")
             room.name = name.strip()
+        if number is not None:
+            normalized_number = number.strip()
+            if not normalized_number:
+                raise ValueError("Raumnummer darf nicht leer sein.")
+            if self._repo.number_exists(normalized_number, exclude_id=room.id):
+                raise ValueError(f"Raumnummer '{normalized_number}' ist bereits vergeben.")
+            room.number = normalized_number
         if capacity is not None:
             if capacity <= 0:
                 raise ValueError("Kapazität muss größer als 0 sein.")

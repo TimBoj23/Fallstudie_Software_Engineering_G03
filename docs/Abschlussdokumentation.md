@@ -5,9 +5,16 @@
 - Buchung von Seminarräumen, Shared-Desk-Sitzplätzen und Assets
 - Konfliktprüfung gegen Doppelbuchungen
 - Nutzerregistrierung, Login, Logout und Passwort-Reset
+- Signierte, zeitlich begrenzte Bearer-Tokens statt offen übertragener Nutzer-IDs
+- Passwortgeschützte Seminarbuchungen mit Einladungen und externem Beitritt
 - Admin-Verwaltung für Nutzer, Räume, Sitzplätze, Assets und Buchungen
+- Aktuelle, nach Raum gruppierte Belegungsübersicht im Admin-Bereich
+- Echter Check-in/Check-out als Grundlage der Belegungsübersicht
 - Filter- und Suchfunktionen für die wichtigsten Übersichten
 - Bilder für Nutzer, Räume, Sitzplätze und Assets
+- Dark Mode mit gespeicherter Nutzerauswahl
+- Kalenderexport eigener Buchungen im iCalendar-Format
+- Bearbeiten und Soft-Delete von Räumen, Sitzplätzen und Assets im Admin-Bereich
 - SQLite-backed Persistenzschicht mit JSON-Migration
 
 ## Aktuelle Architektur
@@ -37,13 +44,15 @@ tests/          Backend-Tests
 | Buchungen verwalten | Nutzer sieht eigene Buchungen und kann diese stornieren. |
 | Admin verwaltet Nutzer | Admin legt Nutzer an, bearbeitet Rollen und setzt Passwörter zurück. |
 | Admin prüft Buchungen | Admin sieht alle Buchungen inklusive Nutzerkontext. |
+| Seminarteilnahme | Externe Personen treten mit Buchungscode, E-Mail und Passwort bei. |
+| Raumbelegung prüfen | Admin sieht ausschließlich aktuell eingecheckte Buchungsinhaber. |
 
 ## Offene Punkte
 
 - Echtes relationales SQL-Schema mit Tabellen für Nutzer, Räume, Sitzplätze, Assets und Buchungen
 - Produktiver E-Mail-Versand über SMTP oder externen Maildienst
 - Frontend-End-to-End-Tests
-- JWT oder serverseitige Sessionverwaltung statt MVP-Token über User-ID
+- Refresh-Tokens und serverseitige Sperrliste für vorzeitig widerrufene Auth-Tokens
 - Deployment-Konfiguration außerhalb der lokalen Demo
 
 ## Verweise

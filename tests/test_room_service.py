@@ -79,10 +79,17 @@ class TestRoomService:
     def test_raum_aktualisieren(self, room_service, admin):
         room = room_service.create(name="Alt", number="U-001", capacity=5, requesting_user=admin)
         updated = room_service.update(
-            room_id=room.id, requesting_user=admin, name="Neu", capacity=12
+            room_id=room.id, requesting_user=admin, name="Neu", number="U-002", capacity=12
         )
         assert updated.name == "Neu"
+        assert updated.number == "U-002"
         assert updated.capacity == 12
+
+    def test_raum_update_lehnt_doppelte_nummer_ab(self, room_service, admin):
+        first = room_service.create(name="R1", number="EDIT-001", capacity=4, requesting_user=admin)
+        second = room_service.create(name="R2", number="EDIT-002", capacity=4, requesting_user=admin)
+        with pytest.raises(ValueError):
+            room_service.update(second.id, admin, number=first.number)
 
     def test_raum_deaktivieren(self, room_service, admin):
         room = room_service.create(name="Aktiv", number="D-001", capacity=3, requesting_user=admin)

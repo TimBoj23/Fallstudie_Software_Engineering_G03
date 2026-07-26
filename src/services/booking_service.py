@@ -31,6 +31,8 @@ Skalierungshinweis:
 
 import uuid
 import hashlib
+import hmac
+import secrets
 from datetime import date, timedelta
 from typing import List, Optional, Tuple
 
@@ -93,6 +95,8 @@ class BookingService:
         seat_id: str = None,
         access_password: str = "",
         invitation_emails: list = None,
+        series_id: str = "",
+        recurrence_index: int = 0,
     ) -> Booking:
         """
         Erstellt eine neue Buchung nach erfolgreicher Konfliktprüfung.
@@ -129,6 +133,11 @@ class BookingService:
             end_time=end_time,
             seat_id=seat_id,
         )
+        invitation_emails = self._normalize_invitation_emails(invitation_emails)
+        if (access_password or invitation_emails) and target_type != BookingTargetType.ROOM:
+            raise ValueError("Passwortschutz und Einladungen sind nur für Ganzraumbuchungen möglich.")
+        if invitation_emails and not access_password:
+            raise ValueError("Für externe Einladungen muss ein Buchungspasswort gesetzt werden.")
 
         # 3. Konflikte prüfen ← KERNLOGIK
         conflicts = self._find_booking_conflicts(target_id, target_type, start_time, end_time)
@@ -154,10 +163,131 @@ class BookingService:
             end_time=end_time,
             room_id=room_id,
             auto_assigned_seat=auto_assigned_seat,
-            access_password_hash=self._hash_access_password(access_password),
-            invitation_emails=self._normalize_invitation_emails(invitation_emails),
+            access_password_hash=self._create_access_password_hash(access_password),
+            invitation_emails=invitation_emails,
+            series_id=series_id,
+            recurrence_index=recurrence_index,
         )
         return self._booking_repo.save(booking)
+
+    def create_recurring_bookings(
+        self,
+        user: User,
+        target_id: str,
+        target_type: BookingTargetType,
+        start_time: str,
+        end_time: str,
+        title: str = "Buchung",
+        recurrence_count: int = 1,
+        recurrence_interval: str = "weekly",
+        seat_id: str = None,
+        access_password: str = "",
+        invitation_emails: list = None,
+    ) -> List[Booking]:
+        """Erstellt bis zu zwölf wöchentliche Termine als atomare Buchungsserie."""
+        count = int(recurrence_count or 1)
+        if count < 1 or count > 12:
+            raise ValueError("Eine Buchungsserie darf zwischen 1 und 12 Termine enthalten.")
+        if recurrence_interval != "weekly":
+            raise ValueError("Aktuell werden Buchungsserien wöchentlich unterstützt.")
+        if count == 1:
+            return [self.create_booking(
+                user=user, target_id=target_id, target_type=target_type,
+                start_time=start_time, end_time=end_time, title=title,
+                seat_id=seat_id, access_password=access_password,
+                invitation_emails=invitation_emails,
+            )]
+
+        series_id = str(uuid.uuid4())
+        start = parse_iso_datetime(start_time)
+        end = parse_iso_datetime(end_time)
+        created = []
+        try:
+            for index in range(count):
+                offset = timedelta(weeks=index)
+                created.append(self.create_booking(
+                    user=user,
+                    target_id=target_id,
+                    target_type=target_type,
+                    start_time=(start + offset).isoformat(),
+                    end_time=(end + offset).isoformat(),
+                    title=title,
+                    seat_id=seat_id,
+                    access_password=access_password,
+                    invitation_emails=invitation_emails,
+                    series_id=series_id,
+                    recurrence_index=index + 1,
+                ))
+        except Exception:
+            for booking in created:
+                self._booking_repo.delete(booking.id)
+            raise
+        return created
+
+    def suggest_alternatives(
+        self,
+        target_id: str,
+        target_type: BookingTargetType,
+        start_time: str,
+        end_time: str,
+        limit: int = 3,
+    ) -> List[dict]:
+        """Sucht die nächsten freien Zeitfenster gleicher Dauer für dasselbe Ziel."""
+        start = parse_iso_datetime(start_time)
+        end = parse_iso_datetime(end_time)
+        duration = end - start
+        suggestions = []
+        candidate = start + timedelta(hours=1)
+        for _ in range(14 * 24):
+            if len(suggestions) >= max(1, min(limit, 6)):
+                break
+            candidate_end = candidate + duration
+            try:
+                available, _ = self.check_availability(
+                    target_id, target_type, candidate.isoformat(), candidate_end.isoformat()
+                )
+            except (ValueError, BookingConflictError):
+                available = False
+            if available:
+                suggestions.append({
+                    "target_id": target_id,
+                    "target_type": target_type.value,
+                    "start_time": candidate.isoformat(),
+                    "end_time": candidate_end.isoformat(),
+                })
+            candidate += timedelta(hours=1)
+        return suggestions
+
+    def get_utilization_stats(self, requesting_user: User, days: int = 30) -> dict:
+        """Kompakte Admin-Kennzahlen für den gewählten Rückblickzeitraum."""
+        if not requesting_user.is_admin():
+            raise AuthError("Nur Administratoren können Auslastungsdaten einsehen.")
+        day_count = max(1, min(int(days or 30), 365))
+        period_end = utc_now()
+        period_start = period_end - timedelta(days=day_count)
+        bookings = [
+            booking for booking in self._booking_repo.find_all()
+            if parse_iso_datetime(booking.end_time) >= period_start
+            and parse_iso_datetime(booking.start_time) <= period_end
+        ]
+        active = [booking for booking in bookings if booking.is_active()]
+        by_type = {target_type.value: {"count": 0, "hours": 0.0} for target_type in BookingTargetType}
+        for booking in active:
+            hours = max(0.0, (parse_iso_datetime(booking.end_time) - parse_iso_datetime(booking.start_time)).total_seconds() / 3600)
+            bucket = by_type[booking.target_type.value]
+            bucket["count"] += 1
+            bucket["hours"] = round(bucket["hours"] + hours, 1)
+        attendance_candidates = [booking for booking in active if booking.target_type != BookingTargetType.ASSET]
+        checked_in = [booking for booking in attendance_candidates if booking.checked_in_at]
+        return {
+            "days": day_count,
+            "booking_count": len(bookings),
+            "active_count": len(active),
+            "cancelled_count": len(bookings) - len(active),
+            "booked_hours": round(sum(item["hours"] for item in by_type.values()), 1),
+            "check_in_rate": round((len(checked_in) / len(attendance_candidates) * 100), 1) if attendance_candidates else 0,
+            "by_type": by_type,
+        }
 
     # ──────────────────────────────────────────────────────────────────────────
     # Buchung stornieren
@@ -186,6 +316,41 @@ class BookingService:
 
         booking.status = BookingStatus.CANCELLED
         self._booking_repo.update(booking)
+        return booking
+
+    def check_in_booking(self, booking_id: str, requesting_user: User) -> Booking:
+        """Checkt den Buchungsinhaber während des gebuchten Zeitraums ein."""
+        booking = self._get_manageable_active_booking(booking_id, requesting_user)
+        if booking.target_type == BookingTargetType.ASSET:
+            raise ValueError("Ein Check-in ist nur für Räume und Arbeitsplätze vorgesehen.")
+        now = utc_now()
+        if now < parse_iso_datetime(booking.start_time):
+            raise ValueError("Der Check-in ist erst ab Beginn der Buchung möglich.")
+        if now >= parse_iso_datetime(booking.end_time):
+            raise ValueError("Der Buchungszeitraum ist bereits beendet.")
+        if booking.checked_out_at:
+            raise ValueError("Diese Buchung wurde bereits ausgecheckt.")
+        if not booking.checked_in_at:
+            booking.checked_in_at = now.isoformat()
+            self._booking_repo.update(booking)
+        return booking
+
+    def check_out_booking(self, booking_id: str, requesting_user: User) -> Booking:
+        """Checkt den Buchungsinhaber aus einer laufenden Belegung aus."""
+        booking = self._get_manageable_active_booking(booking_id, requesting_user)
+        if not booking.checked_in_at:
+            raise ValueError("Für diese Buchung wurde noch kein Check-in durchgeführt.")
+        if not booking.checked_out_at:
+            booking.checked_out_at = utc_now().isoformat()
+            self._booking_repo.update(booking)
+        return booking
+
+    def _get_manageable_active_booking(self, booking_id: str, requesting_user: User) -> Booking:
+        booking = self._booking_repo.find_by_id(booking_id)
+        if not booking or not booking.is_active():
+            raise BookingNotFoundError("Buchung nicht gefunden oder nicht mehr aktiv.")
+        if booking.user_id != requesting_user.id and not requesting_user.is_admin():
+            raise AuthError("Sie können nur Ihre eigenen Buchungen verwalten.")
         return booking
 
     # ──────────────────────────────────────────────────────────────────────────
@@ -557,7 +722,26 @@ class BookingService:
         booking = self._booking_repo.find_by_id(booking_id)
         if not booking or not booking.access_password_hash:
             return False
-        return booking.access_password_hash == self._hash_access_password(access_password)
+        return self._verify_access_password_hash(booking.access_password_hash, access_password)
+
+    def join_protected_booking(self, booking_id: str, email: str, access_password: str) -> Booking:
+        """Bucht eine externe Person mit gültigem Passwort in ein Seminar ein."""
+        booking = self._booking_repo.find_by_id(booking_id)
+        if not booking or not booking.is_active():
+            raise BookingNotFoundError("Buchung nicht gefunden oder nicht mehr aktiv.")
+        if booking.target_type != BookingTargetType.ROOM:
+            raise ValueError("Der Einladungsbeitritt ist nur für Ganzraumbuchungen möglich.")
+
+        normalized_email = str(email or "").strip().lower()
+        if "@" not in normalized_email:
+            raise ValueError("Bitte eine gültige E-Mail-Adresse angeben.")
+        if not self.verify_booking_access(booking_id, access_password):
+            raise AuthError("Das Buchungspasswort ist nicht korrekt.")
+
+        if normalized_email not in booking.participant_emails:
+            booking.participant_emails.append(normalized_email)
+            self._booking_repo.update(booking)
+        return booking
 
     def get_active_room_occupancy(self, requesting_user: User) -> List[dict]:
         """Admin-Übersicht: aktive Personen/Buchungen je Raum."""
@@ -565,7 +749,15 @@ class BookingService:
             raise AuthError("Nur Administratoren können die Raumbelegung einsehen.")
 
         occupancy = []
+        now = utc_now()
         for booking in self._booking_repo.find_active():
+            if not booking.checked_in_at or booking.checked_out_at:
+                continue
+            if not (
+                parse_iso_datetime(booking.start_time) <= now
+                < parse_iso_datetime(booking.end_time)
+            ):
+                continue
             room_id = booking.room_id
             if booking.target_type == BookingTargetType.ROOM:
                 room_id = booking.target_id
@@ -586,13 +778,37 @@ class BookingService:
                 "start_time": booking.start_time,
                 "end_time": booking.end_time,
                 "status": booking.status.value,
+                "participant_emails": booking.participant_emails,
+                "checked_in_at": booking.checked_in_at,
             })
         return occupancy
 
-    def _hash_access_password(self, access_password: str) -> str:
+    def _create_access_password_hash(self, access_password: str) -> str:
         if not access_password:
             return ""
-        return hashlib.sha256(access_password.encode("utf-8")).hexdigest()
+        salt = secrets.token_bytes(16)
+        digest = hashlib.pbkdf2_hmac(
+            "sha256", access_password.encode("utf-8"), salt, 200_000
+        )
+        return f"pbkdf2_sha256$200000${salt.hex()}${digest.hex()}"
+
+    def _verify_access_password_hash(self, stored_hash: str, access_password: str) -> bool:
+        if not stored_hash or not access_password:
+            return False
+        if not stored_hash.startswith("pbkdf2_sha256$"):
+            legacy = hashlib.sha256(access_password.encode("utf-8")).hexdigest()
+            return hmac.compare_digest(stored_hash, legacy)
+        try:
+            _, iterations, salt_hex, digest_hex = stored_hash.split("$", 3)
+            candidate = hashlib.pbkdf2_hmac(
+                "sha256",
+                access_password.encode("utf-8"),
+                bytes.fromhex(salt_hex),
+                int(iterations),
+            )
+        except (TypeError, ValueError):
+            return False
+        return hmac.compare_digest(candidate.hex(), digest_hex)
 
     def _normalize_invitation_emails(self, invitation_emails: list) -> List[str]:
         if not invitation_emails:

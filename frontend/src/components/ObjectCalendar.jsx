@@ -86,7 +86,7 @@ export default function ObjectCalendar({ target, onSelectBlock }) {
               <button
                 key={slot.start_time}
                 type="button"
-                className={`time-block ${slot.available ? "free" : "blocked"} ${slot.booked ? "booked" : ""}`}
+                className={`time-block ${slotStatus(slot)}`}
                 disabled={!slot.available}
                 onClick={() => onSelectBlock?.({
                   targetType: target.targetType,
@@ -104,6 +104,13 @@ export default function ObjectCalendar({ target, onSelectBlock }) {
       )}
     </Panel>
   );
+}
+
+export function slotStatus(slot) {
+  if (slot.booked && !slot.available) return "booked-full";
+  if (slot.booked) return "booked-partial";
+  if (!slot.available) return "blocked";
+  return "free";
 }
 
 function todayIsoDate() {

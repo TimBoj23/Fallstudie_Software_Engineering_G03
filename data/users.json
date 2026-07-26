@@ -1,18 +1,18 @@
 [
   {
     "id": "bde9ac40-8c32-4f6d-a8cb-11190b41cbb7",
-    "name": "Max Mustermann",
-    "email": "max.mustermann@replan.de",
+    "name": "Gelöschtes Konto",
+    "email": "deleted+bde9ac40-8c32-4f6d-a8cb-11190b41cbb7@replan.invalid",
     "role": "user",
-    "password_hash": "8330c1f3b4864852c997f8bf9ab1fd7b7e4f741daa0dc43063296444846aec29:86c5c4a99209d32b5c5572075f0e479d8afa199955b92742fcb7b4f7fc70af1f",
-    "image_url": "/pictures/Max_Mustermann.jpg",
+    "password_hash": "",
+    "image_url": "",
     "created_at": "2026-06-01T15:02:10.183504",
-    "is_active": true
+    "is_active": false
   },
   {
     "id": "a17c2c1a-c2ce-4f28-bdcf-a81b98cd9e63",
     "name": "Tim Strauss",
-    "email": "tim@test-mail.de",
+    "email": "tim@replan.de",
     "role": "admin",
     "password_hash": "20acb73af12012197dd64bc6b1bdf6bd27025049330aad3f6c99fbe8a0750fb8:c4d285cdb37b5a3a0e92486f2d35e57d104f87b5542f8da116720fb45ff53c29",
     "image_url": "/pictures/Tim_Test.jpg",
@@ -21,20 +21,20 @@
   },
   {
     "id": "1d47cfd5-c679-41d6-809e-6b4c3d122501",
-    "name": "Alexander Vetrenko",
-    "email": "alexander@replan.de",
+    "name": "Gelöschtes Konto",
+    "email": "deleted+1d47cfd5-c679-41d6-809e-6b4c3d122501@replan.invalid",
     "role": "user",
-    "password_hash": "5371e83680c0802eb07056f86e720502a05f2814bf08c2d067261330a05d4329:3b6e271bd82022efa930d6f9fa002dcc9b0d50405b55c737697d8b738c82c090",
-    "image_url": "/pictures/Alexander.avif",
+    "password_hash": "",
+    "image_url": "",
     "created_at": "2026-07-25T09:00:00",
-    "is_active": true
+    "is_active": false
   },
   {
     "id": "7823f770-60ad-4e2f-9e61-328fd9e36bd8",
     "name": "Denis Nickel",
     "email": "denis@replan.de",
-    "role": "user",
-    "password_hash": "c5842ca63322a283658a3d154d49bb8f27115dbcacf15a280005d0a194c2d2a5:124a5809e79e6214745d947ffb57b0eb158d1f8a6e92dbecb77b78daf583f927",
+    "role": "admin",
+    "password_hash": "0398c62aeb6698268b2f922bf891a5a177d10474b809678e7e4c3b004aac89eb:a9329660f64eca43197958b4e2d2da9a47c2c883a7e0b7749fa559fb2621cc86",
     "image_url": "/pictures/Denis.png",
     "created_at": "2026-07-25T09:05:00",
     "is_active": true
@@ -43,10 +43,23 @@
     "id": "e6105bc8-2c7f-4a67-9fa3-6ea538f1b5d1",
     "name": "Florian Haentjes",
     "email": "florian@replan.de",
-    "role": "user",
-    "password_hash": "5cfd432649db460054df98cbc1d9250651f40fc708569002cecf4e9d2f3b44b0:cdab2a9146f7595693c8d9fffd7ccbe4d5fd4093d3f87609c8f7ffd8bdd5da41",
+    "role": "admin",
+    "password_hash": "1c0ca60ca9edc980a0d4ec728b80af99ddb7825e5eedd138ed19649aec0441dc:9f7ed11fb3e80016bae6cb8b155a72cf3ace45a3838fbb20b346798cb9bf501d",
     "image_url": "/pictures/Florian.jpg",
     "created_at": "2026-07-25T09:10:00",
     "is_active": true
+  },
+  {
+    "id": "d2885f9e-6735-4311-a357-ad6647a286ad",
+    "name": "Gelöschtes Konto",
+    "email": "deleted+d2885f9e-6735-4311-a357-ad6647a286ad@replan.invalid",
+    "role": "user",
+    "password_hash": "",
+    "image_url": "",
+    "reset_token": "",
+    "reset_token_expires_at": "",
+    "created_at": "2026-07-26T09:59:31.041361+00:00",
+    "is_active": false,
+    "favorite_targets": []
   }
 ]

@@ -1,7 +1,7 @@
 [
   {
     "id": "6a188a9c-9ee3-4165-9fdd-1e903619b192",
-    "name": "Meetingraum Alpha",
+    "name": "Shared Office Alpha",
     "number": "1001-A",
     "capacity": 10,
     "room_type": "shared_desk",
@@ -11,14 +11,14 @@
       "Whiteboard",
       "Videokonferenz"
     ],
-    "description": "Großer Meetingraum für Teamgespräche und hybride Abstimmungen.",
+    "description": "Shared-Desk-Bereich mit flexibel buchbaren Arbeitsplätzen für Teams und hybride Arbeit.",
     "image_url": "/pictures/Meetingraum_Alpha.jpeg",
     "is_active": true,
     "created_at": "2026-06-01T15:02:10.127924"
   },
   {
     "id": "19775325-1af8-409b-ac79-154a34cb9ae0",
-    "name": "Projektraum Beta",
+    "name": "Shared Office Beta",
     "number": "1002-B",
     "capacity": 6,
     "room_type": "shared_desk",
@@ -27,7 +27,7 @@
       "Whiteboard",
       "Monitor"
     ],
-    "description": "Kompakter Projektraum für Workshops und Sprintplanung.",
+    "description": "Ruhiger Shared-Desk-Bereich für konzentrierte Projektarbeit und kleine Teams.",
     "image_url": "/pictures/Projektraum_Beta.jpg",
     "is_active": true,
     "created_at": "2026-06-01T15:02:10.129116"
@@ -82,5 +82,22 @@
     "image_url": "/pictures/Seminarraum_Chroma.webp",
     "is_active": true,
     "created_at": "2026-07-25T09:25:00"
+  },
+  {
+    "id": "89a34f70-4a26-4f92-9365-8c30f63cb8f1",
+    "name": "Meetingraum Epsilon",
+    "number": "1003-E",
+    "capacity": 6,
+    "room_type": "meetingraum",
+    "location": "Gebäude A, 1. OG",
+    "equipment": [
+      "Display",
+      "Videokonferenz",
+      "Whiteboard"
+    ],
+    "description": "Kleiner Meetingraum für vertrauliche Gespräche, Interviews und kurze Abstimmungen.",
+    "image_url": "/pictures/Meetingraum_Epsilon.jpg",
+    "is_active": true,
+    "created_at": "2026-07-26T14:20:00"
   }
 ]

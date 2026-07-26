@@ -1,12 +1,9 @@
 """
 Utils: Auth Middleware
-JWT-Authentifizierungs-Middleware für Flask-Routes.
+Authentifizierungs-Middleware für Flask-Routes.
 
 Architekturentscheidung:
-    Im MVP wird eine vereinfachte Session-basierte Authentifizierung genutzt.
-    Die JWT-Infrastruktur (Token-Generierung, Validierung) ist hier vorbereitet,
-    damit der Wechsel zu echter JWT-Auth (z. B. mit flask-jwt-extended) nahtlos
-    möglich ist.
+    Im MVP werden signierte und zeitlich begrenzte Bearer-Tokens verwendet.
 
     Für Produktion:
         - JWT mit kurzer Laufzeit (15 min) + Refresh-Token
@@ -22,15 +19,14 @@ def _get_user_from_request():
     """
     Extrahiert den Nutzer aus dem Request-Kontext.
 
-    MVP-Implementierung: Nutzer-ID wird aus dem X-User-Id Header gelesen.
-    Produktion: JWT-Token aus Authorization-Header dekodieren und verifizieren.
+    Das signierte Token wird aus dem Authorization-Header gelesen und verifiziert.
     """
     from ..repositories.user_repository import UserRepository
-    user_id = request.headers.get("X-User-Id")
-    if not user_id:
-        auth_header = request.headers.get("Authorization", "")
-        if auth_header.startswith("Bearer "):
-            user_id = auth_header.replace("Bearer ", "", 1).strip()
+    from .tokens import decode_auth_token
+
+    auth_header = request.headers.get("Authorization", "")
+    token = auth_header.replace("Bearer ", "", 1).strip() if auth_header.startswith("Bearer ") else ""
+    user_id = decode_auth_token(token) if token else ""
     if not user_id:
         return None
     repo = UserRepository()

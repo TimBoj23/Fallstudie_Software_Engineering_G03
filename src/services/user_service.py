@@ -130,8 +130,55 @@ class UserService:
     def get_by_id(self, user_id: str) -> Optional[User]:
         return self._repo.find_by_id(user_id)
 
+    def get_by_email(self, email: str, include_inactive: bool = False) -> Optional[User]:
+        """Liefert einen Nutzer optional unabhängig vom Aktivstatus."""
+        if include_inactive:
+            return self._repo.find_any_by_email(email)
+        return self._repo.find_by_email(email)
+
     def get_all(self) -> list:
         return self._repo.find_active()
+
+    def search_users(self, query: str = "", role: str = "", status: str = "") -> list:
+        """Filtert die Admin-Nutzerübersicht ohne sensitive Felder."""
+        users = self._repo.find_all()
+        normalized_query = str(query or "").strip().lower()
+        if normalized_query:
+            users = [u for u in users if normalized_query in u.name.lower() or normalized_query in u.email.lower()]
+        if role:
+            users = [u for u in users if u.role.value == role]
+        if status == "active":
+            users = [u for u in users if u.is_active]
+        elif status == "inactive":
+            users = [u for u in users if not u.is_active]
+        return users
+
+    def get_favorites(self, user_id: str) -> list:
+        user = self._repo.find_by_id(user_id)
+        if not user:
+            raise ValueError("Nutzer nicht gefunden.")
+        return [self._favorite_from_key(key) for key in user.favorite_targets]
+
+    def set_favorite(self, user_id: str, target_type: str, target_id: str, enabled: bool = True) -> list:
+        if target_type not in {"room", "seat", "asset"} or not target_id:
+            raise ValueError("Ungültiges Favoritenziel.")
+        user = self._repo.find_by_id(user_id)
+        if not user:
+            raise ValueError("Nutzer nicht gefunden.")
+        key = f"{target_type}:{target_id}"
+        favorites = set(user.favorite_targets)
+        if enabled:
+            favorites.add(key)
+        else:
+            favorites.discard(key)
+        user.favorite_targets = sorted(favorites)
+        self._repo.update(user)
+        return [self._favorite_from_key(item) for item in user.favorite_targets]
+
+    @staticmethod
+    def _favorite_from_key(key: str) -> dict:
+        target_type, _, target_id = str(key).partition(":")
+        return {"key": key, "target_type": target_type, "target_id": target_id}
 
     def create_user(
         self,
@@ -184,7 +231,7 @@ class UserService:
             normalized_email = email.lower().strip()
             if "@" not in normalized_email:
                 raise ValueError("Ungültige E-Mail-Adresse.")
-            existing = self._repo.find_by_email(normalized_email)
+            existing = self._repo.find_any_by_email(normalized_email)
             if existing and existing.id != user.id:
                 raise ValueError(f"E-Mail-Adresse '{normalized_email}' ist bereits registriert.")
             user.email = normalized_email
@@ -198,18 +245,78 @@ class UserService:
         self._repo.update(user)
         return user
 
-    def reset_password_by_email(self, email: str, new_password: str) -> User:
-        """
-        MVP-Passwort-vergessen-Funktion.
+    def update_own_profile(
+        self,
+        user_id: str,
+        name: str = None,
+        email: str = None,
+        image_url: str = None,
+    ) -> User:
+        """Aktualisiert ausschließlich die selbst verwaltbaren Profildaten."""
+        user = self._repo.find_by_id(user_id)
+        if not user or not user.is_active:
+            raise ValueError("Nutzer nicht gefunden.")
 
-        In Produktion würde hier ein zeitlich begrenzter Reset-Token per E-Mail
-        verschickt. Für die Demo wird das Passwort direkt gesetzt.
-        """
-        user = self._repo.find_by_email(email)
-        if not user:
-            raise AuthError("E-Mail-Adresse nicht gefunden.")
+        if name is not None:
+            if not str(name).strip():
+                raise ValueError("Name darf nicht leer sein.")
+            user.name = str(name).strip()
+
+        if email is not None:
+            normalized_email = str(email).lower().strip()
+            if "@" not in normalized_email:
+                raise ValueError("Ungültige E-Mail-Adresse.")
+            existing = self._repo.find_any_by_email(normalized_email)
+            if existing and existing.id != user.id:
+                raise ValueError(f"E-Mail-Adresse '{normalized_email}' ist bereits registriert.")
+            user.email = normalized_email
+
+        if image_url is not None:
+            user.image_url = str(image_url).strip()
+
+        self._repo.update(user)
+        return user
+
+    def change_own_password(self, user_id: str, current_password: str, new_password: str) -> User:
+        """Ändert das eigene Passwort nach erneuter Passwortprüfung."""
+        user = self._repo.find_by_id(user_id)
+        if not user or not user.is_active:
+            raise ValueError("Nutzer nicht gefunden.")
+        if not self._verify_password(current_password, user.password_hash):
+            raise AuthError("Das aktuelle Passwort ist falsch.")
         self._validate_password(new_password)
+        if self._verify_password(new_password, user.password_hash):
+            raise ValueError("Das neue Passwort muss sich vom aktuellen Passwort unterscheiden.")
+
         user.password_hash = self._hash_password(new_password)
+        user.reset_token = ""
+        user.reset_token_expires_at = ""
+        self._repo.update(user)
+        return user
+
+    def deactivate_own_account(self, user_id: str, current_password: str) -> User:
+        """Anonymisiert und deaktiviert das eigene Konto als Soft-Delete."""
+        user = self._repo.find_by_id(user_id)
+        if not user or not user.is_active:
+            raise ValueError("Nutzer nicht gefunden.")
+        if not self._verify_password(current_password, user.password_hash):
+            raise AuthError("Das aktuelle Passwort ist falsch.")
+        if user.is_admin():
+            active_admins = self._repo.find_by_role(UserRole.ADMIN)
+            if len(active_admins) <= 1:
+                raise ValueError("Das letzte aktive Admin-Konto kann nicht gelöscht werden.")
+
+        # Die interne ID bleibt für bestehende Buchungen und Audit-Ereignisse
+        # erhalten. Personenbezogene Daten werden entfernt und die bisherige
+        # E-Mail-Adresse wird dadurch für eine Neuregistrierung freigegeben.
+        user.name = "Gelöschtes Konto"
+        user.email = f"deleted+{user.id}@replan.invalid"
+        user.image_url = ""
+        user.password_hash = self._hash_password(secrets.token_urlsafe(32))
+        user.reset_token = ""
+        user.reset_token_expires_at = ""
+        user.favorite_targets = []
+        user.is_active = False
         self._repo.update(user)
         return user
 

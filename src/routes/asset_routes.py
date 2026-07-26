@@ -9,12 +9,14 @@ DELETE /api/assets/<id>     – Asset deaktivieren (Admin)
 
 from flask import Blueprint, request, jsonify, g
 from ..services.asset_service import AssetService
+from ..services.audit_service import AuditService
 from ..services.booking_service import BookingService
 from ..models.asset import AssetType
 from ..utils.auth_middleware import login_required, admin_required
 
 assets_bp = Blueprint("assets", __name__, url_prefix="/api/assets")
 _asset_service = AssetService()
+_audit_service = AuditService()
 _booking_service = BookingService()
 
 
@@ -74,6 +76,7 @@ def create_asset():
             image_url=data.get("image_url", ""),
             requesting_user=g.current_user,
         )
+        _audit_service.record(g.current_user.id, "asset.created", "asset", asset.id, f"Ausstattung {asset.name} wurde angelegt.")
         return jsonify({"asset": asset.to_dict()}), 201
     except (ValueError, Exception) as e:
         return jsonify({"error": str(e)}), 400
@@ -94,6 +97,7 @@ def update_asset(asset_id):
             location=data.get("location"),
             image_url=data.get("image_url"),
         )
+        _audit_service.record(g.current_user.id, "asset.updated", "asset", asset.id, f"Ausstattung {asset.name} wurde aktualisiert.")
         return jsonify({"asset": asset.to_dict()}), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
@@ -104,6 +108,7 @@ def update_asset(asset_id):
 def deactivate_asset(asset_id):
     try:
         asset = _asset_service.deactivate(asset_id, g.current_user)
+        _audit_service.record(g.current_user.id, "asset.deactivated", "asset", asset.id, f"Ausstattung {asset.name} wurde deaktiviert.")
         return jsonify({"message": f"Asset '{asset.name}' wurde deaktiviert."}), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 404

@@ -6,7 +6,7 @@ Rollen: 'user' (Mitarbeitender) | 'admin' (Administrator)
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional
+from typing import List, Optional
 
 from ..utils.time import utc_now_iso
 
@@ -26,7 +26,7 @@ class User:
         name:          Vollständiger Name
         email:         E-Mail-Adresse (eindeutig, wird als Login-Kennung verwendet)
         role:          Rolle im System (user | admin)
-        password_hash: Gehashtes Passwort (bcrypt)
+        password_hash: Mit PBKDF2 gehashtes Passwort
         created_at:    ISO-8601 Timestamp der Erstellung
         is_active:     Weicher Lösch-Flag (soft-delete)
     """
@@ -40,6 +40,7 @@ class User:
     reset_token_expires_at: str = ""
     created_at: str = field(default_factory=utc_now_iso)
     is_active: bool = True
+    favorite_targets: List[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         """Serialisiert das Objekt für JSON-Persistenz."""
@@ -54,6 +55,7 @@ class User:
             "reset_token_expires_at": self.reset_token_expires_at,
             "created_at": self.created_at,
             "is_active": self.is_active,
+            "favorite_targets": self.favorite_targets,
         }
 
     def to_public_dict(self) -> dict:
@@ -78,6 +80,7 @@ class User:
             reset_token_expires_at=data.get("reset_token_expires_at", ""),
             created_at=data.get("created_at", utc_now_iso()),
             is_active=data.get("is_active", True),
+            favorite_targets=data.get("favorite_targets", []),
         )
 
     def is_admin(self) -> bool:

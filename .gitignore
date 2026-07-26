@@ -1,4 +1,8 @@
 .DS_Store
 __pycache__/
+.pytest_cache/
 *.pyc
+.venv/
 data/replan.sqlite
+data/replan.sqlite-wal
+data/replan.sqlite-shm

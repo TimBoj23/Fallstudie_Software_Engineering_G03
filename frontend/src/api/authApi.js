@@ -21,8 +21,15 @@ export function logoutUser() {
   });
 }
 
-export function forgotPassword(payload) {
-  return apiRequest("/auth/forgot-password", {
+export function requestPasswordReset(payload) {
+  return apiRequest("/auth/password-reset-request", {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export function resetPassword(payload) {
+  return apiRequest("/auth/password-reset", {
     method: "POST",
     body: payload,
   });

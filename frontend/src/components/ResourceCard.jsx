@@ -1,12 +1,17 @@
-import { CalendarDays, CalendarPlus, MapPin, Users } from "lucide-react";
+import { CalendarDays, CalendarPlus, Heart, MapPin, Users } from "lucide-react";
 import { mediaUrl } from "../api/client.js";
 import Button from "./Button.jsx";
 
-export default function ResourceCard({ title, meta, description, chips = [], onBook, onViewCalendar, capacity, location, imageUrl, available }) {
+export default function ResourceCard({ title, meta, description, chips = [], onBook, onViewCalendar, onToggleFavorite, favorite = false, capacity, location, imageUrl, imageFit = "cover", available }) {
   return (
     <article className={`resource-card ${onViewCalendar ? "is-clickable" : ""}`} onClick={onViewCalendar}>
       {imageUrl && (
-        <img className="resource-image" src={mediaUrl(imageUrl)} alt={title} loading="lazy" />
+        <img
+          className={`resource-image ${imageFit === "contain" ? "resource-image-contain" : ""}`}
+          src={mediaUrl(imageUrl)}
+          alt={title}
+          loading="lazy"
+        />
       )}
       <div className="resource-card-main">
         <div>
@@ -17,6 +22,17 @@ export default function ResourceCard({ title, meta, description, chips = [], onB
           <span className={`availability-badge ${available ? "available" : "occupied"}`}>
             {available ? "buchbar" : "belegt"}
           </span>
+        )}
+        {onToggleFavorite && (
+          <button
+            type="button"
+            className={`favorite-button ${favorite ? "active" : ""}`}
+            aria-label={favorite ? "Aus Favoriten entfernen" : "Zu Favoriten hinzufügen"}
+            title={favorite ? "Aus Favoriten entfernen" : "Zu Favoriten hinzufügen"}
+            onClick={(event) => { event.stopPropagation(); onToggleFavorite(); }}
+          >
+            <Heart size={18} fill={favorite ? "currentColor" : "none"} />
+          </button>
         )}
       </div>
       {(location || capacity) && (
