@@ -23,7 +23,7 @@ export async function apiRequest(path, options = {}) {
   const token = localStorage.getItem("replan_token");
   const headers = {
     "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}`, "X-User-Id": token } : {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(options.headers || {}),
   };
 
@@ -59,7 +59,7 @@ export async function apiUpload(path, formData) {
   const response = await fetch(buildUrl(path), {
     method: "POST",
     headers: {
-      ...(token ? { Authorization: `Bearer ${token}`, "X-User-Id": token } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: formData,
   });

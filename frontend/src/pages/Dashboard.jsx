@@ -70,10 +70,10 @@ export default function Dashboard({ setPage, isLoggedIn }) {
         </StatusMessage>
       ) : (
         <div className="metric-grid">
-          <Metric label="Verfügbare Räume" value={summary.data.rooms} />
+          <Metric label="Räume insgesamt" value={summary.data.rooms} />
           <Metric label="Arbeitsplätze" value={summary.data.seats} />
           <Metric label="Ausstattung" value={summary.data.assets} />
-          <Metric label="Doppelte Buchungen" value="0" tone="success" />
+          <Metric label="Konfliktprüfung" value="Aktiv" tone="success" />
         </div>
       )}
 

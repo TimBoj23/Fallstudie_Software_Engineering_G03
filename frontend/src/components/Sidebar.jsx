@@ -7,7 +7,9 @@
   Gauge,
   PlusCircle,
   SearchCheck,
+  Settings,
   ShieldCheck,
+  UserRoundCheck,
 } from "lucide-react";
 
 const primaryItems = [
@@ -16,11 +18,16 @@ const primaryItems = [
   { id: "seats", label: "Sitzplätze", icon: Armchair },
   { id: "assets", label: "Ausstattung", icon: Boxes },
   { id: "availability", label: "Verfügbarkeit", icon: SearchCheck },
+  { id: "joinBooking", label: "Seminareinladung", icon: UserRoundCheck },
 ];
 
 const bookingItems = [
   { id: "bookings", label: "Meine Buchungen", icon: ClipboardList },
   { id: "createBooking", label: "Buchung erstellen", icon: PlusCircle },
+];
+
+const accountItems = [
+  { id: "settings", label: "Einstellungen", icon: Settings },
 ];
 
 export default function Sidebar({ activePage, setPage, isLoggedIn, isAdmin }) {
@@ -52,6 +59,15 @@ export default function Sidebar({ activePage, setPage, isLoggedIn, isAdmin }) {
           />
         ))}
       </nav>
+
+      {isLoggedIn && (
+        <nav className="nav-group" aria-label="Konto">
+          <p className="nav-caption">Konto</p>
+          {accountItems.map((item) => (
+            <NavButton key={item.id} item={item} active={activePage === item.id} onClick={setPage} />
+          ))}
+        </nav>
+      )}
 
       {isAdmin && (
         <nav className="nav-group" aria-label="Administration">

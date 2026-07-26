@@ -1,6 +1,7 @@
 """
 Routes: Pictures API
-POST /api/pictures - Bilddatei hochladen (Admin)
+POST /api/pictures         - Ressourcenbild hochladen (Admin)
+POST /api/pictures/profile - Eigenes Profilbild hochladen (Login)
 """
 
 import os
@@ -9,16 +10,29 @@ import uuid
 from flask import Blueprint, current_app, jsonify, request
 from werkzeug.utils import secure_filename
 
-from ..utils.auth_middleware import admin_required
+from ..utils.auth_middleware import admin_required, login_required
 
 pictures_bp = Blueprint("pictures", __name__, url_prefix="/api/pictures")
 
 ALLOWED_EXTENSIONS = {".avif", ".jpg", ".jpeg", ".png", ".webp"}
+MAX_UPLOAD_BYTES = 5 * 1024 * 1024
 
 
 @pictures_bp.route("", methods=["POST"])
 @admin_required
 def upload_picture():
+    return _save_uploaded_picture()
+
+
+@pictures_bp.route("/profile", methods=["POST"])
+@login_required
+def upload_profile_picture():
+    return _save_uploaded_picture()
+
+
+def _save_uploaded_picture():
+    if request.content_length and request.content_length > MAX_UPLOAD_BYTES:
+        return jsonify({"error": "Das Bild darf maximal 5 MB groß sein."}), 413
     file = request.files.get("file")
     if not file or not file.filename:
         return jsonify({"error": "Bitte eine Bilddatei auswählen."}), 400

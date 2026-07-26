@@ -21,3 +21,19 @@ class NotificationService:
             "subject": subject,
             "message": message,
         }
+
+    def booking_invitations(self, booking, target_name: str = "") -> list:
+        """Erzeugt nachvollziehbare MVP-Einladungen ohne externen SMTP-Dienst."""
+        return [
+            {
+                "sent": True,
+                "recipient": email,
+                "subject": f"RePlan Einladung: {booking.title}",
+                "message": (
+                    f"Sie wurden zu '{booking.title}'"
+                    f"{' in ' + target_name if target_name else ''} eingeladen. "
+                    f"Buchungscode: {booking.id}"
+                ),
+            }
+            for email in booking.invitation_emails
+        ]

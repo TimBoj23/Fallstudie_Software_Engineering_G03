@@ -50,5 +50,5 @@ Die Tests decken Positivfälle (erfolgreiche Buchung, Stornierung) sowie sämtli
 
 ## Terminal-Demo
 
-Als Proof-of-Concept wurde eine interaktive Terminal-Demo (`demo.py`) implementiert.
+Als Proof-of-Concept wurde eine interaktive Terminal-Demo (`scripts/demo.py`) implementiert.
 Diese kann manuell bedient werden, bietet aber auch einen automatisierten Durchlauf (`--auto`), der alle Szenarien (Nutzer anlegen, Räume/Assets anzeigen, Buchen, Doppelbuchung verhindern, Stornieren) eindrucksvoll demonstriert.

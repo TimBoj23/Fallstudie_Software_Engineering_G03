@@ -10,6 +10,7 @@ DELETE /api/rooms/<id>        – Raum deaktivieren (Admin)
 from flask import Blueprint, request, jsonify, g
 from ..services.room_service import RoomService
 from ..services.booking_service import BookingService
+from ..services.audit_service import AuditService
 from ..models.booking import BookingTargetType
 from ..repositories.room_repository import RoomRepository
 from ..utils.auth_middleware import login_required, admin_required
@@ -17,6 +18,7 @@ from ..utils.auth_middleware import login_required, admin_required
 rooms_bp = Blueprint("rooms", __name__, url_prefix="/api/rooms")
 _room_service = RoomService()
 _booking_service = BookingService()
+_audit_service = AuditService()
 
 
 @rooms_bp.route("", methods=["GET"])
@@ -86,6 +88,7 @@ def create_room():
             image_url=data.get("image_url", ""),
             requesting_user=g.current_user,
         )
+        _audit_service.record(g.current_user.id, "room.created", "room", room.id, f"Raum {room.name} wurde angelegt.")
         return jsonify({"room": room.to_dict()}), 201
     except (ValueError, Exception) as e:
         return jsonify({"error": str(e)}), 400
@@ -101,6 +104,7 @@ def update_room(room_id):
             room_id=room_id,
             requesting_user=g.current_user,
             name=data.get("name"),
+            number=data.get("number"),
             capacity=data.get("capacity"),
             room_type=data.get("room_type"),
             location=data.get("location"),
@@ -108,6 +112,7 @@ def update_room(room_id):
             description=data.get("description"),
             image_url=data.get("image_url"),
         )
+        _audit_service.record(g.current_user.id, "room.updated", "room", room.id, f"Raum {room.name} wurde aktualisiert.")
         return jsonify({"room": room.to_dict()}), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
@@ -119,6 +124,7 @@ def deactivate_room(room_id):
     """Deaktiviert einen Raum (Soft-Delete). Nur für Admins."""
     try:
         room = _room_service.deactivate(room_id, g.current_user)
+        _audit_service.record(g.current_user.id, "room.deactivated", "room", room.id, f"Raum {room.name} wurde deaktiviert.")
         return jsonify({"message": f"Raum '{room.name}' wurde deaktiviert."}), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 404

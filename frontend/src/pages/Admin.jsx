@@ -1,11 +1,12 @@
 ﻿import { useEffect, useState } from "react";
-import { Plus, RefreshCw } from "lucide-react";
-import { createAsset, getAssets } from "../api/assetsApi.js";
-import { getAllBookings } from "../api/bookingsApi.js";
+import { Pencil, Plus, RefreshCw, Save, Trash2, X } from "lucide-react";
+import { createAsset, deleteAsset, getAssets, updateAsset } from "../api/assetsApi.js";
+import { getAllBookings, getBookingAnalytics, getRoomOccupancy } from "../api/bookingsApi.js";
+import { getAuditEvents } from "../api/auditApi.js";
 import { mediaUrl } from "../api/client.js";
 import { uploadPicture } from "../api/picturesApi.js";
-import { createRoom, getRooms } from "../api/roomsApi.js";
-import { createSeat, getSeats } from "../api/seatsApi.js";
+import { createRoom, deleteRoom, getRooms, updateRoom } from "../api/roomsApi.js";
+import { createSeat, deleteSeat, getSeats, updateSeat } from "../api/seatsApi.js";
 import { createUser, getUsers, resetUserPassword, updateUser } from "../api/usersApi.js";
 import Button from "../components/Button.jsx";
 import EmptyState from "../components/EmptyState.jsx";
@@ -15,9 +16,10 @@ import StatusMessage from "../components/StatusMessage.jsx";
 
 export default function Admin({ isLoggedIn, isAdmin }) {
   const [tab, setTab] = useState("rooms");
+  const [editing, setEditing] = useState(null);
   const [state, setState] = useState({ loading: false, error: "", success: "", data: {} });
   const [forms, setForms] = useState({
-    room: { name: "", number: "", capacity: 1, location: "", equipment: "", description: "", image_url: "" },
+    room: { name: "", number: "", capacity: 1, room_type: "seminarraum", location: "", equipment: "", description: "", image_url: "" },
     seat: { room_id: "", label: "", description: "", monitor_count: 1, image_url: "" },
     asset: { name: "", asset_type: "other", location: "", description: "", image_url: "" },
     user: { name: "", email: "", password: "", role: "user", image_url: "" },
@@ -30,17 +32,21 @@ export default function Admin({ isLoggedIn, isAdmin }) {
     status: "",
     q: "",
   });
+  const [userFilters, setUserFilters] = useState({ q: "", role: "", status: "" });
 
   async function load() {
     if (!isAdmin) return;
     setState((current) => ({ ...current, loading: true, error: "", success: "" }));
     try {
-      const [rooms, seats, assets, bookings, users] = await Promise.all([
+      const [rooms, seats, assets, bookings, users, occupancy, analytics, audit] = await Promise.all([
         getRooms(),
         getSeats(),
         getAssets(),
         getAllBookings(),
-        getUsers(),
+        getUsers({ status: "" }),
+        getRoomOccupancy(),
+        getBookingAnalytics(30),
+        getAuditEvents({ limit: 100 }),
       ]);
       setState({
         loading: false,
@@ -52,6 +58,9 @@ export default function Admin({ isLoggedIn, isAdmin }) {
           assets: assets.assets || [],
           bookings: bookings.bookings || [],
           users: users.users || [],
+          occupancy: occupancy.occupancy || [],
+          analytics: analytics.analytics || {},
+          audit: audit.events || [],
         },
       });
     } catch (error) {
@@ -76,23 +85,74 @@ export default function Admin({ isLoggedIn, isAdmin }) {
     setState((current) => ({ ...current, loading: true, error: "", success: "" }));
     try {
       if (tab === "rooms") {
-        await createRoom({
+        const payload = {
           ...forms.room,
           capacity: Number(forms.room.capacity),
           equipment: forms.room.equipment.split(",").map((item) => item.trim()).filter(Boolean),
-        });
+        };
+        if (editing?.tab === tab) await updateRoom(editing.id, payload);
+        else await createRoom(payload);
       }
       if (tab === "seats") {
-        await createSeat(forms.seat);
+        const payload = { ...forms.seat, monitor_count: Number(forms.seat.monitor_count) };
+        if (editing?.tab === tab) await updateSeat(editing.id, payload);
+        else await createSeat(payload);
       }
       if (tab === "assets") {
-        await createAsset(forms.asset);
+        if (editing?.tab === tab) await updateAsset(editing.id, forms.asset);
+        else await createAsset(forms.asset);
       }
       if (tab === "users") {
         await createUser(forms.user);
       }
+      const wasEditing = Boolean(editing?.id);
+      setEditing(null);
+      resetResourceForm(tab);
       await load();
-      setState((current) => ({ ...current, success: "Eintrag wurde angelegt." }));
+      setState((current) => ({ ...current, success: wasEditing ? "Eintrag wurde aktualisiert." : "Eintrag wurde angelegt." }));
+    } catch (error) {
+      setState((current) => ({ ...current, loading: false, error: error.message, success: "" }));
+    }
+  }
+
+  function resetResourceForm(resourceTab) {
+    if (!RESOURCE_DEFAULTS[resourceTab]) return;
+    const formKey = resourceFormKey(resourceTab);
+    setForms((current) => ({ ...current, [formKey]: { ...RESOURCE_DEFAULTS[resourceTab] } }));
+  }
+
+  function switchTab(nextTab) {
+    setTab(nextTab);
+    setEditing(null);
+  }
+
+  function beginEdit(resourceTab, item) {
+    const formKey = resourceFormKey(resourceTab);
+    setTab(resourceTab);
+    setEditing({ tab: resourceTab, id: item.id });
+    setForms((current) => ({
+      ...current,
+      [formKey]: resourceFormFromItem(resourceTab, item),
+    }));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function cancelEdit() {
+    resetResourceForm(tab);
+    setEditing(null);
+  }
+
+  async function deactivateResource(resourceTab, item) {
+    const itemName = item.name || item.label || "Eintrag";
+    if (!window.confirm(`„${itemName}“ wirklich deaktivieren? Bestehende Buchungen bleiben erhalten.`)) return;
+    setState((current) => ({ ...current, loading: true, error: "", success: "" }));
+    try {
+      if (resourceTab === "rooms") await deleteRoom(item.id);
+      if (resourceTab === "seats") await deleteSeat(item.id);
+      if (resourceTab === "assets") await deleteAsset(item.id);
+      if (editing?.id === item.id) cancelEdit();
+      await load();
+      setState((current) => ({ ...current, success: `${itemName} wurde deaktiviert.` }));
     } catch (error) {
       setState((current) => ({ ...current, loading: false, error: error.message, success: "" }));
     }
@@ -174,8 +234,8 @@ export default function Admin({ isLoggedIn, isAdmin }) {
         actions={<Button variant="secondary" icon={RefreshCw} onClick={load}>Aktualisieren</Button>}
       >
         <div className="tabs">
-          {["rooms", "seats", "assets", "bookings", "users"].map((item) => (
-            <button key={item} className={tab === item ? "active" : ""} onClick={() => setTab(item)} type="button">
+          {["rooms", "seats", "assets", "bookings", "occupancy", "analytics", "users", "audit"].map((item) => (
+            <button key={item} className={tab === item ? "active" : ""} onClick={() => switchTab(item)} type="button">
               {label(item)}
             </button>
           ))}
@@ -184,8 +244,8 @@ export default function Admin({ isLoggedIn, isAdmin }) {
         {state.success && <StatusMessage type="success">{state.success}</StatusMessage>}
       </Panel>
 
-      {!["bookings", "users"].includes(tab) && (
-        <Panel title={`${label(tab)} anlegen`}>
+      {!["bookings", "occupancy", "analytics", "users", "audit"].includes(tab) && (
+        <Panel title={editing?.tab === tab ? `${label(tab)} bearbeiten` : `${label(tab)} anlegen`}>
           <form className="form-stack" onSubmit={createCurrent}>
             {tab === "rooms" && (
               <>
@@ -195,8 +255,14 @@ export default function Admin({ isLoggedIn, isAdmin }) {
                 </div>
                 <div className="form-grid two">
                   <input type="number" min="1" placeholder="Kapazität" value={forms.room.capacity} onChange={(e) => setForms({ ...forms, room: { ...forms.room, capacity: e.target.value } })} required />
-                  <input placeholder="Standort" value={forms.room.location} onChange={(e) => setForms({ ...forms, room: { ...forms.room, location: e.target.value } })} />
+                  <select value={forms.room.room_type} onChange={(e) => setForms({ ...forms, room: { ...forms.room, room_type: e.target.value } })}>
+                    <option value="shared_desk">Shared Desk</option>
+                    <option value="seminarraum">Seminarraum</option>
+                    <option value="meetingraum">Meetingraum</option>
+                    <option value="studio">Studio</option>
+                  </select>
                 </div>
+                <input placeholder="Standort" value={forms.room.location} onChange={(e) => setForms({ ...forms, room: { ...forms.room, location: e.target.value } })} />
                 <input placeholder="Ausstattung, kommagetrennt" value={forms.room.equipment} onChange={(e) => setForms({ ...forms, room: { ...forms.room, equipment: e.target.value } })} />
                 <PictureInput
                   label="Raumbild"
@@ -208,7 +274,12 @@ export default function Admin({ isLoggedIn, isAdmin }) {
             )}
             {tab === "seats" && (
               <>
-                <input placeholder="Zugehöriger Raum" value={forms.seat.room_id} onChange={(e) => setForms({ ...forms, seat: { ...forms.seat, room_id: e.target.value } })} required />
+                <select value={forms.seat.room_id} onChange={(e) => setForms({ ...forms, seat: { ...forms.seat, room_id: e.target.value } })} required disabled={editing?.tab === "seats"}>
+                  <option value="">Shared-Desk-Raum auswählen</option>
+                  {(state.data.rooms || []).filter((room) => room.room_type === "shared_desk").map((room) => (
+                    <option key={room.id} value={room.id}>{room.name} ({room.number})</option>
+                  ))}
+                </select>
                 <input placeholder="Label" value={forms.seat.label} onChange={(e) => setForms({ ...forms, seat: { ...forms.seat, label: e.target.value } })} required />
                 <input type="number" min="1" placeholder="Monitore" value={forms.seat.monitor_count} onChange={(e) => setForms({ ...forms, seat: { ...forms.seat, monitor_count: e.target.value } })} />
                 <PictureInput
@@ -243,14 +314,22 @@ export default function Admin({ isLoggedIn, isAdmin }) {
                 <textarea placeholder="Beschreibung" value={forms.asset.description} onChange={(e) => setForms({ ...forms, asset: { ...forms.asset, description: e.target.value } })} />
               </>
             )}
-            <Button type="submit" icon={Plus} disabled={state.loading}>Anlegen</Button>
+            <div className="resource-editor-actions">
+              <Button type="submit" icon={editing?.tab === tab ? Save : Plus} disabled={state.loading}>
+                {editing?.tab === tab ? "Speichern" : "Anlegen"}
+              </Button>
+              {editing?.tab === tab && (
+                <Button variant="secondary" icon={X} onClick={cancelEdit}>Abbrechen</Button>
+              )}
+            </div>
           </form>
         </Panel>
       )}
 
       {tab === "users" && (
         <Panel title="Nutzer verwalten">
-          <form className="form-stack" onSubmit={createCurrent}>
+          <form className="form-stack admin-user-form" onSubmit={createCurrent}>
+            <h3 className="admin-form-heading">Nutzer anlegen</h3>
             <div className="form-grid two">
               <input placeholder="Name" value={forms.user.name} onChange={(e) => setForms({ ...forms, user: { ...forms.user, name: e.target.value } })} required />
               <input type="email" placeholder="E-Mail" value={forms.user.email} onChange={(e) => setForms({ ...forms, user: { ...forms.user, email: e.target.value } })} required />
@@ -267,9 +346,12 @@ export default function Admin({ isLoggedIn, isAdmin }) {
               value={forms.user.image_url}
               onChange={(file) => handlePictureFile("user", file)}
             />
-            <Button type="submit" icon={Plus} disabled={state.loading}>Nutzer anlegen</Button>
+            <div className="admin-form-actions">
+              <Button type="submit" icon={Plus} disabled={state.loading}>Nutzer anlegen</Button>
+            </div>
           </form>
-          <form className="form-stack" onSubmit={resetPassword}>
+          <form className="form-stack admin-user-form" onSubmit={resetPassword}>
+            <h3 className="admin-form-heading">Passwort zurücksetzen</h3>
             <div className="form-grid two">
               <select value={forms.reset.user_id} onChange={(e) => setForms({ ...forms, reset: { ...forms.reset, user_id: e.target.value } })} required>
                 <option value="">Nutzer auswählen</option>
@@ -279,9 +361,12 @@ export default function Admin({ isLoggedIn, isAdmin }) {
               </select>
               <input type="password" placeholder="Neues Passwort, leer = generieren" value={forms.reset.new_password} onChange={(e) => setForms({ ...forms, reset: { ...forms.reset, new_password: e.target.value } })} />
             </div>
-            <Button type="submit" variant="secondary" disabled={state.loading}>Passwort zurücksetzen</Button>
+            <div className="admin-form-actions">
+              <Button type="submit" variant="secondary" disabled={state.loading}>Passwort zurücksetzen</Button>
+            </div>
           </form>
-          <form className="form-stack" onSubmit={saveUser}>
+          <form className="form-stack admin-user-form" onSubmit={saveUser}>
+            <h3 className="admin-form-heading">Nutzer bearbeiten</h3>
             <div className="form-grid two">
               <select value={forms.editUser.id} onChange={(e) => selectUser(e.target.value)} required>
                 <option value="">Nutzer zum Bearbeiten auswählen</option>
@@ -307,7 +392,9 @@ export default function Admin({ isLoggedIn, isAdmin }) {
               <input type="checkbox" checked={forms.editUser.is_active} onChange={(e) => setForms({ ...forms, editUser: { ...forms.editUser, is_active: e.target.checked } })} />
               <span>Nutzer ist aktiv</span>
             </label>
-            <Button type="submit" variant="secondary" disabled={state.loading || !forms.editUser.id}>Nutzer speichern</Button>
+            <div className="admin-form-actions">
+              <Button type="submit" variant="secondary" disabled={state.loading || !forms.editUser.id}>Nutzer speichern</Button>
+            </div>
           </form>
         </Panel>
       )}
@@ -318,14 +405,18 @@ export default function Admin({ isLoggedIn, isAdmin }) {
           data={state.data}
           bookingFilters={bookingFilters}
           setBookingFilters={setBookingFilters}
+          userFilters={userFilters}
+          setUserFilters={setUserFilters}
           selectUser={selectUser}
+          onEdit={beginEdit}
+          onDeactivate={deactivateResource}
         />
       )}
     </div>
   );
 }
 
-function AdminList({ tab, data, bookingFilters, setBookingFilters, selectUser }) {
+function AdminList({ tab, data, bookingFilters, setBookingFilters, userFilters, setUserFilters, selectUser, onEdit, onDeactivate }) {
   const items = data[tab] || [];
   if (tab === "bookings") {
     return (
@@ -338,15 +429,30 @@ function AdminList({ tab, data, bookingFilters, setBookingFilters, selectUser })
     );
   }
   if (tab === "users") {
-    return <UserAdminList users={items} selectUser={selectUser} />;
+    return <UserAdminList users={items} selectUser={selectUser} filters={userFilters} setFilters={setUserFilters} />;
+  }
+  if (tab === "occupancy") {
+    return <OccupancyAdminList entries={items} />;
+  }
+  if (tab === "analytics") {
+    return <AnalyticsAdmin analytics={data.analytics || {}} />;
+  }
+  if (tab === "audit") {
+    return <AuditAdmin events={items} />;
   }
   return (
     <Panel title={`${label(tab)} Übersicht`}>
       <div className="data-table">
         {items.length === 0 ? <EmptyState title="Keine Einträge" /> : items.map((item) => (
-          <div className="data-row" key={item.id}>
-            <strong>{item.name || item.label || item.title || item.target_name || "Eintrag"}</strong>
-            <span>{detail(item)}</span>
+          <div className="data-row resource-admin-row" key={item.id}>
+            <div className="resource-admin-main">
+              <strong>{item.name || item.label || item.title || item.target_name || "Eintrag"}</strong>
+              <span>{detail(item)}</span>
+            </div>
+            <div className="resource-admin-actions">
+              <Button variant="secondary" icon={Pencil} onClick={() => onEdit(tab, item)}>Bearbeiten</Button>
+              <Button variant="danger" icon={Trash2} onClick={() => onDeactivate(tab, item)}>Deaktivieren</Button>
+            </div>
           </div>
         ))}
       </div>
@@ -354,11 +460,103 @@ function AdminList({ tab, data, bookingFilters, setBookingFilters, selectUser })
   );
 }
 
-function UserAdminList({ users, selectUser }) {
+const RESOURCE_DEFAULTS = {
+  rooms: { name: "", number: "", capacity: 1, room_type: "seminarraum", location: "", equipment: "", description: "", image_url: "" },
+  seats: { room_id: "", label: "", description: "", monitor_count: 1, image_url: "" },
+  assets: { name: "", asset_type: "other", location: "", description: "", image_url: "" },
+};
+
+function resourceFormFromItem(resourceTab, item) {
+  if (resourceTab === "rooms") {
+    return {
+      name: item.name || "",
+      number: item.number || "",
+      capacity: item.capacity || 1,
+      room_type: item.room_type || "seminarraum",
+      location: item.location || "",
+      equipment: (item.equipment || []).join(", "),
+      description: item.description || "",
+      image_url: item.image_url || "",
+    };
+  }
+  if (resourceTab === "seats") {
+    return {
+      room_id: item.room_id || "",
+      label: item.label || "",
+      description: item.description || "",
+      monitor_count: item.monitor_count || 1,
+      image_url: item.image_url || "",
+    };
+  }
+  return {
+    name: item.name || "",
+    asset_type: item.asset_type || "other",
+    location: item.location || "",
+    description: item.description || "",
+    image_url: item.image_url || "",
+  };
+}
+
+function resourceFormKey(resourceTab) {
+  return { rooms: "room", seats: "seat", assets: "asset" }[resourceTab];
+}
+
+function OccupancyAdminList({ entries }) {
+  const rooms = entries.reduce((groups, entry) => {
+    const roomKey = entry.room_id || "unknown";
+    const current = groups[roomKey] || {
+      roomName: entry.room_name || "Unbekannter Raum",
+      entries: [],
+    };
+    current.entries.push(entry);
+    return { ...groups, [roomKey]: current };
+  }, {});
+
   return (
-    <Panel title="Nutzer Übersicht">
+    <Panel title="Aktuelle Raumbelegung" caption="Nur Personen mit aktivem Check-in in einer gerade laufenden Buchung.">
+      <div className="data-table">
+        {Object.keys(rooms).length === 0 ? (
+          <EmptyState title="Aktuell ist niemand eingecheckt" text="Der Check-in erfolgt in der eigenen Buchungsübersicht." />
+        ) : Object.entries(rooms).map(([roomId, room]) => (
+          <div className="occupancy-room" key={roomId}>
+            <strong>{room.roomName}</strong>
+            {room.entries.map((entry) => (
+              <div className="data-row" key={entry.booking_id}>
+                <span>{entry.user_name || entry.user_email || "Buchungsinhaber"}</span>
+                <small>{formatDateRange(entry.start_time, entry.end_time)}</small>
+                <small>Eingecheckt: {formatDate(entry.checked_in_at)}</small>
+                {(entry.participant_emails || []).map((email) => (
+                  <small key={email}>Teilnehmend: {email}</small>
+                ))}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </Panel>
+  );
+}
+
+function UserAdminList({ users, selectUser, filters, setFilters }) {
+  const visibleUsers = users.filter((user) => {
+    const query = filters.q.trim().toLowerCase();
+    return (!query || user.name.toLowerCase().includes(query) || user.email.toLowerCase().includes(query))
+      && (!filters.role || user.role === filters.role)
+      && (!filters.status || (filters.status === "active") === Boolean(user.is_active));
+  });
+  return (
+    <Panel title="Nutzer Übersicht" caption={`${users.filter((user) => user.role === "admin").length} Admin-Konto/Konten vorhanden.`}>
+      <div className="booking-admin-filters">
+        <input placeholder="Name oder E-Mail suchen" value={filters.q} onChange={(event) => setFilters({ ...filters, q: event.target.value })} />
+        <select value={filters.role} onChange={(event) => setFilters({ ...filters, role: event.target.value })}>
+          <option value="">Alle Rollen</option><option value="admin">Nur Admins</option><option value="user">Nur User</option>
+        </select>
+        <select value={filters.status} onChange={(event) => setFilters({ ...filters, status: event.target.value })}>
+          <option value="">Alle Status</option><option value="active">Aktiv</option><option value="inactive">Inaktiv</option>
+        </select>
+      </div>
       <div className="user-card-grid">
-        {users.length === 0 ? <EmptyState title="Keine Nutzer" /> : users.map((user) => (
+        {visibleUsers.length === 0 ? <EmptyState title="Keine Nutzer" /> : visibleUsers.map((user) => (
           <button className="user-card" key={user.id} type="button" onClick={() => selectUser(user.id)}>
             <UserPhoto user={user} />
             <span>
@@ -371,6 +569,45 @@ function UserAdminList({ users, selectUser }) {
       </div>
     </Panel>
   );
+}
+
+function AnalyticsAdmin({ analytics }) {
+  const types = analytics.by_type || {};
+  return (
+    <Panel title="Auslastungsstatistik" caption={`Rückblick: ${analytics.days || 30} Tage`}>
+      <div className="metric-grid">
+        <div className="metric-card"><strong>{analytics.active_count || 0}</strong><span>aktive Buchungen</span></div>
+        <div className="metric-card"><strong>{analytics.cancelled_count || 0}</strong><span>stornierte Buchungen</span></div>
+        <div className="metric-card"><strong>{analytics.booked_hours || 0} h</strong><span>gebuchte Zeit</span></div>
+        <div className="metric-card"><strong>{analytics.check_in_rate || 0} %</strong><span>Check-in-Quote</span></div>
+      </div>
+      <div className="data-table">
+        {Object.entries(types).map(([type, values]) => (
+          <div className="data-row" key={type}><strong>{typeLabel(type)}</strong><span>{values.count} Buchung(en)</span><span>{values.hours} Stunden</span></div>
+        ))}
+      </div>
+    </Panel>
+  );
+}
+
+function AuditAdmin({ events }) {
+  return (
+    <Panel title="Änderungsprotokoll" caption="Neue sicherheits- und buchungsrelevante Aktionen, ohne Passwörter oder Tokens.">
+      <div className="data-table">
+        {events.length === 0 ? <EmptyState title="Noch keine protokollierten Änderungen" /> : events.map((event) => (
+          <div className="data-row audit-row" key={event.id}>
+            <strong>{event.summary}</strong>
+            <span>{event.actor_name || "System"} · {event.action}</span>
+            <small>{formatDate(event.created_at)}</small>
+          </div>
+        ))}
+      </div>
+    </Panel>
+  );
+}
+
+function typeLabel(type) {
+  return { room: "Räume", seat: "Arbeitsplätze", asset: "Ausstattung" }[type] || type;
 }
 
 function BookingAdminList({ bookings, users, filters, setFilters }) {
@@ -481,6 +718,19 @@ function label(tab) {
     seats: "Sitzplätze",
     assets: "Ausstattung",
     bookings: "Buchungen",
+    occupancy: "Belegung",
+    analytics: "Statistik",
     users: "Nutzer",
+    audit: "Protokoll",
   }[tab];
+}
+
+function formatDateRange(start, end) {
+  const formatter = new Intl.DateTimeFormat("de-DE", { dateStyle: "short", timeStyle: "short" });
+  return `${formatter.format(new Date(start))} bis ${formatter.format(new Date(end))}`;
+}
+
+function formatDate(value) {
+  if (!value) return "–";
+  return new Intl.DateTimeFormat("de-DE", { dateStyle: "short", timeStyle: "short" }).format(new Date(value));
 }

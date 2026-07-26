@@ -46,6 +46,14 @@ Das System soll folgende Ziele erfüllen:
 - administrative Verwaltung von Räumen, Ressourcen und Buchungen
 - nachvollziehbare und benutzerfreundliche Planung
 - einfache Bedienbarkeit über eine Weboberfläche
+- optionaler Dark Mode mit gespeicherter Auswahl
+- Check-in und Check-out für tatsächliche Raumbelegung
+- Kalenderexport einzelner Buchungen als `.ics`
+- Favoriten für häufig genutzte Räume, Arbeitsplätze und Ausstattung
+- wiederkehrende wöchentliche Buchungen und freie Alternativtermine
+- QR-Code-Check-in für eigene Buchungen
+- Admin-Auslastungsstatistik und Änderungsprotokoll
+- Kontoeinstellungen für Profilbild, Name, E-Mail, Passwort und sichere Kontolöschung
 
 ## Beispiele für Räume und Ressourcen
 
@@ -107,10 +115,23 @@ Eine mögliche Projektstruktur ist:
 │   └── routes/
 ├── frontend/
 │   └── src/
+├── scripts/
+│   ├── demo.py
+│   ├── seed_demo_data.py
+│   └── legacy/
 └── tests/
 ```
 
 Die konkrete Struktur kann im Verlauf der Umsetzung angepasst werden.
+
+## Aktive Admin-Konten
+
+- `alex@replan.de`
+- `florian@replan.de`
+- `tim@replan.de`
+- `denis@replan.de`
+
+Alle anderen vorbereiteten oder gelöschten Konten sind deaktiviert und anonymisiert. Bei einer selbst ausgeführten Kontolöschung wird die bisherige E-Mail-Adresse wieder für eine Registrierung freigegeben.
 
 ## Ausführung des Programms
 
@@ -123,7 +144,9 @@ Das Projekt besteht aus einem Flask-Backend und einem React-Frontend. Beide Teil
 Im Hauptordner des Projekts:
 
 ```bash
-pip install -r requirements.txt
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
 ```
 
 Falls `pip` nicht zur richtigen Python-Version gehört:
@@ -158,7 +181,7 @@ In einem zweiten Terminal:
 
 ```bash
 cd frontend
-npm install
+npm ci
 ```
 
 ### 4. Frontend starten
@@ -196,57 +219,14 @@ Danach im Browser öffnen:
 http://localhost:5173
 ```
 
-### Installation
-
-Repository klonen oder herunterladen.
-
-Abhängigkeiten installieren:
-
-```bash
-pip install -r requirements.txt
-```
-
-### Backend starten
-
-Start des Backends:
-
-```bash
-python3 app.py
-```
-
-Das Backend läuft anschließend unter:
-
-```text
-http://localhost:5002
-```
-
-API-Test:
-
-```text
-http://localhost:5002/api/health
-```
-
-### Frontend installieren und starten
-
-In einem zweiten Terminal:
+Für den QR-Check-in mit einem Smartphone müssen Rechner und Smartphone im selben lokalen Netz sein. Das Frontend wird dann erreichbar gestartet:
 
 ```bash
 cd frontend
-npm install
-npm run dev
+npm run dev -- --host 0.0.0.0
 ```
 
-Das React-Frontend läuft anschließend unter:
-
-```text
-http://localhost:5173
-```
-
-Das Frontend spricht standardmäßig mit:
-
-```text
-http://localhost:5002/api
-```
+Anschließend die im Terminal angezeigte Netzwerkadresse im Browser öffnen. Der erzeugte QR-Code übernimmt automatisch diese Adresse. Optional kann sie vor dem Backend-Start ausdrücklich gesetzt werden, zum Beispiel mit `FRONTEND_URL=http://192.168.1.20:5173`.
 
 ## Testen
 
@@ -275,6 +255,23 @@ cd frontend
 npm run build
 ```
 
+Frontend-Tests ausführen:
+
+```bash
+cd frontend
+npm test
+```
+
+## Lokale Demo-Administratoren
+
+Das idempotente Seed-Skript legt die Demo-Ressourcen und Admin-Konten an:
+
+```bash
+python scripts/seed_demo_data.py
+```
+
+Die ausgegebenen Passwörter sind ausschließlich für die lokale Demo vorgesehen und müssen außerhalb der Demo ersetzt werden. Alle Admin-Konten sind unter **Admin → Nutzer** sichtbar; dort kann nach Rolle `Admin` gefiltert werden.
+
 ## Konfiguration
 
 Für lokale Demo-Zwecke kann das Backend ohne zusätzliche Umgebungsvariablen gestartet werden. Für jede Umgebung außerhalb der lokalen Demo muss ein eigener Flask Secret Key gesetzt werden:
@@ -296,7 +293,7 @@ Standardmäßig nutzt das Projekt SQLite über `data/replan.sqlite`. Die Reposit
 
 | Bereich | Technologie | Hinweis |
 | --- | --- | --- |
-| Backend | Python, Flask, Flask-CORS | Web-API und CORS-Anbindung |
+| Backend | Python, Flask, Flask-CORS, ItsDangerous | Web-API, CORS und signierte Auth-Tokens |
 | Persistenz | SQLite, JSON | SQLite-backed Repository mit JSON-Migration |
 | Tests | pytest | Backend-Unit- und Service-Tests |
 | Frontend | React, Vite | Weboberfläche |
@@ -316,6 +313,7 @@ Die Nutzung von KI-Unterstützung ist transparent dokumentiert:
 
 - [`docs/Testdokumentation.md`](./docs/Testdokumentation.md)
 - [`docs/Engineering_Reflexion.md`](./docs/Engineering_Reflexion.md)
+- [`docs/Kanban_Aktualisierungen.md`](./docs/Kanban_Aktualisierungen.md)
 - [`docs/Abschlussdokumentation.md`](./docs/Abschlussdokumentation.md)
 - [`docs/Qualitaetssheet.html`](./docs/Qualitaetssheet.html)
 - [`docs/Projektposter.pdf`](./docs/Projektposter.pdf)

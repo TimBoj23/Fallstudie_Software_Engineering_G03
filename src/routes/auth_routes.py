@@ -1,17 +1,16 @@
 """
 Routes: Auth API
 POST /api/auth/register  – Registrierung
-POST /api/auth/login     – Login (gibt User-ID zurück, JWT-ready)
+POST /api/auth/login     – Login (gibt signiertes Bearer-Token zurück)
 POST /api/auth/logout    – Logout
-POST /api/auth/forgot-password – Passwort zurücksetzen (MVP)
 POST /api/auth/password-reset-request – Reset-Token anfordern
 POST /api/auth/password-reset – Passwort per Reset-Token setzen
 """
 
 from flask import Blueprint, request, jsonify
 from ..services.user_service import UserService, AuthError
-from ..models.user import UserRole
 from ..utils.auth_middleware import login_required
+from ..utils.tokens import create_auth_token
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 _user_service = UserService()
@@ -26,20 +25,16 @@ def register():
         name     (str): Vollständiger Name
         email    (str): E-Mail-Adresse
         password (str): Passwort (min. 6 Zeichen)
-        role     (str, optional): "user" | "admin" (Standard: "user")
-
     Returns:
         201: { user: {...} }
         400: { error: "..." }
     """
     data = request.get_json(silent=True) or {}
     try:
-        role = UserRole(data.get("role", UserRole.USER.value))
         user = _user_service.register(
             name=data.get("name", ""),
             email=data.get("email", ""),
             password=data.get("password", ""),
-            role=role,
             image_url=data.get("image_url", ""),
         )
         return jsonify({"user": user.to_public_dict()}), 201
@@ -57,8 +52,7 @@ def login():
         password (str): Passwort
 
     Returns:
-        200: { user: {...}, token: "<user_id>" }
-             (token = user_id als MVP-Ersatz für JWT)
+        200: { user: {...}, token: "<signiertes_token>" }
         401: { error: "..." }
     """
     data = request.get_json(silent=True) or {}
@@ -67,38 +61,12 @@ def login():
             email=data.get("email", ""),
             password=data.get("password", ""),
         )
-        # MVP: user.id als "token" – für JWT-Upgrade hier ersetzen
         return jsonify({
             "user": user.to_public_dict(),
-            "token": user.id,  # Wird bei JWT-Upgrade durch echtes Token ersetzt
+            "token": create_auth_token(user.id),
         }), 200
     except AuthError as e:
         return jsonify({"error": str(e)}), 401
-
-
-@auth_bp.route("/forgot-password", methods=["POST"])
-def forgot_password():
-    """
-    MVP-Passwort-zurücksetzen.
-
-    Body:
-        email        (str)
-        new_password (str)
-    """
-    data = request.get_json(silent=True) or {}
-    try:
-        user = _user_service.reset_password_by_email(
-            email=data.get("email", ""),
-            new_password=data.get("new_password", ""),
-        )
-        return jsonify({
-            "message": "Passwort wurde zurückgesetzt.",
-            "user": user.to_public_dict(),
-        }), 200
-    except AuthError as e:
-        return jsonify({"error": str(e)}), 404
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 400
 
 
 @auth_bp.route("/password-reset-request", methods=["POST"])
@@ -140,7 +108,7 @@ def logout():
     """
     Meldet den Nutzer ab.
 
-    MVP-Hinweis: Der aktuelle Token ist die User-ID im Header. Dadurch gibt es
-    serverseitig keine Session, die invalidiert werden muss.
+    Die Authentifizierung verwendet ein signiertes, zeitlich begrenztes Token.
+    Serverseitig gibt es aktuell keine Sperrliste; der Client entfernt das Token.
     """
     return jsonify({"message": "Logout erfolgreich. Token clientseitig entfernen."}), 200

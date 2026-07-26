@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import List
 
-from ..utils.time import utc_now_iso
+from ..utils.time import parse_iso_datetime, utc_now_iso
 
 
 class BookingStatus(str, Enum):
@@ -54,6 +54,11 @@ class Booking:
     auto_assigned_seat: bool = False
     access_password_hash: str = ""
     invitation_emails: List[str] = field(default_factory=list)
+    participant_emails: List[str] = field(default_factory=list)
+    checked_in_at: str = ""
+    checked_out_at: str = ""
+    series_id: str = ""
+    recurrence_index: int = 0
     status: BookingStatus = BookingStatus.ACTIVE
     created_at: str = field(default_factory=utc_now_iso)
 
@@ -71,6 +76,11 @@ class Booking:
             "auto_assigned_seat": self.auto_assigned_seat,
             "access_password_hash": self.access_password_hash,
             "invitation_emails": self.invitation_emails,
+            "participant_emails": self.participant_emails,
+            "checked_in_at": self.checked_in_at,
+            "checked_out_at": self.checked_out_at,
+            "series_id": self.series_id,
+            "recurrence_index": self.recurrence_index,
             "status": self.status.value if isinstance(self.status, BookingStatus) else self.status,
             "created_at": self.created_at,
         }
@@ -90,6 +100,11 @@ class Booking:
             auto_assigned_seat=data.get("auto_assigned_seat", False),
             access_password_hash=data.get("access_password_hash", ""),
             invitation_emails=data.get("invitation_emails", []),
+            participant_emails=data.get("participant_emails", []),
+            checked_in_at=data.get("checked_in_at", ""),
+            checked_out_at=data.get("checked_out_at", ""),
+            series_id=data.get("series_id", ""),
+            recurrence_index=int(data.get("recurrence_index", 0)),
             status=BookingStatus(data.get("status", BookingStatus.ACTIVE.value)),
             created_at=data.get("created_at", utc_now_iso()),
         )
@@ -109,7 +124,10 @@ class Booking:
         """
         if not self.is_active():
             return False
-        return self.start_time < end and self.end_time > start
+        return (
+            parse_iso_datetime(self.start_time) < parse_iso_datetime(end)
+            and parse_iso_datetime(self.end_time) > parse_iso_datetime(start)
+        )
 
     def __repr__(self) -> str:
         return (

@@ -156,6 +156,45 @@ def future(hours=2, duration=2):
 
 class TestCreateBooking:
 
+    def test_wiederkehrende_buchungsserie(self, booking_service, demo_room, user):
+        start, end = future(hours=24, duration=1)
+        bookings = booking_service.create_recurring_bookings(
+            user=user,
+            target_id=demo_room.id,
+            target_type=BookingTargetType.ROOM,
+            start_time=start,
+            end_time=end,
+            title="Weekly",
+            recurrence_count=4,
+        )
+        assert len(bookings) == 4
+        assert len({booking.series_id for booking in bookings}) == 1
+        assert [booking.recurrence_index for booking in bookings] == [1, 2, 3, 4]
+
+    def test_alternative_zeiten_werden_vorgeschlagen(self, booking_service, demo_room, user):
+        start, end = future(hours=24, duration=1)
+        booking_service.create_booking(user, demo_room.id, BookingTargetType.ROOM, start, end)
+
+        suggestions = booking_service.suggest_alternatives(
+            demo_room.id, BookingTargetType.ROOM, start, end, limit=2
+        )
+        assert len(suggestions) == 2
+        assert suggestions[0]["start_time"] != start
+
+    def test_admin_auslastungsstatistik(self, booking_service, demo_room, user, admin):
+        start = datetime.now(timezone.utc) - timedelta(days=1, hours=2)
+        end = start + timedelta(hours=2)
+        booking_service._booking_repo.save(Booking(
+            id=str(uuid.uuid4()), user_id=user.id, target_id=demo_room.id,
+            target_type=BookingTargetType.ROOM, title="Vergangene Buchung",
+            start_time=start.isoformat(), end_time=end.isoformat(),
+        ))
+
+        analytics = booking_service.get_utilization_stats(admin, days=30)
+        assert analytics["active_count"] == 1
+        assert analytics["booked_hours"] == 2.0
+        assert analytics["by_type"]["room"]["count"] == 1
+
     def test_raum_erfolgreich_buchen(self, booking_service, demo_room, user):
         """Ein freier Raum kann erfolgreich gebucht werden."""
         start, end = future(hours=2, duration=2)
@@ -753,3 +792,154 @@ class TestAvailability:
 
         assert is_avail is True
         assert conflicts == []
+
+
+class TestProtectedSeminarBooking:
+
+    def test_passwortschutz_einladung_und_beitritt(
+        self, booking_service, demo_room, user
+    ):
+        start, end = future(hours=80, duration=2)
+        booking = booking_service.create_booking(
+            user=user,
+            target_id=demo_room.id,
+            target_type=BookingTargetType.ROOM,
+            start_time=start,
+            end_time=end,
+            title="Geschütztes Seminar",
+            access_password="seminar-2026",
+            invitation_emails=["Gast@Example.de", "gast@example.de"],
+        )
+
+        assert booking.access_password_hash != "seminar-2026"
+        assert booking.invitation_emails == ["gast@example.de"]
+        assert booking_service.verify_booking_access(booking.id, "seminar-2026") is True
+        assert booking_service.verify_booking_access(booking.id, "falsch") is False
+
+        joined = booking_service.join_protected_booking(
+            booking.id, "extern@example.de", "seminar-2026"
+        )
+        assert joined.participant_emails == ["extern@example.de"]
+
+    def test_beitritt_mit_falschem_passwort_wird_abgelehnt(
+        self, booking_service, demo_room, user
+    ):
+        start, end = future(hours=84, duration=2)
+        booking = booking_service.create_booking(
+            user=user,
+            target_id=demo_room.id,
+            target_type=BookingTargetType.ROOM,
+            start_time=start,
+            end_time=end,
+            access_password="richtig",
+        )
+
+        with pytest.raises(AuthError):
+            booking_service.join_protected_booking(
+                booking.id, "extern@example.de", "falsch"
+            )
+
+    def test_einladung_ohne_passwort_wird_abgelehnt(
+        self, booking_service, demo_room, user
+    ):
+        start, end = future(hours=88, duration=2)
+        with pytest.raises(ValueError):
+            booking_service.create_booking(
+                user=user,
+                target_id=demo_room.id,
+                target_type=BookingTargetType.ROOM,
+                start_time=start,
+                end_time=end,
+                invitation_emails=["extern@example.de"],
+            )
+
+
+class TestTimezoneAndOccupancy:
+
+    def test_overlaps_with_vergleicht_zeitzonen_als_zeitpunkte(self):
+        booking = Booking(
+            id=str(uuid.uuid4()),
+            user_id=str(uuid.uuid4()),
+            target_id=str(uuid.uuid4()),
+            target_type=BookingTargetType.ROOM,
+            title="Zeitzonentest",
+            start_time="2026-08-01T10:00:00+02:00",
+            end_time="2026-08-01T11:00:00+02:00",
+        )
+
+        assert booking.overlaps_with(
+            "2026-08-01T08:30:00+00:00",
+            "2026-08-01T08:45:00+00:00",
+        ) is True
+
+    def test_raumbelegung_enthaelt_nur_aktuell_laufende_buchungen(
+        self, booking_service, booking_repo, demo_room, admin, user
+    ):
+        now = datetime.now(timezone.utc)
+        current = Booking(
+            id=str(uuid.uuid4()),
+            user_id=user.id,
+            target_id=demo_room.id,
+            target_type=BookingTargetType.ROOM,
+            title="Läuft jetzt",
+            start_time=(now - timedelta(minutes=30)).isoformat(),
+            end_time=(now + timedelta(minutes=30)).isoformat(),
+            checked_in_at=(now - timedelta(minutes=5)).isoformat(),
+        )
+        future_booking = Booking(
+            id=str(uuid.uuid4()),
+            user_id=user.id,
+            target_id=demo_room.id,
+            target_type=BookingTargetType.ROOM,
+            title="Später",
+            start_time=(now + timedelta(hours=2)).isoformat(),
+            end_time=(now + timedelta(hours=3)).isoformat(),
+        )
+        booking_repo.save(current)
+        booking_repo.save(future_booking)
+
+        occupancy = booking_service.get_active_room_occupancy(admin)
+
+        assert [entry["booking_id"] for entry in occupancy] == [current.id]
+
+    def test_check_in_und_check_out_steuern_raumbelegung(
+        self, booking_service, booking_repo, demo_room, admin, user
+    ):
+        now = datetime.now(timezone.utc)
+        booking = Booking(
+            id=str(uuid.uuid4()),
+            user_id=user.id,
+            target_id=demo_room.id,
+            target_type=BookingTargetType.ROOM,
+            title="Check-in-Test",
+            start_time=(now - timedelta(minutes=10)).isoformat(),
+            end_time=(now + timedelta(minutes=50)).isoformat(),
+        )
+        booking_repo.save(booking)
+
+        assert booking_service.get_active_room_occupancy(admin) == []
+        checked_in = booking_service.check_in_booking(booking.id, user)
+        assert checked_in.checked_in_at
+        assert [entry["booking_id"] for entry in booking_service.get_active_room_occupancy(admin)] == [booking.id]
+
+        checked_out = booking_service.check_out_booking(booking.id, user)
+        assert checked_out.checked_out_at
+        assert booking_service.get_active_room_occupancy(admin) == []
+
+    def test_check_in_vor_buchungsbeginn_wird_abgelehnt(
+        self, booking_service, booking_repo, demo_room, user
+    ):
+        now = datetime.now(timezone.utc)
+        booking = Booking(
+            id=str(uuid.uuid4()),
+            user_id=user.id,
+            target_id=demo_room.id,
+            target_type=BookingTargetType.ROOM,
+            title="Später",
+            start_time=(now + timedelta(hours=1)).isoformat(),
+            end_time=(now + timedelta(hours=2)).isoformat(),
+        )
+        booking_repo.save(booking)
+
+        with pytest.raises(ValueError):
+            booking_service.check_in_booking(booking.id, user)

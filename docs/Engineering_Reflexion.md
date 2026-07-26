@@ -8,7 +8,7 @@
 | Einfache Datenhaltung | SQLite-backed Repository mit JSON-Migration | Für die Demo belastbarer als reine JSON-Dateien, aber noch kein vollständig relationales Schema. |
 | Nutzer können buchen | Nutzer haben Registrierung, Login, Logout, eigene Buchungen und Passwort-Reset | Authentifizierung bleibt MVP-nah, ist aber für die Präsentation nutzbar. |
 | Admin verwaltet Ressourcen | Admin kann Räume, Sitzplätze, Assets, Nutzer und Buchungen einsehen/bearbeiten | Admin-Oberfläche wurde deutlich wichtiger als am Anfang geplant. |
-| Grundlegende Tests | Backend-Tests für Services und Randfälle | Frontend-Tests bleiben ein offener Ausbauschritt. |
+| Grundlegende Tests | Backend-Tests für Services und Randfälle sowie kleine Frontend-Logiktests | Browserbasierte End-to-End-Tests bleiben ein offener Ausbauschritt. |
 
 ## Architekturentscheidungen
 
@@ -29,6 +29,8 @@
 
 - Schnittstellen zwischen Frontend und Backend müssen früh verbindlich beschrieben werden.
 - Demo-Daten sind kein Nebenthema: realistische Daten machen fachliche Abläufe verständlicher.
+- Eine Reservierung ist nicht automatisch eine Anwesenheit; Check-in und Belegung müssen fachlich getrennt werden.
+- Farbschemata lassen sich wartbarer über zentrale Design-Tokens statt über komponentenweise Sonderregeln umsetzen.
 - Technische IDs gehören nicht in Nutzeransichten.
 - Admin-Funktionen brauchen mehr Kontext als reine Listen, zum Beispiel Nutzerbilder, Rollen und Buchungsbesitzer.
 - Kleine, testbare Backend-Services erleichtern spätere Änderungen erheblich.

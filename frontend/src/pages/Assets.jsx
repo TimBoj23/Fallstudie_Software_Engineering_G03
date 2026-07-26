@@ -22,7 +22,7 @@ const assetTypeLabels = {
   other: "Sonstiges",
 };
 
-export default function Assets({ openCreateBooking }) {
+export default function Assets({ openCreateBooking, favorites = [], onToggleFavorite }) {
   const [filters, setFilters] = useState({ q: "", type: "", start: "", end: "" });
   const [state, setState] = useState({ loading: true, error: "", assets: [] });
   const [selectedAsset, setSelectedAsset] = useState(null);
@@ -84,7 +84,10 @@ export default function Assets({ openCreateBooking }) {
               description={asset.description}
               chips={[assetTypeLabels[asset.asset_type]].filter(Boolean)}
               imageUrl={asset.image_url}
+              imageFit="contain"
               available={asset.available}
+              favorite={favorites.some((favorite) => favorite.key === `asset:${asset.id}`)}
+              onToggleFavorite={onToggleFavorite ? () => onToggleFavorite("asset", asset.id) : null}
               onViewCalendar={() => setSelectedAsset(asset)}
               onBook={() => openCreateBooking({ targetType: "asset", targetId: asset.id })}
             />
