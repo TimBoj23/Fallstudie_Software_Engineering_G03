@@ -1,4 +1,4 @@
-# Durchführungsprozess und Architektur-Entscheidungen (Phase 1)
+# Sprint I – Durchführungsprozess und Architekturentscheidungen
 
 In der ersten Phase wurde das Backend für das Projekt **RePlan** konzipiert und umgesetzt. Dieser Leitfaden beschreibt den gewählten Architekturansatz, den Entwicklungsprozess sowie wichtige technische Entscheidungen, um das System testbar, skalierbar und erweiterbar zu gestalten.
 

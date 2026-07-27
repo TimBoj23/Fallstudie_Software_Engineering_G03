@@ -11,7 +11,7 @@
       "Whiteboard",
       "Videokonferenz"
     ],
-    "description": "Shared-Desk-Bereich mit flexibel buchbaren Arbeitsplätzen für Teams und hybride Arbeit.",
+    "description": "Shared Office mit flexibel buchbaren Arbeitsplätzen für Teams und hybride Arbeit.",
     "image_url": "/pictures/Meetingraum_Alpha.jpeg",
     "is_active": true,
     "created_at": "2026-06-01T15:02:10.127924"
@@ -27,7 +27,7 @@
       "Whiteboard",
       "Monitor"
     ],
-    "description": "Ruhiger Shared-Desk-Bereich für konzentrierte Projektarbeit und kleine Teams.",
+    "description": "Ruhiges Shared Office für konzentrierte Projektarbeit und kleine Teams.",
     "image_url": "/pictures/Projektraum_Beta.jpg",
     "is_active": true,
     "created_at": "2026-06-01T15:02:10.129116"

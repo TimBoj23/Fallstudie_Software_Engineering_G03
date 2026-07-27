@@ -1,6 +1,6 @@
 import { useState } from "react";
 import QRCode from "qrcode";
-import { CalendarArrowDown, Copy, LogIn, LogOut, QrCode, XCircle } from "lucide-react";
+import { CalendarArrowDown, Clock3, Copy, LogIn, LogOut, Pencil, QrCode, XCircle } from "lucide-react";
 import { mediaUrl } from "../api/client.js";
 import { getCheckInCode } from "../api/bookingsApi.js";
 import { downloadBookingIcs } from "../utils/calendar.js";
@@ -12,12 +12,14 @@ const typeLabels = {
   asset: "Ausstattung",
 };
 
-export default function BookingCard({ booking, onCancel, onAttendance, onCopy }) {
+export default function BookingCard({ booking, onCancel, onAttendance, onCopy, onEdit, onExtend }) {
   const [qr, setQr] = useState({ loading: false, image: "", error: "" });
   const active = booking.status === "active";
   const now = Date.now();
   const isCurrent = active && now >= new Date(booking.start_time).getTime() && now < new Date(booking.end_time).getTime();
   const isCheckedIn = Boolean(booking.checked_in_at && !booking.checked_out_at);
+  const isFuture = new Date(booking.start_time).getTime() > now;
+  const canExtend = active && new Date(booking.end_time).getTime() > now;
   const targetName = booking.target_name || booking.target_id;
   const targetMeta = [typeLabels[booking.target_type] || booking.target_type, booking.target_meta].filter(Boolean).join(" · ");
 
@@ -55,6 +57,8 @@ export default function BookingCard({ booking, onCancel, onAttendance, onCopy })
       <div className="booking-card-actions">
         <Button variant="secondary" icon={CalendarArrowDown} onClick={() => downloadBookingIcs(booking)}>Kalender</Button>
         {onCopy && <Button variant="secondary" icon={Copy} onClick={() => onCopy(booking)}>Kopieren</Button>}
+        {active && isFuture && onEdit && <Button variant="secondary" icon={Pencil} onClick={() => onEdit(booking)}>Bearbeiten</Button>}
+        {canExtend && onExtend && <Button variant="secondary" icon={Clock3} onClick={() => onExtend(booking.id, 30)}>+30 Min.</Button>}
         {active && booking.target_type !== "asset" && <Button variant="secondary" icon={QrCode} onClick={showQr}>QR-Code</Button>}
         {booking.target_type !== "asset" && isCurrent && onAttendance && !booking.checked_in_at && (
           <Button icon={LogIn} onClick={() => onAttendance(booking.id, "check-in")}>Check-in</Button>
@@ -62,11 +66,8 @@ export default function BookingCard({ booking, onCancel, onAttendance, onCopy })
         {isCheckedIn && onAttendance && (
           <Button variant="secondary" icon={LogOut} onClick={() => onAttendance(booking.id, "check-out")}>Check-out</Button>
         )}
-        {active && onCancel && (
-          <Button variant="danger" icon={XCircle} onClick={() => onCancel(booking.id)}>
-            Stornieren
-          </Button>
-        )}
+        {active && onCancel && <Button variant="danger" icon={XCircle} onClick={() => onCancel(booking.id, "single")}>{booking.series_id ? "Termin stornieren" : "Stornieren"}</Button>}
+        {active && booking.series_id && onCancel && <Button variant="danger" icon={XCircle} onClick={() => onCancel(booking.id, "future")}>Serie ab hier stornieren</Button>}
       </div>
       {(qr.loading || qr.image || qr.error) && (
         <div className="qr-panel">

@@ -72,7 +72,7 @@ Die Rollen dienen in erster Linie der Strukturierung und Verantwortung, können 
 - Frühe Priorisierung zentraler Funktionen
 - Kontinuierliche Dokumentation statt Dokumentation erst am Ende
 - Arbeitspakete werden zusätzlich als GitHub Issues dokumentiert
-- Die Arbeitsteilung wird in `TASKS.md` festgehalten
+- Die Arbeitsteilung wird in `docs/Projekt_Zeitplan.md` festgehalten
 
 ---
 
@@ -501,7 +501,7 @@ Die Priorisierung erfolgt nach:
 |---|---|---|
 | Doppelbuchungen werden nicht korrekt verhindert | hohe Fehleranfälligkeit im Kernprozess | Buchungslogik früh entwickeln und testen |
 | Zu großer Funktionsumfang | Projekt wird nicht rechtzeitig fertig | Muss-, Soll- und Kann-Anforderungen priorisieren |
-| Unklare Aufgabenverteilung | Verzögerungen im Team | Rollen und Aufgaben in `TASKS.md` festhalten |
+| Unklare Aufgabenverteilung | Verzögerungen im Team | Rollen und Aufgaben in `docs/Projekt_Zeitplan.md` festhalten |
 | Technische Probleme bei der Installation | Anwendung läuft nicht auf anderen Rechnern | `requirements.txt` und Setup-Anleitung pflegen |
 | Fehlende Tests | Fehler bleiben unentdeckt | zentrale Funktionen mit `pytest` testen |
 
@@ -822,4 +822,3 @@ Da der Schwerpunkt auf Software Engineering liegt, ist eine kleinere, aber saube
 ### Nachvollziehbarkeit von Entscheidungen
 
 Wichtige Entscheidungen zu Anforderungen, Architektur, Priorisierung und Testing sollen stets begründet und dokumentiert werden.
-

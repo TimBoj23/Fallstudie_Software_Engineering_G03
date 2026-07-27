@@ -518,6 +518,40 @@
   gap: var(--space-4);
 }
 
+.calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  color: var(--color-text-soft);
+  font-size: var(--font-size-sm);
+}
+
+.calendar-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 50%;
+  background: var(--color-surface-muted);
+}
+
+.legend-dot.free {
+  background: var(--color-success-soft);
+}
+
+.legend-dot.partial {
+  background: var(--color-warning-soft);
+}
+
+.legend-dot.full {
+  background: var(--color-danger-soft);
+}
+
 .calendar-days {
   display: grid;
   grid-template-columns: repeat(7, minmax(86px, 1fr));
@@ -570,12 +604,156 @@
 }
 
 .time-block {
+  display: grid;
+  place-items: center;
+  gap: 2px;
   min-height: 48px;
   border: 1px solid #b8e4c7;
   border-radius: var(--radius-md);
   color: var(--color-success);
   background: var(--color-success-soft);
   font-weight: 800;
+}
+
+.time-block small {
+  font-size: 0.68rem;
+  font-weight: 650;
+}
+
+.seat-map-filters {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) auto;
+  align-items: end;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.seat-map {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-3);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  background: var(--color-surface-muted);
+}
+
+.seat-map-place {
+  display: grid;
+  place-items: center;
+  gap: var(--space-2);
+  min-height: 140px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  color: var(--color-text);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.seat-map-place.available {
+  border-color: var(--color-success);
+}
+
+.seat-map-place.occupied {
+  border-color: var(--color-danger);
+  background: var(--color-danger-soft);
+}
+
+.seat-map-place span:last-child {
+  color: var(--color-text-soft);
+  font-size: var(--font-size-sm);
+  font-weight: 750;
+}
+
+.seat-map-monitor {
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  color: #ffffff;
+  background: var(--color-primary);
+}
+
+.seat-map-legend {
+  margin-top: var(--space-4);
+}
+
+.invitation-share-card {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.invitation-share-card > div:not(.invitation-share-actions) {
+  display: grid;
+  gap: var(--space-1);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: var(--space-3);
+}
+
+.invitation-share-card span {
+  color: var(--color-text-soft);
+  font-size: var(--font-size-sm);
+}
+
+.invitation-share-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.notification-list {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.notification-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  background: var(--color-surface);
+}
+
+.notification-card.unread {
+  border-color: var(--color-primary);
+  box-shadow: inset 3px 0 0 var(--color-primary);
+}
+
+.notification-card.read {
+  opacity: 0.78;
+}
+
+.notification-card p,
+.notification-card small {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--color-text-soft);
+}
+
+.notification-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.notification-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  color: var(--color-info);
+  background: var(--color-info-soft);
+}
+
+.notification-icon.high {
+  color: var(--color-warning);
+  background: var(--color-warning-soft);
 }
 
 .time-block.booked-partial {
@@ -609,6 +787,10 @@
   .calendar-days,
   .time-block-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .seat-map-filters {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -660,7 +842,13 @@
 }
 
 .picture-input input[type="file"] {
-  padding: 8px;
+  display: none;
+}
+
+.picture-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
 }
 
 .picture-preview {

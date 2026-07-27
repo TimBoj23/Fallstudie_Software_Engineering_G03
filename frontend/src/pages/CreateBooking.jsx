@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { CalendarPlus } from "lucide-react";
+import { CalendarPlus, Copy, Link as LinkIcon } from "lucide-react";
 import { getAssets } from "../api/assetsApi.js";
 import { createBooking } from "../api/bookingsApi.js";
 import { getRooms } from "../api/roomsApi.js";
@@ -11,10 +11,18 @@ import Panel from "../components/Panel.jsx";
 import StatusMessage from "../components/StatusMessage.jsx";
 
 const targetTypes = [
-  { value: "room", label: "Seminarraum" },
-  { value: "seat", label: "Arbeitsplatz" },
+  { value: "room", label: "Raum vollständig reservieren" },
+  { value: "shared_office_auto", label: "Shared Office – freien Platz automatisch wählen" },
+  { value: "seat", label: "Shared Office – bestimmten Arbeitsplatz wählen" },
   { value: "asset", label: "Ausstattung" },
 ];
+
+const targetTypeHelp = {
+  room: "Der ausgewählte Raum ist im Zeitraum vollständig für andere Buchungen gesperrt.",
+  shared_office_auto: "RePlan weist zufällig einen der freien Arbeitsplätze im ausgewählten Shared Office zu.",
+  seat: "Sie wählen einen ganz bestimmten Arbeitsplatz innerhalb eines Shared Office.",
+  asset: "Sie reservieren ein einzelnes Gerät oder Ausstattungsobjekt.",
+};
 
 const targetTypeLabels = Object.fromEntries(targetTypes.map((type) => [type.value, type.label]));
 
@@ -30,7 +38,7 @@ export default function CreateBooking({ isLoggedIn, setPage, bookingDefaults = {
   });
   const [resources, setResources] = useState({ rooms: [], seats: [], assets: [] });
   const [recurrenceCount, setRecurrenceCount] = useState(1);
-  const [state, setState] = useState({ loading: false, loadingResources: true, error: "", success: "", conflicts: [], suggestions: [] });
+  const [state, setState] = useState({ loading: false, loadingResources: true, error: "", success: "", conflicts: [], suggestions: [], invitation: null });
   const fixedTargetType = Boolean(bookingDefaults.targetType);
 
   useEffect(() => {
@@ -75,17 +83,25 @@ export default function CreateBooking({ isLoggedIn, setPage, bookingDefaults = {
   }, [bookingDefaults.endTime, bookingDefaults.startTime, bookingDefaults.targetId, bookingDefaults.targetType, bookingDefaults.title]);
 
   const options = useMemo(() => buildOptions(form.target_type, resources), [form.target_type, resources]);
+  const invitationEnabled = form.target_type === "room" && Boolean(
+    form.access_password.trim() || form.invitation_emails.trim()
+  );
   const selectedTargetLabel = targetTypeLabels[form.target_type] || "Objekt";
   const panelCaption = fixedTargetType
     ? `${selectedTargetLabel} auswählen und Zeitraum festlegen.`
     : "Wählen Sie Seminarraum, Arbeitsplatz oder Ausstattung und legen Sie den Zeitraum fest.";
 
+  useEffect(() => {
+    if (invitationEnabled) setRecurrenceCount(1);
+  }, [invitationEnabled]);
+
   async function submit(event) {
     event.preventDefault();
-    setState((current) => ({ ...current, loading: true, error: "", success: "", conflicts: [], suggestions: [] }));
+    setState((current) => ({ ...current, loading: true, error: "", success: "", conflicts: [], suggestions: [], invitation: null }));
     try {
+      const backendTargetType = toApiTargetType(form.target_type);
       const result = await createBooking({
-        target_type: form.target_type,
+        target_type: backendTargetType,
         target_id: form.target_id,
         title: form.title || "Reservierung",
         start_time: form.start_time,
@@ -108,6 +124,10 @@ export default function CreateBooking({ isLoggedIn, setPage, bookingDefaults = {
           : "Ihre Reservierung wurde erstellt.",
         conflicts: [],
         suggestions: [],
+        invitation: result.invitation ? {
+          ...result.invitation,
+          password: form.access_password,
+        } : null,
       }));
       setForm({ ...form, title: "", access_password: "", invitation_emails: "" });
     } catch (error) {
@@ -118,6 +138,7 @@ export default function CreateBooking({ isLoggedIn, setPage, bookingDefaults = {
         success: "",
         conflicts: error.data?.conflicts || [],
         suggestions: error.data?.suggestions || [],
+        invitation: null,
       }));
     }
   }
@@ -168,6 +189,7 @@ export default function CreateBooking({ isLoggedIn, setPage, bookingDefaults = {
                 </select>
               </label>
             </div>
+            <small>{targetTypeHelp[form.target_type]}</small>
 
             <label>
               <span>Titel</span>
@@ -186,7 +208,7 @@ export default function CreateBooking({ isLoggedIn, setPage, bookingDefaults = {
                   />
                 </label>
                 <label>
-                  <span>Einladungen (optional)</span>
+                  <span>Erlaubte E-Mail-Adressen (optional, kein Versand)</span>
                   <textarea
                     value={form.invitation_emails}
                     onChange={(event) => setForm({ ...form, invitation_emails: event.target.value })}
@@ -194,6 +216,9 @@ export default function CreateBooking({ isLoggedIn, setPage, bookingDefaults = {
                   />
                 </label>
               </div>
+            )}
+            {form.target_type === "room" && (
+              <small>RePlan versendet nichts. Die Liste beschränkt nur, welche Adressen mit dem später manuell geteilten Code und Passwort beitreten dürfen.</small>
             )}
 
             <div className="form-grid two">
@@ -209,13 +234,14 @@ export default function CreateBooking({ isLoggedIn, setPage, bookingDefaults = {
 
             <label>
               <span>Wiederholung</span>
-              <select value={recurrenceCount} onChange={(event) => setRecurrenceCount(Number(event.target.value))}>
+              <select value={recurrenceCount} disabled={invitationEnabled} onChange={(event) => setRecurrenceCount(Number(event.target.value))}>
                 <option value={1}>Einmalig</option>
                 <option value={2}>2 Wochen</option>
                 <option value={4}>4 Wochen</option>
                 <option value={8}>8 Wochen</option>
                 <option value={12}>12 Wochen</option>
               </select>
+              {invitationEnabled && <small>Geschützte Einladungen gelten eindeutig für einen einzelnen Termin.</small>}
             </label>
 
             <Button type="submit" icon={CalendarPlus} disabled={state.loading}>
@@ -224,6 +250,26 @@ export default function CreateBooking({ isLoggedIn, setPage, bookingDefaults = {
           </form>
         )}
       </Panel>
+
+      {state.invitation && (
+        <Panel
+          title="Einladung manuell teilen"
+          caption="Es wird keine E-Mail versendet. Das Klartextpasswort wird nur jetzt angezeigt und im Backend ausschließlich als sicherer Hash gespeichert."
+        >
+          <div className="invitation-share-card">
+            {(!state.invitation.recipients || state.invitation.recipients.length === 0) && (
+              <StatusMessage type="warning">Ohne Empfängerliste kann jede Person mit Link, Code und Passwort beitreten.</StatusMessage>
+            )}
+            <div><span>Einladungscode</span><strong>{state.invitation.code}</strong></div>
+            <div><span>Buchungspasswort</span><strong>{state.invitation.password}</strong></div>
+            <div><span>Empfänger</span><strong>{state.invitation.recipients?.join(", ") || "Mit Link und Passwort teilbar"}</strong></div>
+            <div className="invitation-share-actions">
+              <Button variant="secondary" icon={Copy} onClick={() => copyText(invitationText(state.invitation))}>Einladung kopieren</Button>
+              <Button variant="secondary" icon={LinkIcon} onClick={() => copyText(state.invitation.share_url)}>Link kopieren</Button>
+            </div>
+          </div>
+        </Panel>
+      )}
 
       {state.conflicts.length > 0 && (
         <Panel title="Zeitraum nicht verfügbar" caption="Für diese Auswahl gibt es bereits eine Reservierung.">
@@ -253,11 +299,17 @@ export default function CreateBooking({ isLoggedIn, setPage, bookingDefaults = {
   );
 }
 
-function buildOptions(type, resources) {
+export function buildOptions(type, resources) {
   if (type === "room") {
-    return resources.rooms.map((room) => ({
+    return resources.rooms.filter((room) => room.room_type !== "shared_desk").map((room) => ({
       id: room.id,
       label: `${room.name}${room.location ? `, ${room.location}` : ""}`,
+    }));
+  }
+  if (type === "shared_office_auto") {
+    return resources.rooms.filter((room) => room.room_type === "shared_desk").map((room) => ({
+      id: room.id,
+      label: `${room.name} – freier Platz wird automatisch gewählt${room.location ? `, ${room.location}` : ""}`,
     }));
   }
   if (type === "seat") {
@@ -271,6 +323,23 @@ function buildOptions(type, resources) {
     id: asset.id,
     label: `${asset.name}${asset.location ? `, ${asset.location}` : ""}`,
   }));
+}
+
+export function toApiTargetType(type) {
+  return type === "shared_office_auto" ? "room" : type;
+}
+
+function invitationText(invitation) {
+  return [
+    "RePlan-Einladung",
+    `Link: ${invitation.share_url}`,
+    `Einladungscode: ${invitation.code}`,
+    `Buchungspasswort: ${invitation.password}`,
+  ].join("\n");
+}
+
+async function copyText(value) {
+  await navigator.clipboard.writeText(value);
 }
 
 function formatDate(value) {

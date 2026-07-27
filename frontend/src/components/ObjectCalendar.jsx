@@ -66,6 +66,11 @@ export default function ObjectCalendar({ target, onSelectBlock }) {
       {state.error && <StatusMessage type="danger">{state.error}</StatusMessage>}
       {state.loading ? <LoadingState label="Kalender wird geladen..." /> : (
         <div className="object-calendar">
+          <div className="calendar-legend" aria-label="Kalenderlegende">
+            <span><i className="legend-dot free" />Frei</span>
+            <span><i className="legend-dot partial" />Teilweise belegt, weitere Plätze frei</span>
+            <span><i className="legend-dot full" />Vollständig belegt</span>
+          </div>
           <div className="calendar-days">
             {state.schedule.map((day) => (
               <button
@@ -89,14 +94,17 @@ export default function ObjectCalendar({ target, onSelectBlock }) {
                 className={`time-block ${slotStatus(slot)}`}
                 disabled={!slot.available}
                 onClick={() => onSelectBlock?.({
-                  targetType: target.targetType,
+                  targetType: target.bookingTargetType || target.targetType,
                   targetId: target.id,
                   startTime: slot.start_time,
                   endTime: slot.end_time,
                   title: `${target.name} ${slot.label}`,
                 })}
               >
-                {slot.label}
+                <span>{slot.label}</span>
+                {slot.total_seats > 0 && (
+                  <small>{slot.available_seats} von {slot.total_seats} Plätzen frei</small>
+                )}
               </button>
             ))}
           </div>

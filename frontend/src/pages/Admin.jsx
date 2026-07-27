@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 import { Pencil, Plus, RefreshCw, Save, Trash2, X } from "lucide-react";
 import { createAsset, deleteAsset, getAssets, updateAsset } from "../api/assetsApi.js";
 import { getAllBookings, getBookingAnalytics, getRoomOccupancy } from "../api/bookingsApi.js";
@@ -8,6 +8,7 @@ import { uploadPicture } from "../api/picturesApi.js";
 import { createRoom, deleteRoom, getRooms, updateRoom } from "../api/roomsApi.js";
 import { createSeat, deleteSeat, getSeats, updateSeat } from "../api/seatsApi.js";
 import { createUser, getUsers, resetUserPassword, updateUser } from "../api/usersApi.js";
+import { resetDemoActivity } from "../api/maintenanceApi.js";
 import Button from "../components/Button.jsx";
 import EmptyState from "../components/EmptyState.jsx";
 import LoadingState from "../components/LoadingState.jsx";
@@ -25,6 +26,7 @@ export default function Admin({ isLoggedIn, isAdmin }) {
     user: { name: "", email: "", password: "", role: "user", image_url: "" },
     editUser: { id: "", name: "", email: "", role: "user", image_url: "", is_active: true },
     reset: { user_id: "", new_password: "" },
+    maintenance: { current_password: "", confirmation: "" },
   });
   const [bookingFilters, setBookingFilters] = useState({
     user_id: "",
@@ -226,6 +228,24 @@ export default function Admin({ isLoggedIn, isAdmin }) {
     }
   }
 
+  async function resetDemo(event) {
+    event.preventDefault();
+    if (!window.confirm("Alle Buchungen, Protokolle und Nicht-Admin-Konten wirklich endgültig entfernen?")) return;
+    setState((current) => ({ ...current, loading: true, error: "", success: "" }));
+    try {
+      const result = await resetDemoActivity(forms.maintenance);
+      setForms((current) => ({ ...current, maintenance: { current_password: "", confirmation: "" } }));
+      await load();
+      setState((current) => ({
+        ...current,
+        loading: false,
+        success: `${result.message} Entfernt: ${result.result.removed_bookings} Buchungen, ${result.result.removed_audit_events} Protokolle, ${result.result.removed_users} Nutzer.`,
+      }));
+    } catch (error) {
+      setState((current) => ({ ...current, loading: false, error: error.message, success: "" }));
+    }
+  }
+
   return (
     <div className="page-stack">
       <Panel
@@ -234,7 +254,7 @@ export default function Admin({ isLoggedIn, isAdmin }) {
         actions={<Button variant="secondary" icon={RefreshCw} onClick={load}>Aktualisieren</Button>}
       >
         <div className="tabs">
-          {["rooms", "seats", "assets", "bookings", "occupancy", "analytics", "users", "audit"].map((item) => (
+          {["rooms", "seats", "assets", "bookings", "occupancy", "analytics", "users", "audit", "maintenance"].map((item) => (
             <button key={item} className={tab === item ? "active" : ""} onClick={() => switchTab(item)} type="button">
               {label(item)}
             </button>
@@ -244,7 +264,7 @@ export default function Admin({ isLoggedIn, isAdmin }) {
         {state.success && <StatusMessage type="success">{state.success}</StatusMessage>}
       </Panel>
 
-      {!["bookings", "occupancy", "analytics", "users", "audit"].includes(tab) && (
+      {!["bookings", "occupancy", "analytics", "users", "audit", "maintenance"].includes(tab) && (
         <Panel title={editing?.tab === tab ? `${label(tab)} bearbeiten` : `${label(tab)} anlegen`}>
           <form className="form-stack" onSubmit={createCurrent}>
             {tab === "rooms" && (
@@ -256,7 +276,7 @@ export default function Admin({ isLoggedIn, isAdmin }) {
                 <div className="form-grid two">
                   <input type="number" min="1" placeholder="Kapazität" value={forms.room.capacity} onChange={(e) => setForms({ ...forms, room: { ...forms.room, capacity: e.target.value } })} required />
                   <select value={forms.room.room_type} onChange={(e) => setForms({ ...forms, room: { ...forms.room, room_type: e.target.value } })}>
-                    <option value="shared_desk">Shared Desk</option>
+                    <option value="shared_desk">Shared Office</option>
                     <option value="seminarraum">Seminarraum</option>
                     <option value="meetingraum">Meetingraum</option>
                     <option value="studio">Studio</option>
@@ -275,7 +295,7 @@ export default function Admin({ isLoggedIn, isAdmin }) {
             {tab === "seats" && (
               <>
                 <select value={forms.seat.room_id} onChange={(e) => setForms({ ...forms, seat: { ...forms.seat, room_id: e.target.value } })} required disabled={editing?.tab === "seats"}>
-                  <option value="">Shared-Desk-Raum auswählen</option>
+                  <option value="">Shared Office auswählen</option>
                   {(state.data.rooms || []).filter((room) => room.room_type === "shared_desk").map((room) => (
                     <option key={room.id} value={room.id}>{room.name} ({room.number})</option>
                   ))}
@@ -399,7 +419,36 @@ export default function Admin({ isLoggedIn, isAdmin }) {
         </Panel>
       )}
 
-      {state.loading ? <LoadingState /> : (
+      {tab === "maintenance" && (
+        <Panel
+          title="Demo-Daten zurücksetzen"
+          caption="Räume, Shared-Office-Arbeitsplätze, Ausstattung und aktive Admin-Konten bleiben erhalten."
+          className="danger-panel"
+        >
+          <form className="form-stack" onSubmit={resetDemo}>
+            <StatusMessage type="warning">
+              Diese Aktion löscht alle Buchungen, Statistiken, Check-ins, Protokolle und sämtliche Nicht-Admin-Konten. Admin-Profile und Ressourcen bleiben bestehen.
+            </StatusMessage>
+            <div className="form-grid two">
+              <label>
+                Eigenes Admin-Passwort
+                <input type="password" autoComplete="current-password" value={forms.maintenance.current_password} onChange={(event) => setForms({ ...forms, maintenance: { ...forms.maintenance, current_password: event.target.value } })} required />
+              </label>
+              <label>
+                Zur Bestätigung „DEMODATEN LÖSCHEN“ eingeben
+                <input value={forms.maintenance.confirmation} onChange={(event) => setForms({ ...forms, maintenance: { ...forms.maintenance, confirmation: event.target.value } })} required />
+              </label>
+            </div>
+            <div className="admin-form-actions">
+              <Button type="submit" variant="danger" icon={Trash2} disabled={state.loading || forms.maintenance.confirmation !== "DEMODATEN LÖSCHEN"}>
+                Demo-Daten endgültig zurücksetzen
+              </Button>
+            </div>
+          </form>
+        </Panel>
+      )}
+
+      {tab !== "maintenance" && (state.loading ? <LoadingState /> : (
         <AdminList
           tab={tab}
           data={state.data}
@@ -411,7 +460,7 @@ export default function Admin({ isLoggedIn, isAdmin }) {
           onEdit={beginEdit}
           onDeactivate={deactivateResource}
         />
-      )}
+      ))}
     </div>
   );
 }
@@ -699,16 +748,20 @@ function detail(item) {
 }
 
 function PictureInput({ label, value, onChange }) {
+  const inputRef = useRef(null);
   return (
-    <label className="picture-input">
+    <div className="picture-input">
       <span>{label}</span>
-      <input type="file" accept="image/avif,image/png,image/jpeg,image/webp" onChange={(event) => onChange(event.target.files?.[0])} />
+      <input ref={inputRef} type="file" accept="image/avif,image/png,image/jpeg,image/webp" onChange={(event) => onChange(event.target.files?.[0])} />
+      <div className="picture-buttons">
+        <Button type="button" variant="secondary" onClick={() => inputRef.current?.click()}>Bild auswählen</Button>
+      </div>
       {value && (
         <div className="picture-preview">
           <img src={mediaUrl(value)} alt={label} />
         </div>
       )}
-    </label>
+    </div>
   );
 }
 
@@ -722,6 +775,7 @@ function label(tab) {
     analytics: "Statistik",
     users: "Nutzer",
     audit: "Protokoll",
+    maintenance: "Wartung",
   }[tab];
 }
 

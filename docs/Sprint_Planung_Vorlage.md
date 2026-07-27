@@ -1,4 +1,4 @@
-# Sprint Struktur
+# Vorlage – Sprint Planning
 
 ## Begrüßung und Zeitplanung (1 Minute)
 

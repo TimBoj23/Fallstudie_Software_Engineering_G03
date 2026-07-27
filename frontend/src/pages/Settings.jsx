@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { KeyRound, Save, Trash2, Upload, UserRound } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ImageOff, KeyRound, Save, Trash2, Upload, UserRound } from "lucide-react";
 import Button from "../components/Button.jsx";
 import Panel from "../components/Panel.jsx";
 import StatusMessage from "../components/StatusMessage.jsx";
@@ -17,10 +17,22 @@ export default function Settings({ user, isLoggedIn, setPage, onUserUpdated, onA
   const [profileState, setProfileState] = useState({ loading: false, error: "", success: "" });
   const [passwordState, setPasswordState] = useState({ loading: false, error: "", success: "" });
   const [deleteState, setDeleteState] = useState({ loading: false, error: "" });
+  const [picturePreview, setPicturePreview] = useState("");
+  const pictureInputRef = useRef(null);
 
   useEffect(() => {
     setProfile({ name: user?.name || "", email: user?.email || "", image_url: user?.image_url || "" });
   }, [user]);
+
+  useEffect(() => {
+    if (!pictureFile) {
+      setPicturePreview("");
+      return undefined;
+    }
+    const preview = URL.createObjectURL(pictureFile);
+    setPicturePreview(preview);
+    return () => URL.revokeObjectURL(preview);
+  }, [pictureFile]);
 
   if (!isLoggedIn) {
     return (
@@ -96,20 +108,38 @@ export default function Settings({ user, isLoggedIn, setPage, onUserUpdated, onA
         <Panel title="Profil" caption="Name, Login-E-Mail und Profilbild ändern.">
           <form className="form-stack" onSubmit={saveProfile}>
             <div className="settings-profile-picture">
-              {profile.image_url ? (
-                <img src={mediaUrl(profile.image_url)} alt="Aktuelles Profilbild" />
+              {picturePreview || profile.image_url ? (
+                <img src={picturePreview || mediaUrl(profile.image_url)} alt="Vorschau des Profilbilds" />
               ) : (
                 <span className="settings-avatar-fallback"><UserRound size={28} /></span>
               )}
-              <label className="picture-input">
-                Neues Profilbild
+              <div className="picture-input">
+                <strong>Profilbild</strong>
                 <input
+                  ref={pictureInputRef}
                   type="file"
                   accept="image/avif,image/png,image/jpeg,image/webp"
                   onChange={(event) => setPictureFile(event.target.files?.[0] || null)}
                 />
-                {pictureFile && <small>{pictureFile.name}</small>}
-              </label>
+                <div className="picture-buttons">
+                  <Button type="button" variant="secondary" icon={Upload} onClick={() => pictureInputRef.current?.click()}>Bild auswählen</Button>
+                  {(profile.image_url || pictureFile) && (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      icon={ImageOff}
+                      onClick={() => {
+                        setPictureFile(null);
+                        setProfile({ ...profile, image_url: "" });
+                        if (pictureInputRef.current) pictureInputRef.current.value = "";
+                      }}
+                    >
+                      Bild entfernen
+                    </Button>
+                  )}
+                </div>
+                <small>{pictureFile ? `${pictureFile.name} – wird erst mit „Profil speichern“ hochgeladen.` : "AVIF, PNG, JPG oder WebP, maximal 5 MB."}</small>
+              </div>
             </div>
             <label>
               Name

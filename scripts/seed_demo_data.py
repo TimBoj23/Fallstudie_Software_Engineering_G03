@@ -10,7 +10,6 @@ doppelt angelegt.
 
 import os
 import sys
-from urllib.parse import quote
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -42,28 +41,18 @@ SEED_ADMIN = User(
 )
 
 
-def seat_image(monitors: int) -> str:
-    svg = (
-        f"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 360'>"
-        "<rect width='640' height='360' fill='#eef2ff'/>"
-        "<rect x='120' y='235' width='400' height='48' rx='10' fill='#334155'/>"
-        "<rect x='210' y='285' width='220' height='22' rx='8' fill='#475569'/>"
-        + "".join(
-            f"<rect x='{150 + i * 115}' y='95' width='95' height='68' rx='8' fill='#2563eb'/>"
-            f"<rect x='{188 + i * 115}' y='163' width='18' height='52' fill='#1e293b'/>"
-            for i in range(monitors)
-        )
-        + f"<text x='320' y='60' text-anchor='middle' font-family='Arial' font-size='28' fill='#1e293b'>{monitors} Monitor(e)</text>"
-        "</svg>"
-    )
-    return "data:image/svg+xml;utf8," + quote(svg, safe="/:=;,'()")
+SEAT_IMAGES = {
+    1: "/pictures/BArbeitsplatz_1_Monitor.jpeg",
+    2: "/pictures/Arbeitsplatz_zwei_Monitore.jpg",
+    3: "/pictures/Arbeitsplatz_3_Monitore.jpg",
+}
 
 
 def seed_rooms(room_service: RoomService):
     room_repo = RoomRepository()
     rooms = [
-        ("Shared Office Alpha", "1001-A", 10, "shared_desk", "Gebäude A, EG", ["Beamer", "Whiteboard", "Videokonferenz"], "Shared-Desk-Bereich mit flexibel buchbaren Arbeitsplätzen für Teams und hybride Arbeit.", "/pictures/Meetingraum_Alpha.jpeg"),
-        ("Shared Office Beta", "1002-B", 6, "shared_desk", "Gebäude A, 1. OG", ["Whiteboard", "Monitor"], "Ruhiger Shared-Desk-Bereich für konzentrierte Projektarbeit und kleine Teams.", "/pictures/Projektraum_Beta.jpg"),
+        ("Shared Office Alpha", "1001-A", 10, "shared_desk", "Gebäude A, EG", ["Beamer", "Whiteboard", "Videokonferenz"], "Shared Office mit flexibel buchbaren Arbeitsplätzen für Teams und hybride Arbeit.", "/pictures/Meetingraum_Alpha.jpeg"),
+        ("Shared Office Beta", "1002-B", 6, "shared_desk", "Gebäude A, 1. OG", ["Whiteboard", "Monitor"], "Ruhiges Shared Office für konzentrierte Projektarbeit und kleine Teams.", "/pictures/Projektraum_Beta.jpg"),
         ("Seminarraum Gamma", "2001-G", 24, "seminarraum", "Gebäude B, 2. OG", ["Smartboard", "Mikrofonanlage", "Streaming-Kamera"], "Heller Seminarraum für Schulungen, Präsentationen und größere Teams.", "/pictures/Seminarraum_Gamma.jpg"),
         ("Seminarraum Delta", "2002-D", 18, "seminarraum", "Gebäude B, 2. OG", ["Beamer", "Flipchart", "Konferenzlautsprecher"], "Flexibler Seminarraum für Trainings und moderierte Gruppenarbeit.", "/pictures/Seminarraum_Delta.jpg"),
         ("Chroma Studio", "3001-C", 8, "studio", "Gebäude C, Studio", ["Greenscreen", "Studiolicht", "Kamera-Setup"], "Studiofläche für Videoaufnahmen, Produktdemos und Streamingformate.", "/pictures/Seminarraum_Chroma.webp"),
@@ -144,10 +133,12 @@ def seed_seats(seat_service: SeatService):
             seat_service.deactivate(seat.id, SEED_ADMIN)
 
     for room in rooms:
-        if room.room_type != "shared_desk" or seat_repo.find_by_room(room.id):
+        if room.room_type != "shared_desk":
             continue
-        for index, monitors in enumerate([1, 2, 3, 2], start=1):
-            label = f"{room.number}-P{index}"
+        prefix = room.number.rsplit("-", 1)[-1][:1].upper() or "P"
+        for index in range(1, room.capacity + 1):
+            monitors = (1, 2, 3, 2)[(index - 1) % 4]
+            label = f"{prefix}{index}"
             if seat_repo.label_exists(room.id, label):
                 continue
             seat_service.create(
@@ -155,7 +146,7 @@ def seed_seats(seat_service: SeatService):
                 label=label,
                 description=f"Arbeitsplatz mit {monitors} Monitor(en) in {room.name}.",
                 monitor_count=monitors,
-                image_url=seat_image(monitors),
+                image_url=SEAT_IMAGES[monitors],
                 requesting_user=SEED_ADMIN,
             )
 

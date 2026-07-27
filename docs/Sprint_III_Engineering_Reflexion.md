@@ -1,4 +1,4 @@
-# Engineering-Reflexion und Lessons Learned
+# Sprint III – Engineering-Reflexion und Lessons Learned
 
 ## Planung vs. Umsetzung
 
@@ -15,14 +15,14 @@
 - Das Backend bleibt die zentrale Quelle für Buchungslogik und Konfliktprüfung.
 - Die API trennt Nutzerfunktionen und Adminfunktionen über Rollen.
 - Sitzplätze wurden als eigene Entität modelliert, damit Arbeitsplätze separat buchbar sind.
-- `room_type` trennt Shared-Desk-Räume von Seminarräumen und Studios.
+- `room_type` trennt intern Shared-Office-Räume (`shared_desk`) von Seminarräumen und Studios; die Oberfläche verwendet den verständlicheren Begriff „Shared Office“.
 - SQLite wird als Persistenzschicht genutzt, die Repository-Abstraktion erlaubt später ein relationales Schema mit eigenen Tabellen.
 
 ## Abweichungen und Gründe
 
 - Das Frontend wurde zwischenzeitlich stärker eigenständig entwickelt als geplant. Dadurch musste später gezielt an die REST API angebunden werden.
 - Die Datenhaltung wurde zunächst einfach gehalten. Für die Demo wurde SQLite ergänzt, ohne die gesamte Repository-Schicht neu zu schreiben.
-- Einige Komfortfunktionen wie E-Mail-Versand werden im MVP simuliert, weil kein SMTP-Setup Bestandteil der Fallstudienumgebung ist.
+- Einladungen werden bewusst ohne SMTP als kurzer Code und manuell teilbarer Link umgesetzt.
 - Das Projektposter und Qualitätssheet wurden spät ergänzt, weil die Präsentationsanforderungen zum Ende konkreter wurden.
 
 ## Lessons Learned
@@ -32,6 +32,8 @@
 - Eine Reservierung ist nicht automatisch eine Anwesenheit; Check-in und Belegung müssen fachlich getrennt werden.
 - Farbschemata lassen sich wartbarer über zentrale Design-Tokens statt über komponentenweise Sonderregeln umsetzen.
 - Technische IDs gehören nicht in Nutzeransichten.
+- Teilbelegung braucht eine sichtbare Legende und konkrete freie Platzzahlen; Farbe allein reicht nicht.
+- Änderungen an Buchungen müssen dieselbe Konfliktlogik wie Neuanlagen verwenden.
 - Admin-Funktionen brauchen mehr Kontext als reine Listen, zum Beispiel Nutzerbilder, Rollen und Buchungsbesitzer.
 - Kleine, testbare Backend-Services erleichtern spätere Änderungen erheblich.
 - KI-Unterstützung kann Umsetzung und Dokumentation beschleunigen, ersetzt aber keine fachliche Bewertung durch das Team.

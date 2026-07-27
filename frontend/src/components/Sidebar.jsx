@@ -1,5 +1,6 @@
 ﻿import {
   Armchair,
+  Bell,
   Boxes,
   Building2,
   CalendarCheck,
@@ -15,10 +16,10 @@
 const primaryItems = [
   { id: "dashboard", label: "Dashboard", icon: Gauge },
   { id: "rooms", label: "Räume", icon: Building2 },
-  { id: "seats", label: "Sitzplätze", icon: Armchair },
+  { id: "sharedOffices", label: "Shared Offices", icon: Armchair },
   { id: "assets", label: "Ausstattung", icon: Boxes },
   { id: "availability", label: "Verfügbarkeit", icon: SearchCheck },
-  { id: "joinBooking", label: "Seminareinladung", icon: UserRoundCheck },
+  { id: "joinBooking", label: "Einladung annehmen", icon: UserRoundCheck },
 ];
 
 const bookingItems = [
@@ -27,6 +28,7 @@ const bookingItems = [
 ];
 
 const accountItems = [
+  { id: "notifications", label: "Benachrichtigungen", icon: Bell },
   { id: "settings", label: "Einstellungen", icon: Settings },
 ];
 

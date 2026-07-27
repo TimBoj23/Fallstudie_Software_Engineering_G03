@@ -1,4 +1,4 @@
-# Zeitplan Fallstudie Software Engineering
+# Projektzeitplan – Fallstudie Software Engineering
 
 ## Ziel
 

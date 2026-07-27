@@ -201,6 +201,8 @@ class RoomService:
             "arbeitsplatz": "shared_desk",
             "shared desk": "shared_desk",
             "shared-desk": "shared_desk",
+            "shared office": "shared_desk",
+            "shared-office": "shared_desk",
             "seminar": "seminarraum",
             "seminar_room": "seminarraum",
             "meeting": "meetingraum",
@@ -208,5 +210,5 @@ class RoomService:
         value = aliases.get(value, value)
         allowed = {"shared_desk", "seminarraum", "meetingraum", "studio"}
         if value not in allowed:
-            raise ValueError("room_type muss shared_desk, seminarraum, meetingraum oder studio sein.")
+            raise ValueError("room_type muss Shared Office, Seminarraum, Meetingraum oder Studio sein.")
         return value

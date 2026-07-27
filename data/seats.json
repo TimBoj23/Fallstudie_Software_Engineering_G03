@@ -50,33 +50,113 @@
     "created_at": "2026-07-25T09:50:00"
   },
   {
-    "id": "ba4c9763-3efa-4e65-a2f2-9327e0fcb4fd",
-    "room_id": "0cb052f7-0d7b-4de4-8ac1-158c4af1d110",
-    "label": "G1",
-    "description": "Seminararbeitsplatz mit einem Monitor.",
-    "image_url": "/pictures/BArbeitsplatz_1_Monitor.jpeg",
-    "monitor_count": 1,
-    "is_active": false,
-    "created_at": "2026-07-25T09:55:00"
-  },
-  {
-    "id": "39fe98df-4ffe-4ef9-9810-412b598ce749",
-    "room_id": "6205aa93-4048-437f-9959-1bc3382098ad",
-    "label": "D1",
-    "description": "Arbeitsplatz für Moderation und Raumsteuerung.",
+    "id": "16b13fa7-d44b-464f-975c-d7dd03f9a530",
+    "room_id": "6a188a9c-9ee3-4165-9fdd-1e903619b192",
+    "label": "A4",
+    "description": "Arbeitsplatz mit 2 Monitor(en) in Shared Office Alpha.",
     "image_url": "/pictures/Arbeitsplatz_zwei_Monitore.jpg",
     "monitor_count": 2,
-    "is_active": false,
-    "created_at": "2026-07-25T10:00:00"
+    "is_active": true,
+    "created_at": "2026-07-27T11:35:37.792645+00:00"
   },
   {
-    "id": "82a66eef-0d97-4da1-9f9e-aa389193db23",
-    "room_id": "55bc739c-71dc-4bb6-a46b-d115617c9ec2",
-    "label": "C1",
-    "description": "Studioarbeitsplatz für Aufnahmeleitung und Monitoring.",
+    "id": "a7c374db-8784-4890-9716-554278ef45e8",
+    "room_id": "6a188a9c-9ee3-4165-9fdd-1e903619b192",
+    "label": "A5",
+    "description": "Arbeitsplatz mit 1 Monitor(en) in Shared Office Alpha.",
+    "image_url": "/pictures/BArbeitsplatz_1_Monitor.jpeg",
+    "monitor_count": 1,
+    "is_active": true,
+    "created_at": "2026-07-27T11:35:37.792858+00:00"
+  },
+  {
+    "id": "4ff1bc40-0749-4e53-9449-52fe343ef500",
+    "room_id": "6a188a9c-9ee3-4165-9fdd-1e903619b192",
+    "label": "A6",
+    "description": "Arbeitsplatz mit 2 Monitor(en) in Shared Office Alpha.",
+    "image_url": "/pictures/Arbeitsplatz_zwei_Monitore.jpg",
+    "monitor_count": 2,
+    "is_active": true,
+    "created_at": "2026-07-27T11:35:37.793077+00:00"
+  },
+  {
+    "id": "8e39467d-a3f7-4e12-96ad-1c40f72d07b8",
+    "room_id": "6a188a9c-9ee3-4165-9fdd-1e903619b192",
+    "label": "A7",
+    "description": "Arbeitsplatz mit 3 Monitor(en) in Shared Office Alpha.",
     "image_url": "/pictures/Arbeitsplatz_3_Monitore.jpg",
     "monitor_count": 3,
-    "is_active": false,
-    "created_at": "2026-07-25T10:05:00"
+    "is_active": true,
+    "created_at": "2026-07-27T11:35:37.793314+00:00"
+  },
+  {
+    "id": "7c4f7092-1e14-4f03-ba4c-ba1341192136",
+    "room_id": "6a188a9c-9ee3-4165-9fdd-1e903619b192",
+    "label": "A8",
+    "description": "Arbeitsplatz mit 2 Monitor(en) in Shared Office Alpha.",
+    "image_url": "/pictures/Arbeitsplatz_zwei_Monitore.jpg",
+    "monitor_count": 2,
+    "is_active": true,
+    "created_at": "2026-07-27T11:35:37.793554+00:00"
+  },
+  {
+    "id": "8706e4e2-7a04-4eb3-8092-7483ad1511d9",
+    "room_id": "6a188a9c-9ee3-4165-9fdd-1e903619b192",
+    "label": "A9",
+    "description": "Arbeitsplatz mit 1 Monitor(en) in Shared Office Alpha.",
+    "image_url": "/pictures/BArbeitsplatz_1_Monitor.jpeg",
+    "monitor_count": 1,
+    "is_active": true,
+    "created_at": "2026-07-27T11:35:37.793832+00:00"
+  },
+  {
+    "id": "bf95ee87-604b-47d4-a324-29eb3c5c0364",
+    "room_id": "6a188a9c-9ee3-4165-9fdd-1e903619b192",
+    "label": "A10",
+    "description": "Arbeitsplatz mit 2 Monitor(en) in Shared Office Alpha.",
+    "image_url": "/pictures/Arbeitsplatz_zwei_Monitore.jpg",
+    "monitor_count": 2,
+    "is_active": true,
+    "created_at": "2026-07-27T11:35:37.794065+00:00"
+  },
+  {
+    "id": "3d3b9c38-d279-4179-9efc-31ac601964d4",
+    "room_id": "19775325-1af8-409b-ac79-154a34cb9ae0",
+    "label": "B3",
+    "description": "Arbeitsplatz mit 3 Monitor(en) in Shared Office Beta.",
+    "image_url": "/pictures/Arbeitsplatz_3_Monitore.jpg",
+    "monitor_count": 3,
+    "is_active": true,
+    "created_at": "2026-07-27T11:35:37.794464+00:00"
+  },
+  {
+    "id": "a1795905-473c-4888-9c1c-6ccf89c2ff98",
+    "room_id": "19775325-1af8-409b-ac79-154a34cb9ae0",
+    "label": "B4",
+    "description": "Arbeitsplatz mit 2 Monitor(en) in Shared Office Beta.",
+    "image_url": "/pictures/Arbeitsplatz_zwei_Monitore.jpg",
+    "monitor_count": 2,
+    "is_active": true,
+    "created_at": "2026-07-27T11:35:37.794752+00:00"
+  },
+  {
+    "id": "6dcd0788-1e85-4377-b5e2-e0e2c203a445",
+    "room_id": "19775325-1af8-409b-ac79-154a34cb9ae0",
+    "label": "B5",
+    "description": "Arbeitsplatz mit 1 Monitor(en) in Shared Office Beta.",
+    "image_url": "/pictures/BArbeitsplatz_1_Monitor.jpeg",
+    "monitor_count": 1,
+    "is_active": true,
+    "created_at": "2026-07-27T11:35:37.795017+00:00"
+  },
+  {
+    "id": "0f2bca0f-7293-4868-b576-f9a2a46d01c4",
+    "room_id": "19775325-1af8-409b-ac79-154a34cb9ae0",
+    "label": "B6",
+    "description": "Arbeitsplatz mit 2 Monitor(en) in Shared Office Beta.",
+    "image_url": "/pictures/Arbeitsplatz_zwei_Monitore.jpg",
+    "monitor_count": 2,
+    "is_active": true,
+    "created_at": "2026-07-27T11:35:37.795286+00:00"
   }
 ]
