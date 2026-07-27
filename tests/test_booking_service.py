@@ -1097,3 +1097,44 @@ class TestTimezoneAndOccupancy:
 
         assert result[0].checked_out_at == "2026-07-27T15:00:00+00:00"
         assert booking_repo.find_by_id(booking.id).checked_out_at == "2026-07-27T15:00:00+00:00"
+
+    def test_manueller_check_out_gibt_raum_und_kalenderblock_frei(
+        self, booking_service, booking_repo, demo_room, user, monkeypatch
+    ):
+        monkeypatch.setenv("REPLAN_TIMEZONE", "Europe/Berlin")
+        monkeypatch.setattr(
+            "src.services.booking_service.utc_now",
+            lambda: datetime(2026, 8, 1, 8, 30, tzinfo=timezone.utc),
+        )
+        booking = Booking(
+            id=str(uuid.uuid4()),
+            user_id=user.id,
+            target_id=demo_room.id,
+            target_type=BookingTargetType.ROOM,
+            title="Vorzeitig beendet",
+            start_time="2026-08-01T10:00:00",
+            end_time="2026-08-01T12:00:00",
+            checked_in_at="2026-08-01T08:05:00+00:00",
+        )
+        booking_repo.save(booking)
+
+        checked_out = booking_service.check_out_booking(booking.id, user)
+        available, conflicts = booking_service.check_availability(
+            demo_room.id,
+            BookingTargetType.ROOM,
+            "2026-08-01T10:31:00",
+            "2026-08-01T11:00:00",
+        )
+        schedule = booking_service.get_time_block_schedule(
+            demo_room.id,
+            BookingTargetType.ROOM,
+            start_date="2026-08-01",
+            days=1,
+        )
+        current_slot = next(slot for slot in schedule[0]["slots"] if slot["label"] == "10:00-11:00")
+
+        assert checked_out.checked_out_at == "2026-08-01T08:30:00+00:00"
+        assert available is True
+        assert conflicts == []
+        assert current_slot["available"] is True
+        assert current_slot["booked"] is False

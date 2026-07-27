@@ -1139,6 +1139,7 @@ class BookingService:
         return [
             booking for booking in self._booking_repo.find_active_by_user(user_id)
             if booking.target_type == BookingTargetType.SEAT
+            and not booking.checked_out_at
             and booking.id not in excluded
             and booking.overlaps_with(start_time, end_time)
         ]

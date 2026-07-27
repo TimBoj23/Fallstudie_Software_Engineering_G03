@@ -78,6 +78,11 @@ class BookingRepository(JsonRepository[Booking]):
         for b in self.find_by_target(target_id, target_type):
             if not b.is_active():
                 continue
+            # Ein Check-out gibt die Ressource sofort wieder frei. Die Buchung
+            # bleibt für Historie und Statistik erhalten, blockiert aber keine
+            # neuen Reservierungen und keine Kalenderblöcke mehr.
+            if b.checked_out_at:
+                continue
             if exclude_booking_id and b.id == exclude_booking_id:
                 continue
             if b.overlaps_with(start_time, end_time):
