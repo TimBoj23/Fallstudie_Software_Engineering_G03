@@ -273,7 +273,7 @@ class BookingService:
         period_end = utc_now()
         period_start = period_end - timedelta(days=day_count)
         bookings = [
-            booking for booking in self._booking_repo.find_all()
+            booking for booking in self._auto_check_out_expired(self._booking_repo.find_all())
             if parse_iso_datetime(booking.end_time) >= period_start
             and parse_iso_datetime(booking.start_time) <= period_end
         ]
@@ -524,20 +524,23 @@ class BookingService:
 
     def get_user_bookings(self, user_id: str) -> List[Booking]:
         """Gibt alle Buchungen (aktiv + storniert) eines Nutzers zurück."""
-        return self._booking_repo.find_by_user(user_id)
+        return self._auto_check_out_expired(self._booking_repo.find_by_user(user_id))
 
     def get_user_active_bookings(self, user_id: str) -> List[Booking]:
         """Gibt nur aktive Buchungen eines Nutzers zurück."""
-        return self._booking_repo.find_active_by_user(user_id)
+        return self._auto_check_out_expired(self._booking_repo.find_active_by_user(user_id))
 
     def get_all_bookings(self, requesting_user: User) -> List[Booking]:
         """Gibt alle Buchungen zurück. Nur für Admins."""
         if not requesting_user.is_admin():
             raise AuthError("Nur Administratoren können alle Buchungen einsehen.")
-        return self._booking_repo.find_all()
+        return self._auto_check_out_expired(self._booking_repo.find_all())
 
     def get_by_id(self, booking_id: str) -> Optional[Booking]:
-        return self._booking_repo.find_by_id(booking_id)
+        booking = self._booking_repo.find_by_id(booking_id)
+        if not booking:
+            return None
+        return self._auto_check_out_expired([booking])[0]
 
     def get_by_invitation_code(self, invitation_code: str) -> Optional[Booking]:
         normalized = str(invitation_code or "").strip().upper()
@@ -553,7 +556,8 @@ class BookingService:
         """Erzeugt In-App-Hinweise aus den eigenen Buchungen, ohne externen Versand."""
         now = utc_now()
         notifications = []
-        for booking in self._booking_repo.find_by_user(user.id):
+        bookings = self._auto_check_out_expired(self._booking_repo.find_by_user(user.id))
+        for booking in bookings:
             start = parse_iso_datetime(booking.start_time)
             end = parse_iso_datetime(booking.end_time)
             if booking.status == BookingStatus.CANCELLED and end >= now - timedelta(days=30):
@@ -609,7 +613,7 @@ class BookingService:
         if not requesting_user.is_admin():
             user_id = requesting_user.id
 
-        bookings = self._booking_repo.find_all()
+        bookings = self._auto_check_out_expired(self._booking_repo.find_all())
         if user_id:
             bookings = [b for b in bookings if b.user_id == user_id]
         if status:
@@ -1025,7 +1029,8 @@ class BookingService:
 
         occupancy = []
         now = utc_now()
-        for booking in self._booking_repo.find_active():
+        bookings = self._auto_check_out_expired(self._booking_repo.find_active())
+        for booking in bookings:
             if not booking.checked_in_at or booking.checked_out_at:
                 continue
             if not (
@@ -1057,6 +1062,25 @@ class BookingService:
                 "checked_in_at": booking.checked_in_at,
             })
         return occupancy
+
+    def _auto_check_out_expired(self, bookings: List[Booking]) -> List[Booking]:
+        """Schließt abgelaufene Check-ins beim nächsten Backend-Zugriff ab.
+
+        Ein separater Hintergrundprozess ist für den MVP nicht nötig. Der
+        Check-out-Zeitpunkt entspricht dem gebuchten Ende und bleibt dadurch
+        fachlich korrekt, auch wenn der nächste Abruf erst später erfolgt.
+        """
+        now = utc_now()
+        for booking in bookings:
+            if (
+                booking.checked_in_at
+                and not booking.checked_out_at
+                and parse_iso_datetime(booking.end_time) <= now
+            ):
+                booking.checked_out_at = parse_iso_datetime(booking.end_time).isoformat()
+                booking.updated_at = now.isoformat()
+                self._booking_repo.update(booking)
+        return bookings
 
     def _create_access_password_hash(self, access_password: str) -> str:
         if not access_password:

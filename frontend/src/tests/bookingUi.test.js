@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { slotStatus } from "../components/ObjectCalendar.jsx";
+import { attendanceState } from "../components/BookingCard.jsx";
 import { buildOptions, parseEmails, toApiTargetType } from "../pages/CreateBooking.jsx";
 import { filterDismissedNotifications } from "../pages/Notifications.jsx";
 
@@ -36,5 +37,19 @@ describe("Buchungsoberfläche", () => {
   it("blendet gelöschte Benachrichtigungen aus", () => {
     const notifications = [{ id: "one" }, { id: "two" }];
     expect(filterDismissedNotifications(notifications, ["one"])).toEqual([{ id: "two" }]);
+  });
+
+  it("zeigt einen abgelaufenen Check-in automatisch als ausgecheckt", () => {
+    const booking = {
+      checked_in_at: "2026-07-27T14:05:00Z",
+      checked_out_at: "",
+      end_time: "2026-07-27T15:00:00Z",
+    };
+
+    expect(attendanceState(booking, Date.parse("2026-07-27T15:00:00Z"))).toEqual({
+      hasEnded: true,
+      isCheckedIn: false,
+      isCheckedOut: true,
+    });
   });
 });
