@@ -1,15 +1,16 @@
 import { apiRequest } from "./client";
+import { toUtcIso } from "../utils/dateTime.js";
 
 export function getBookings(params) {
-  return apiRequest("/bookings", { params });
+  return apiRequest("/bookings", { params: normalizeFilterTimes(params) });
 }
 
 export function getAllBookings(params) {
-  return apiRequest("/bookings/all", { params });
+  return apiRequest("/bookings/all", { params: normalizeFilterTimes(params) });
 }
 
 export function createBooking(payload) {
-  return apiRequest("/bookings", { method: "POST", body: payload });
+  return apiRequest("/bookings", { method: "POST", body: normalizeBookingTimes(payload) });
 }
 
 export function cancelBooking(id, scope = "single") {
@@ -17,7 +18,7 @@ export function cancelBooking(id, scope = "single") {
 }
 
 export function updateBooking(id, payload) {
-  return apiRequest(`/bookings/${id}`, { method: "PUT", body: payload });
+  return apiRequest(`/bookings/${id}`, { method: "PUT", body: normalizeBookingTimes(payload) });
 }
 
 export function extendBooking(id, minutes = 30) {
@@ -33,11 +34,11 @@ export function checkOutBooking(id) {
 }
 
 export function checkAvailability(params) {
-  return apiRequest("/bookings/availability", { params });
+  return apiRequest("/bookings/availability", { params: normalizeFilterTimes(params) });
 }
 
 export function getBookingSchedule(params) {
-  return apiRequest("/bookings/schedule", { params });
+  return apiRequest("/bookings/schedule", { params: normalizeFilterTimes(params) });
 }
 
 export function getRoomOccupancy() {
@@ -66,4 +67,20 @@ export function joinBookingByCode(payload) {
 
 export function getNotifications(limit = 30) {
   return apiRequest("/bookings/notifications", { params: { limit } });
+}
+
+function normalizeBookingTimes(payload = {}) {
+  return {
+    ...payload,
+    ...(payload.start_time ? { start_time: toUtcIso(payload.start_time) } : {}),
+    ...(payload.end_time ? { end_time: toUtcIso(payload.end_time) } : {}),
+  };
+}
+
+function normalizeFilterTimes(params = {}) {
+  return {
+    ...params,
+    ...(params.start ? { start: toUtcIso(params.start) } : {}),
+    ...(params.end ? { end: toUtcIso(params.end) } : {}),
+  };
 }

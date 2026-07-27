@@ -8,6 +8,7 @@ import Button from "./Button.jsx";
 import LoadingState from "./LoadingState.jsx";
 import Panel from "./Panel.jsx";
 import StatusMessage from "./StatusMessage.jsx";
+import { toDateTimeLocal } from "../utils/dateTime.js";
 
 
 export default function BookingEditForm({ booking, onSave, onClose, saving = false, error = "" }) {
@@ -108,8 +109,8 @@ function fromBooking(booking) {
     title: booking.title || "Buchung",
     target_type: booking.target_type,
     target_id: booking.target_id,
-    start_time: String(booking.start_time || "").slice(0, 16),
-    end_time: String(booking.end_time || "").slice(0, 16),
+    start_time: toDateTimeLocal(booking.start_time),
+    end_time: toDateTimeLocal(booking.end_time),
     scope: "single",
   };
 }

@@ -1051,3 +1051,27 @@ class TestTimezoneAndOccupancy:
 
         with pytest.raises(ValueError):
             booking_service.check_in_booking(booking.id, user)
+
+    def test_check_in_beruecksichtigt_lokale_legacy_buchungszeit(
+        self, booking_service, booking_repo, demo_room, user, monkeypatch
+    ):
+        """Ein alter datetime-local-Wert 16:00 entspricht im Sommer 14:00 UTC."""
+        monkeypatch.setenv("REPLAN_TIMEZONE", "Europe/Berlin")
+        monkeypatch.setattr(
+            "src.services.booking_service.utc_now",
+            lambda: datetime(2026, 7, 27, 14, 30, tzinfo=timezone.utc),
+        )
+        booking = Booking(
+            id=str(uuid.uuid4()),
+            user_id=user.id,
+            target_id=demo_room.id,
+            target_type=BookingTargetType.ROOM,
+            title="Lokaler Check-in",
+            start_time="2026-07-27T16:00:00",
+            end_time="2026-07-27T17:00:00",
+        )
+        booking_repo.save(booking)
+
+        checked_in = booking_service.check_in_booking(booking.id, user)
+
+        assert checked_in.checked_in_at == "2026-07-27T14:30:00+00:00"

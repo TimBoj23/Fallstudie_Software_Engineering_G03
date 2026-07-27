@@ -9,6 +9,7 @@ import EmptyState from "../components/EmptyState.jsx";
 import LoadingState from "../components/LoadingState.jsx";
 import Panel from "../components/Panel.jsx";
 import StatusMessage from "../components/StatusMessage.jsx";
+import { toDateTimeLocal } from "../utils/dateTime.js";
 
 const targetTypes = [
   { value: "room", label: "Raum vollständig reservieren" },
@@ -347,11 +348,6 @@ function formatDate(value) {
     dateStyle: "short",
     timeStyle: "short",
   }).format(new Date(value));
-}
-
-function toDateTimeLocal(value) {
-  if (!value) return "";
-  return value.slice(0, 16);
 }
 
 export function parseEmails(value) {
