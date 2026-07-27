@@ -288,9 +288,18 @@ Optionale Speicher-Konfiguration:
 ```bash
 export REPLAN_STORAGE=sqlite
 export REPLAN_DB_PATH=data/replan.sqlite
+export REPLAN_TIMEZONE=Europe/Berlin
 ```
 
 Standardmäßig nutzt das Projekt SQLite über `data/replan.sqlite`. Die Repository-Schicht migriert vorhandene JSON-Daten beim ersten Zugriff in SQLite.
+Die SQLite-Datei ist bewusst nicht in Git versioniert. Nach einem Pull synchronisiert jedes Teammitglied die gemeinsamen Räume, Geräte, Bilder, Arbeitsplätze und Demo-Admins deshalb einmal idempotent mit:
+
+```bash
+source .venv/bin/activate
+python scripts/seed_demo_data.py
+```
+
+Vorhandene Benutzer und Buchungen bleiben dabei erhalten. `REPLAN_TIMEZONE` ist optional und verwendet standardmäßig `Europe/Berlin`; neue Browser-Anfragen übertragen zusätzlich eindeutige UTC-Zeitstempel.
 
 ## Verwendete Frameworks und Bibliotheken
 

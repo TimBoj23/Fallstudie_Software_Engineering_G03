@@ -795,9 +795,9 @@
 }
 
 .booking-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 108px minmax(0, 1fr);
+  align-items: start;
   gap: var(--space-4);
 }
 
@@ -826,8 +826,24 @@
 .booking-card-actions {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  grid-column: 2;
+  justify-content: flex-start;
   gap: var(--space-2);
+}
+
+@media (max-width: 600px) {
+  .booking-card {
+    grid-template-columns: 84px minmax(0, 1fr);
+  }
+
+  .booking-image {
+    width: 84px;
+    flex-basis: 84px;
+  }
+
+  .booking-card-actions {
+    grid-column: 1 / -1;
+  }
 }
 
 .tabs {

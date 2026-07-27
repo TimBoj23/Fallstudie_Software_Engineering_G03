@@ -124,6 +124,10 @@ class BookingService:
         """
         # 1. Zeitraum validieren
         self._validate_time_range(start_time, end_time)
+        # Immer offset-aware UTC speichern. Das verhindert Abweichungen zwischen
+        # Browser-Lokalzeit und Backend-Zeit, unter anderem beim Check-in.
+        start_time = parse_iso_datetime(start_time).isoformat()
+        end_time = parse_iso_datetime(end_time).isoformat()
 
         # 2. Zielobjekt prüfen und bei Raum-Sitzplatzbuchung Ziel auf Sitzplatz normalisieren
         target_id, target_type, room_id, auto_assigned_seat = self._resolve_booking_target(

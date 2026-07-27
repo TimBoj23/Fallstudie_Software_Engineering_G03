@@ -93,6 +93,9 @@ def seed_assets(asset_service: AssetService):
     assets = [
         ("Beamer Epson EB-X51", AssetType.BEAMER, "Full-HD Beamer mit HDMI/VGA für Seminarräume.", "Lager EG"),
         ("Laptop Dell XPS 15", AssetType.LAPTOP, "Windows 11, Intel i7, 32 GB RAM für Präsentationen und Workshops.", "IT-Raum 003"),
+        ("Kamera mit Stativ", AssetType.PRESENTATION_TECH, "Kamera-Set für hybride Schulungen, Aufzeichnungen und Produktdemos.", "Medienlager B"),
+        ("Rode Ansteckmikrofon", AssetType.PRESENTATION_TECH, "Kabelloses Lavalier-Mikrofon für Vorträge und Videoaufnahmen.", "Medienlager B"),
+        ("Teufel Ultima Lautsprecher", AssetType.PRESENTATION_TECH, "Mobiles Lautsprecher-Set für größere Räume und Events.", "Eventlager C"),
         ("Mobiles Whiteboard", AssetType.WHITEBOARD, "Beidseitig beschreibbares Whiteboard auf Rollen inklusive Markerablage.", "Seminarlager A"),
         ("Monitor Dell 27 Zoll", AssetType.MONITOR, "Mobiler QHD-Monitor mit HDMI und USB-C für temporäre Arbeitsplätze.", "IT-Raum 003"),
         ("USB-C Adapterkoffer", AssetType.ADAPTER, "Adapterset mit HDMI, DisplayPort, Ethernet und USB-A für Präsentationen.", "IT-Raum 003"),
@@ -100,7 +103,11 @@ def seed_assets(asset_service: AssetService):
     ]
     existing_by_name = {asset.name: asset for asset in asset_repo.find_all()}
     for name, asset_type, description, location in assets:
-        image_url = ASSET_IMAGES.get(asset_type, ASSET_IMAGES[AssetType.MONITOR])
+        image_url = {
+            "Kamera mit Stativ": "/pictures/Kamera_Stativ_Asset.jpg",
+            "Rode Ansteckmikrofon": "/pictures/Rode_Ansteckmikrofon_Asset.jpeg",
+            "Teufel Ultima Lautsprecher": "/pictures/Teufel_Lautsprecher_Ultima_Asset.jpeg",
+        }.get(name, ASSET_IMAGES.get(asset_type, ASSET_IMAGES[AssetType.MONITOR]))
         existing = existing_by_name.get(name)
         if existing:
             asset_service.update(
