@@ -1075,3 +1075,25 @@ class TestTimezoneAndOccupancy:
         checked_in = booking_service.check_in_booking(booking.id, user)
 
         assert checked_in.checked_in_at == "2026-07-27T14:30:00+00:00"
+
+    def test_abgelaufener_check_in_wird_beim_abruf_automatisch_beendet(
+        self, booking_service, booking_repo, demo_room, user, monkeypatch
+    ):
+        now = datetime(2026, 7, 27, 16, 0, tzinfo=timezone.utc)
+        monkeypatch.setattr("src.services.booking_service.utc_now", lambda: now)
+        booking = Booking(
+            id=str(uuid.uuid4()),
+            user_id=user.id,
+            target_id=demo_room.id,
+            target_type=BookingTargetType.ROOM,
+            title="Beendeter Termin",
+            start_time="2026-07-27T14:00:00+00:00",
+            end_time="2026-07-27T15:00:00+00:00",
+            checked_in_at="2026-07-27T14:05:00+00:00",
+        )
+        booking_repo.save(booking)
+
+        result = booking_service.search_bookings(requesting_user=user)
+
+        assert result[0].checked_out_at == "2026-07-27T15:00:00+00:00"
+        assert booking_repo.find_by_id(booking.id).checked_out_at == "2026-07-27T15:00:00+00:00"
