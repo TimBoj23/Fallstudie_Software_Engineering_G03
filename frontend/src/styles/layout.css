@@ -28,6 +28,16 @@
   background: transparent;
 }
 
+.brand-logo {
+  display: block;
+  width: 100%;
+  height: 92px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  object-position: center;
+  background: #ffffff;
+}
+
 .brand-mark {
   display: grid;
   place-items: center;
@@ -177,6 +187,10 @@
   .topbar,
   .sidebar {
     padding: var(--space-4);
+  }
+
+  .brand-logo {
+    height: 82px;
   }
 
   .topbar-actions,

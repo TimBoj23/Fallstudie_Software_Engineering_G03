@@ -3,7 +3,6 @@
   Bell,
   Boxes,
   Building2,
-  CalendarCheck,
   ClipboardList,
   Gauge,
   PlusCircle,
@@ -12,6 +11,7 @@
   ShieldCheck,
   UserRoundCheck,
 } from "lucide-react";
+import replanLogo from "../assets/LogoRePlan.png";
 
 const primaryItems = [
   { id: "dashboard", label: "Dashboard", icon: Gauge },
@@ -36,11 +36,7 @@ export default function Sidebar({ activePage, setPage, isLoggedIn, isAdmin }) {
   return (
     <aside className="sidebar">
       <button className="brand" type="button" onClick={() => setPage("dashboard")}>
-        <span className="brand-mark"><CalendarCheck size={22} /></span>
-        <span>
-          <strong>RePlan</strong>
-          <small>Raum & Ressourcen</small>
-        </span>
+        <img className="brand-logo" src={replanLogo} alt="RePlan" />
       </button>
 
       <nav className="nav-group" aria-label="Hauptnavigation">
@@ -83,7 +79,7 @@ export default function Sidebar({ activePage, setPage, isLoggedIn, isAdmin }) {
       )}
 
       <div className="sidebar-note">
-        <CalendarCheck size={16} />
+        <ClipboardList size={16} />
         <span>Alle Reservierungen werden automatisch auf Überschneidungen geprüft.</span>
       </div>
     </aside>
