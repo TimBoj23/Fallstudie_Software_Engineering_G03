@@ -21,6 +21,12 @@ def test_offset_aware_time_is_normalized_to_utc(monkeypatch):
     assert parsed == datetime(2026, 7, 27, 14, 0, tzinfo=timezone.utc)
 
 
+def test_browser_utc_suffix_is_supported_on_python_39():
+    parsed = parse_iso_datetime("2026-07-28T08:33:00.000Z")
+
+    assert parsed == datetime(2026, 7, 28, 8, 33, tzinfo=timezone.utc)
+
+
 def test_unknown_replan_timezone_is_rejected(monkeypatch):
     monkeypatch.setenv("REPLAN_TIMEZONE", "Nowhere/Invalid")
 
