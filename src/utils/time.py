@@ -25,7 +25,10 @@ def parse_iso_datetime(value: str) -> datetime:
     als lokale RePlan-Zeit interpretiert; neue Clients sollten einen Offset oder
     ``Z`` mitsenden. Die lokale Zone lässt sich über ``REPLAN_TIMEZONE`` ändern.
     """
-    parsed = datetime.fromisoformat(value)
+    # Python 3.9 akzeptiert den ISO-8601-UTC-Suffix ``Z`` noch nicht direkt.
+    # ``+00:00`` beschreibt denselben Zeitpunkt und funktioniert ab Python 3.7.
+    normalized = f"{value[:-1]}+00:00" if isinstance(value, str) and value.endswith("Z") else value
+    parsed = datetime.fromisoformat(normalized)
     if parsed.tzinfo is None:
         timezone_name = os.environ.get("REPLAN_TIMEZONE", DEFAULT_LOCAL_TIMEZONE)
         try:

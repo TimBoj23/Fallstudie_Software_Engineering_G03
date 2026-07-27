@@ -336,6 +336,90 @@
       gap: 16px;
     }
 
+    .sprint-three-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .delivery-card {
+      min-height: 260px;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+    }
+
+    .delivery-card strong {
+      display: block;
+      margin-bottom: 12px;
+      font-size: 22px;
+    }
+
+    .delivery-card p {
+      margin: 0 0 16px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: auto;
+    }
+
+    .pill-list span {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      border-radius: 999px;
+      padding: 6px 10px;
+      color: var(--blue);
+      background: color-mix(in srgb, var(--blue) 9%, white);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .status-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .status-item {
+      border-left: 6px solid var(--accent);
+      border-radius: 18px;
+      padding: 18px;
+      background: rgba(255, 255, 255, .86);
+      box-shadow: var(--shadow);
+    }
+
+    .status-item[data-accent="blue"] {
+      --accent: var(--blue);
+    }
+
+    .status-item[data-accent="green"] {
+      --accent: var(--green);
+    }
+
+    .status-item[data-accent="violet"] {
+      --accent: var(--violet);
+    }
+
+    .status-item b {
+      display: block;
+      font-size: 18px;
+      margin-bottom: 6px;
+    }
+
+    .status-item span {
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
     .quality {
       min-height: 210px;
       padding: 20px;
@@ -526,6 +610,8 @@
 
       .timeline,
       .quality-grid,
+      .sprint-three-grid,
+      .status-strip,
       .team {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
@@ -542,6 +628,8 @@
       .hero-grid,
       .timeline,
       .quality-grid,
+      .sprint-three-grid,
+      .status-strip,
       .team {
         grid-template-columns: 1fr;
       }
@@ -564,8 +652,8 @@
       <div>
         <p class="eyebrow">RePlan Workspace</p>
         <h1 id="title">Qualitätssheet Sprint I bis III</h1>
-        <p class="lead">Von der ersten Buchungslogik bis zur lauffähigen RePlan-Demo: Projektstand, technische
-          Entscheidungen und Qualitätssicherung auf einen Blick.</p>
+        <p class="lead">Von der ersten Buchungslogik bis zur RePlan-Demo mit SQLite, Bildern, Adminbereich und
+          realistischeren Demo-Daten: Projektstand, Entscheidungen und Qualitätssicherung auf einen Blick.</p>
       </div>
       <div class="hero-grid" aria-label="Projektkennzahlen">
         <div class="metric"><strong>3</strong><span>Sprints vom Grundmodell bis zur integrierten Demo</span></div>
@@ -589,8 +677,8 @@
             und erste Tests.</span></article>
         <article class="agenda-item"><span class="agenda-time">3</span><b>Sprint II</b><span>REST API, Integration und
             Sitzplatzlogik.</span></article>
-        <article class="agenda-item"><span class="agenda-time">4</span><b>Sprint III</b><span>SQLite, Admin-Funktionen,
-            Datenqualität und UI-Anbindung.</span></article>
+        <article class="agenda-item"><span class="agenda-time">4</span><b>Sprint III</b><span>SQLite-Migration,
+            Suchfilter, Medien, Admin-Funktionen und strengere Buchungsregeln.</span></article>
         <article class="agenda-item"><span class="agenda-time">5</span><b>Demo</b><span>Buchung, Filter, Nutzerrollen
             und Administrationssicht.</span></article>
         <article class="agenda-item"><span class="agenda-time">6</span><b>Abschluss</b><span>Qualitätsstand und nächste
@@ -659,22 +747,22 @@
             <h3>Sprint III</h3>
             <span class="badge">Demoqualität</span>
           </div>
-          <div class="progress" aria-label="Sprint III Fortschritt"><span style="--value: 92%"></span></div>
+          <div class="progress" aria-label="Sprint III Fortschritt"><span style="--value: 96%"></span></div>
           <div class="stage-list">
             <div class="stage">
               <div class="dot">1</div>
-              <div><strong>Persistenz</strong><span>SQLite wurde als nachvollziehbare Datenhaltung für die Demo
-                  genutzt.</span></div>
+              <div><strong>SQL-Persistenz</strong><span>JSON-Daten werden beim ersten Zugriff in SQLite überführt,
+                  ohne die Service-Schnittstellen aufzubrechen.</span></div>
             </div>
             <div class="stage">
               <div class="dot">2</div>
-              <div><strong>Administration</strong><span>Rollen, Fotos, Buchungsbesitzer und Passwortprozesse wurden
-                  steuerbar.</span></div>
+              <div><strong>Fachliche Regeln</strong><span>Räume, Sitzplätze und Assets sind getrennt buchbar; parallele
+                  Sitzplatzbuchungen pro Nutzer werden verhindert.</span></div>
             </div>
             <div class="stage">
               <div class="dot">3</div>
-              <div><strong>Abnahmestand</strong><span>Die Demo enthält bereinigte Nutzer, Räume, Assets und klare
-                  Buchungsabläufe.</span></div>
+              <div><strong>Präsentationsstand</strong><span>Adminbereich, Bilder, Filter, Einladungen, Benachrichtigungen
+                  und bereinigte Demo-Daten machen den Ablauf vorführbar.</span></div>
             </div>
           </div>
         </article>
@@ -709,6 +797,55 @@
       </div>
     </section>
 
+    <section aria-labelledby="sprint-three-title">
+      <div class="section-head">
+        <h2 id="sprint-three-title">Sprint III im Detail</h2>
+        <p class="hint">Die wichtigsten Erweiterungen aus dem Umsetzungsplan für die aktuelle Vorstellung.</p>
+      </div>
+      <div class="sprint-three-grid">
+        <article class="delivery-card">
+          <strong>Datenhaltung</strong>
+          <p>Die JSON-Dateien bleiben als Ausgangsdaten erhalten, die Anwendung arbeitet aber mit einer SQLite-Schicht
+            als zentraler Persistenz.</p>
+          <div class="pill-list">
+            <span>SQLite</span><span>Migration</span><span>Repository-Schnittstellen</span>
+          </div>
+        </article>
+        <article class="delivery-card">
+          <strong>Buchbare Objekte</strong>
+          <p>Räume, Sitzplätze und Ausstattung werden getrennt angezeigt, gefiltert und gebucht. Sitzplätze erhalten
+            zusätzlich Regeln gegen Doppelbelegung.</p>
+          <div class="pill-list">
+            <span>Räume</span><span>Sitzplätze</span><span>Assets</span><span>Regeln</span>
+          </div>
+        </article>
+        <article class="delivery-card">
+          <strong>Nutzer & Admin</strong>
+          <p>Admins können Nutzer anlegen, Rollen bearbeiten und Passwörter zentral zurücksetzen. Nutzer erhalten eine
+            verständlichere Buchungshistorie.</p>
+          <div class="pill-list">
+            <span>Rollen</span><span>Passwortreset</span><span>Nutzerfotos</span>
+          </div>
+        </article>
+        <article class="delivery-card">
+          <strong>Demoqualität</strong>
+          <p>Mehr Demo-Objekte, passende Bilder, Einladungen, Benachrichtigungen und bereinigte Daten machen die
+            Präsentation realitätsnäher.</p>
+          <div class="pill-list">
+            <span>Bilder</span><span>Filter</span><span>Einladungen</span><span>Datenpflege</span>
+          </div>
+        </article>
+      </div>
+      <div class="status-strip">
+        <div class="status-item" data-accent="blue"><b>Basis</b><span>SQLite, Migration und Backend-Regeln schaffen die
+            technische Grundlage.</span></div>
+        <div class="status-item" data-accent="green"><b>Integration</b><span>Frontend-Übersichten zeigen Status, Bilder,
+            Filter und Nutzerbezug.</span></div>
+        <div class="status-item" data-accent="violet"><b>Finalisierung</b><span>Demo-Daten, Dokumentstruktur und
+            Präsentationsablauf wurden für Sprint III geglättet.</span></div>
+      </div>
+    </section>
+
     <section aria-labelledby="quality-title">
       <div class="section-head">
         <h2 id="quality-title">Qualitätsstand</h2>
@@ -718,22 +855,22 @@
         <article class="quality">
           <div class="ring" style="--score: 92%">92%</div>
           <strong>Backend-Stabilität</strong>
-          <span>Services, Repositories, Validierungen und automatisierte Tests laufen.</span>
+          <span>Services, Repositories, SQLite-Migration, Validierungen und automatisierte Tests laufen.</span>
         </article>
         <article class="quality">
-          <div class="ring" style="--score: 84%">84%</div>
+          <div class="ring" style="--score: 88%">88%</div>
           <strong>API-Anbindung</strong>
-          <span>Frontend nutzt zentrale Endpunkte statt autarker Demo-Logik.</span>
+          <span>Frontend nutzt zentrale Endpunkte für Suche, Filter, Buchungen, Adminbereich und Nutzerhistorie.</span>
         </article>
         <article class="quality">
-          <div class="ring" style="--score: 72%">72%</div>
+          <div class="ring" style="--score: 86%">86%</div>
           <strong>Datenqualität</strong>
-          <span>Demo-Daten wurden realitätsnäher; weitere Pflege bleibt Sprint-Aufgabe.</span>
+          <span>Demo-Nutzer, Räume, Assets, Sitzplätze und Bilder wurden bereinigt und ergänzt.</span>
         </article>
         <article class="quality">
-          <div class="ring" style="--score: 80%">80%</div>
+          <div class="ring" style="--score: 90%">90%</div>
           <strong>Demonstrationsreife</strong>
-          <span>Buchbare Objekte, Bilder, Admin-Sichten und Rollen sind nachvollziehbar.</span>
+          <span>Admin-Sichten, Passwortprozesse, Einladungen, Benachrichtigungen und Buchungsregeln sind vorführbar.</span>
         </article>
       </div>
     </section>
@@ -747,9 +884,9 @@
         <div class="flow-item"><b>Anforderung</b><span>Räume, Assets und Sitzplätze buchbar machen.</span></div>
         <div class="flow-item"><b>Schnittstelle</b><span>Frontend und Backend über definierte REST-Endpunkte
             verbinden.</span></div>
-        <div class="flow-item"><b>Architektur</b><span>REST API, Services, Repositories und SQLite.</span></div>
-        <div class="flow-item"><b>Nutzerfokus</b><span>Realistische Daten, Bilder, Filter und Admin-Sicht.</span></div>
-        <div class="flow-item"><b>Qualität</b><span>Tests, Build, GitHub-Branch und klare Rollen.</span></div>
+        <div class="flow-item"><b>Architektur</b><span>REST API, Services, Repositories, SQLite und Migration.</span></div>
+        <div class="flow-item"><b>Nutzerfokus</b><span>Realistische Daten, Bilder, Filter, Historie und Admin-Sicht.</span></div>
+        <div class="flow-item"><b>Qualität</b><span>Tests, Build, GitHub-Issues, Dokumente und klare Rollen.</span></div>
       </div>
     </section>
 
@@ -792,9 +929,9 @@
       },
       {
         title: "Sprint III · Demo",
-        problem: "Die Oberfläche musste fachliche Informationen statt technischer Details in den Vordergrund stellen.",
-        decision: "Demonstrationsreife priorisieren: sprechende Namen, Fotos, Filter und klare Admin-Sichten.",
-        result: "Bereinigte Nutzer, neue Räume und Assets, visuelle Buchungsübersichten und Build-Nachweis."
+        problem: "Die MVP-Demo brauchte echte Persistenz, realistische Daten und mehr fachliche Kontrolle im Adminbereich.",
+        decision: "SQLite einführen, JSON-Daten migrieren und die wichtigsten Nutzer-, Buchungs- und Filterprozesse integrieren.",
+        result: "Bereinigte Demo-Daten, neue Räume und Assets, Bilder, Nutzerfotos, Passwortreset, Einladungen und nachvollziehbare Buchungsregeln."
       }
     ];
 
