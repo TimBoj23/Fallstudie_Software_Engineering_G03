@@ -1,4 +1,4 @@
-# Review & Retrospective– Agenda
+# Vorlage – Sprint Review und Retrospektive
 
 ## Begrüßung und Zeitplanung (1 Minute)
 

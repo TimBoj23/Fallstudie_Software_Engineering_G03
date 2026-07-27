@@ -1,4 +1,4 @@
-# Umsetzungsplan Sprint III - RePlan
+# Sprint III – Umsetzungsplan RePlan
 
 ## Ziel
 
@@ -32,7 +32,7 @@ Die App verwaltet drei buchbare Objekttypen:
 
 - Seminarräume sollen Bild-URLs bzw. Bildpfade besitzen.
 - Assets sollen Bild-URLs bzw. Bildpfade besitzen.
-- Sitzplaetze sollen einfache Grafikbilder besitzen, z. B. Arbeitsplatz mit einem, zwei oder drei Bildschirmen.
+- Sitzplaetze sollen vorhandene reale Arbeitsplatzbilder passend zur Monitoranzahl verwenden.
 
 ### Authentifizierung und Passwortverwaltung
 
@@ -86,3 +86,18 @@ Die App verwaltet drei buchbare Objekttypen:
 Fuer diesen Sprint wird SQLite verwendet. Das passt zur aktuellen Projektgroesse, benoetigt keinen externen Datenbankserver und ermoeglicht trotzdem eine SQL-basierte Persistenz.
 
 Die bestehenden Services sollen moeglichst wenig geaendert werden. Deshalb bleibt die Repository-Schnittstelle erhalten. Die neue SQL-Schicht ersetzt die bisherige JSON-Dateipersistenz intern.
+
+## Finalisierungsrunde vom 27.07.2026
+
+Die folgenden Erweiterungen wurden nach der ursprünglichen Sprint-Planung ergänzt:
+
+- Demo-Datenbestand und Admin-Reset für Präsentationen bereinigt
+- manuell teilbare Einladungscodes ohne echten E-Mail-Versand umgesetzt
+- Shared-Office-Bezeichnungen, Teilbelegungsanzeige und grafischen Sitzplan ergänzt
+- Buchungen inklusive Folgeterminen bearbeitbar und verlängerbar gemacht
+- Einzel- und Serienstornierung voneinander getrennt
+- In-App-Benachrichtigungen für bevorstehende, laufende und stornierte Buchungen ergänzt
+- Profilbildauswahl mit Vorschau und verständlichem Browser-Dateidialog verbessert
+- Dokumentstruktur und Sprint-Dateinamen vereinheitlicht
+
+Die daraus abgeleiteten GitHub-Issue-Vorlagen stehen in `docs/Kanban_Aktualisierungen.md`.

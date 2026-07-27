@@ -274,7 +274,7 @@ class TestCreateBooking:
     def test_raumbuchung_ohne_sitzplatz_weist_freien_sitzplatz_zu(
         self, booking_service, demo_room, room_repo, seat_repo, user
     ):
-        """Shared-Desk-Räume weisen ohne Auswahl automatisch einen freien Platz zu."""
+        """Shared Offices weisen ohne Auswahl automatisch einen freien Platz zu."""
         demo_room.room_type = "shared_desk"
         room_repo.update(demo_room)
         seat = Seat(id=str(uuid.uuid4()), room_id=demo_room.id, label="A1")
@@ -813,13 +813,25 @@ class TestProtectedSeminarBooking:
 
         assert booking.access_password_hash != "seminar-2026"
         assert booking.invitation_emails == ["gast@example.de"]
+        assert booking.invitation_code.startswith("RPL-")
         assert booking_service.verify_booking_access(booking.id, "seminar-2026") is True
         assert booking_service.verify_booking_access(booking.id, "falsch") is False
 
         joined = booking_service.join_protected_booking(
-            booking.id, "extern@example.de", "seminar-2026"
+            booking.id, "gast@example.de", "seminar-2026"
         )
-        assert joined.participant_emails == ["extern@example.de"]
+        assert joined.participant_emails == ["gast@example.de"]
+        assert booking_service.join_by_invitation_code(
+            booking.invitation_code, "gast@example.de", "seminar-2026"
+        ).id == booking.id
+
+        with pytest.raises(AuthError, match="Einladungsliste"):
+            booking_service.join_protected_booking(
+                booking.id, "extern@example.de", "seminar-2026"
+            )
+
+        assert booking_service.get_by_invitation_code("") is None
+        assert booking_service.get_by_invitation_code("   ") is None
 
     def test_beitritt_mit_falschem_passwort_wird_abgelehnt(
         self, booking_service, demo_room, user
@@ -839,6 +851,30 @@ class TestProtectedSeminarBooking:
                 booking.id, "extern@example.de", "falsch"
             )
 
+    def test_beitritt_beachtet_raumkapazitaet(
+        self, booking_service, demo_room, room_repo, user
+    ):
+        demo_room.capacity = 2
+        room_repo.update(demo_room)
+        start, end = future(hours=86, duration=2)
+        booking = booking_service.create_booking(
+            user=user,
+            target_id=demo_room.id,
+            target_type=BookingTargetType.ROOM,
+            start_time=start,
+            end_time=end,
+            access_password="sicher",
+            invitation_emails=["eins@example.de", "zwei@example.de"],
+        )
+
+        booking_service.join_by_invitation_code(
+            booking.invitation_code, "eins@example.de", "sicher"
+        )
+        with pytest.raises(ValueError, match="Raumkapazität"):
+            booking_service.join_by_invitation_code(
+                booking.invitation_code, "zwei@example.de", "sicher"
+            )
+
     def test_einladung_ohne_passwort_wird_abgelehnt(
         self, booking_service, demo_room, user
     ):
@@ -852,6 +888,78 @@ class TestProtectedSeminarBooking:
                 end_time=end,
                 invitation_emails=["extern@example.de"],
             )
+
+    def test_geschuetzte_einladung_ist_keine_mehrdeutige_serie(
+        self, booking_service, demo_room, user
+    ):
+        start, end = future(hours=90, duration=2)
+        with pytest.raises(ValueError, match="einzelnen Termin"):
+            booking_service.create_recurring_bookings(
+                user=user,
+                target_id=demo_room.id,
+                target_type=BookingTargetType.ROOM,
+                start_time=start,
+                end_time=end,
+                access_password="sicher",
+                invitation_emails=["extern@example.de"],
+                recurrence_count=2,
+            )
+
+
+class TestBookingManagement:
+
+    def test_zukuenftige_buchung_kann_bearbeitet_und_verlaengert_werden(
+        self, booking_service, demo_room, user
+    ):
+        start, end = future(hours=100, duration=1)
+        booking = booking_service.create_booking(
+            user, demo_room.id, BookingTargetType.ROOM, start, end, "Alt"
+        )
+        shifted_start = (parse(start) + timedelta(hours=1)).isoformat()
+        shifted_end = (parse(end) + timedelta(hours=1)).isoformat()
+
+        updated = booking_service.update_booking(
+            booking.id,
+            user,
+            title="Neu",
+            start_time=shifted_start,
+            end_time=shifted_end,
+        )[0]
+        assert updated.title == "Neu"
+        assert updated.start_time == shifted_start
+
+        extended = booking_service.extend_booking(booking.id, user, 30)
+        assert parse(extended.end_time) == parse(shifted_end) + timedelta(minutes=30)
+
+    def test_serienbearbeitung_aendert_aktuellen_und_folgende_termine(
+        self, booking_service, demo_room, user
+    ):
+        start, end = future(hours=120, duration=1)
+        series = booking_service.create_recurring_bookings(
+            user, demo_room.id, BookingTargetType.ROOM, start, end,
+            title="Serie", recurrence_count=3,
+        )
+        changed = booking_service.update_booking(
+            series[1].id, user, title="Neue Serie", scope="future"
+        )
+        assert [item.recurrence_index for item in changed] == [2, 3]
+        assert all(item.title == "Neue Serie" for item in changed)
+        assert booking_service.get_by_id(series[0].id).title == "Serie"
+
+    def test_benachrichtigungen_enthalten_bevorstehenden_termin(
+        self, booking_service, demo_room, user
+    ):
+        start, end = future(hours=2, duration=1)
+        booking = booking_service.create_booking(
+            user, demo_room.id, BookingTargetType.ROOM, start, end, "Bald"
+        )
+        notifications = booking_service.get_user_notifications(user)
+        assert any(item["booking_id"] == booking.id and item["kind"] == "upcoming" for item in notifications)
+
+
+def parse(value):
+    value = datetime.fromisoformat(value)
+    return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
 
 
 class TestTimezoneAndOccupancy:

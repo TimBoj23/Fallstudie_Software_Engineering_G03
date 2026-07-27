@@ -72,6 +72,7 @@ def create_app(config: dict = None) -> Flask:
     from src.routes.picture_routes import pictures_bp
     from src.routes.user_routes import users_bp
     from src.routes.audit_routes import audit_bp
+    from src.routes.maintenance_routes import maintenance_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(rooms_bp)
@@ -82,6 +83,7 @@ def create_app(config: dict = None) -> Flask:
     app.register_blueprint(pictures_bp)
     app.register_blueprint(users_bp)
     app.register_blueprint(audit_bp)
+    app.register_blueprint(maintenance_bp)
 
     # ── Health-Check Endpoint ──────────────────────────────────────────────────
     @app.route("/api/health", methods=["GET"])
@@ -157,8 +159,12 @@ def create_app(config: dict = None) -> Flask:
                     "GET  /api/bookings/analytics": "Auslastungsstatistik [Admin]",
                     "POST /api/bookings": "Einzel- oder Serienbuchung erstellen [Auth]",
                     "GET  /api/bookings/<id>": "Buchung abrufen [Auth]",
+                    "PUT  /api/bookings/<id>": "Einzelne oder zukünftige Serientermine bearbeiten [Auth]",
+                    "POST /api/bookings/<id>/extend": "Buchung bei freiem Folgezeitraum verlängern [Auth]",
                     "POST /api/bookings/<id>/verify-access": "Passwort für geschützte Buchung prüfen",
                     "POST /api/bookings/<id>/join": "Externe Person per Buchungspasswort einbuchen",
+                    "POST /api/bookings/join": "Externe Person per kurzem Einladungscode einbuchen",
+                    "GET  /api/bookings/notifications": "Eigene In-App-Benachrichtigungen [Auth]",
                     "DELETE /api/bookings/<id>": "Buchung stornieren [Auth]",
                     "POST /api/bookings/<id>/check-in": "In laufende Buchung einchecken [Auth]",
                     "POST /api/bookings/<id>/check-out": "Aus laufender Buchung auschecken [Auth]",
@@ -168,6 +174,9 @@ def create_app(config: dict = None) -> Flask:
                 },
                 "audit": {
                     "GET /api/audit": "Änderungsprotokoll anzeigen [Admin]",
+                },
+                "maintenance": {
+                    "POST /api/admin/reset-demo": "Demoaktivität passwortgeschützt zurücksetzen [Admin]",
                 },
             },
         }), 200

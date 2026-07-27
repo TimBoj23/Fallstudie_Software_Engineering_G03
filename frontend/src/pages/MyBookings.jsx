@@ -1,7 +1,8 @@
 ﻿import { useEffect, useState } from "react";
 import { PlusCircle, RefreshCw } from "lucide-react";
-import { cancelBooking, checkInBooking, checkOutBooking, getBookings } from "../api/bookingsApi.js";
+import { cancelBooking, checkInBooking, checkOutBooking, extendBooking, getBookings, updateBooking } from "../api/bookingsApi.js";
 import BookingCard from "../components/BookingCard.jsx";
+import BookingEditForm from "../components/BookingEditForm.jsx";
 import Button from "../components/Button.jsx";
 import EmptyState from "../components/EmptyState.jsx";
 import LoadingState from "../components/LoadingState.jsx";
@@ -11,6 +12,7 @@ import StatusMessage from "../components/StatusMessage.jsx";
 export default function MyBookings({ isLoggedIn, setPage, openCreateBooking }) {
   const [state, setState] = useState({ loading: false, error: "", success: "", bookings: [] });
   const [filters, setFilters] = useState({ target_type: "", start: "", end: "" });
+  const [editing, setEditing] = useState(null);
 
   async function load(params = filters) {
     if (!isLoggedIn) return;
@@ -27,12 +29,40 @@ export default function MyBookings({ isLoggedIn, setPage, openCreateBooking }) {
     load();
   }, [isLoggedIn]);
 
-  async function handleCancel(id) {
+  async function handleCancel(id, scope = "single") {
+    const question = scope === "future"
+      ? "Diesen und alle folgenden Serientermine wirklich stornieren?"
+      : "Diese Buchung wirklich stornieren?";
+    if (!window.confirm(question)) return;
     setState((current) => ({ ...current, loading: true, error: "", success: "" }));
     try {
-      await cancelBooking(id);
+      await cancelBooking(id, scope);
       const data = await getBookings(filters);
       setState({ loading: false, error: "", success: "Buchung wurde storniert.", bookings: data.bookings || [] });
+    } catch (error) {
+      setState((current) => ({ ...current, loading: false, error: error.message, success: "" }));
+    }
+  }
+
+  async function handleEdit(payload) {
+    setState((current) => ({ ...current, loading: true, error: "", success: "" }));
+    try {
+      await updateBooking(editing.id, payload);
+      const data = await getBookings(filters);
+      setEditing(null);
+      setState({ loading: false, error: "", success: "Buchung wurde aktualisiert.", bookings: data.bookings || [] });
+    } catch (error) {
+      setState((current) => ({ ...current, loading: false, error: error.message, success: "" }));
+    }
+  }
+
+  async function handleExtend(id, minutes) {
+    if (!window.confirm(`Buchung um ${minutes} Minuten verlängern?`)) return;
+    setState((current) => ({ ...current, loading: true, error: "", success: "" }));
+    try {
+      await extendBooking(id, minutes);
+      const data = await getBookings(filters);
+      setState({ loading: false, error: "", success: `Buchung wurde um ${minutes} Minuten verlängert.`, bookings: data.bookings || [] });
     } catch (error) {
       setState((current) => ({ ...current, loading: false, error: error.message, success: "" }));
     }
@@ -89,6 +119,16 @@ export default function MyBookings({ isLoggedIn, setPage, openCreateBooking }) {
         </form>
       </Panel>
 
+      {editing && (
+        <BookingEditForm
+          booking={editing}
+          onSave={handleEdit}
+          onClose={() => setEditing(null)}
+          saving={state.loading}
+          error={state.error}
+        />
+      )}
+
       {state.loading ? <LoadingState /> : (
         <div className="booking-list">
           {state.bookings.length === 0 ? (
@@ -103,6 +143,8 @@ export default function MyBookings({ isLoggedIn, setPage, openCreateBooking }) {
               booking={booking}
               onCancel={handleCancel}
               onAttendance={handleAttendance}
+              onEdit={setEditing}
+              onExtend={handleExtend}
               onCopy={(item) => openCreateBooking({
                 targetType: item.target_type,
                 targetId: item.target_id,

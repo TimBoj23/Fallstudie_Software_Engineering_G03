@@ -1,33 +1,16 @@
 [
   {
-    "id": "bde9ac40-8c32-4f6d-a8cb-11190b41cbb7",
-    "name": "Gelöschtes Konto",
-    "email": "deleted+bde9ac40-8c32-4f6d-a8cb-11190b41cbb7@replan.invalid",
-    "role": "user",
-    "password_hash": "",
-    "image_url": "",
-    "created_at": "2026-06-01T15:02:10.183504",
-    "is_active": false
-  },
-  {
     "id": "a17c2c1a-c2ce-4f28-bdcf-a81b98cd9e63",
     "name": "Tim Strauss",
     "email": "tim@replan.de",
     "role": "admin",
     "password_hash": "20acb73af12012197dd64bc6b1bdf6bd27025049330aad3f6c99fbe8a0750fb8:c4d285cdb37b5a3a0e92486f2d35e57d104f87b5542f8da116720fb45ff53c29",
     "image_url": "/pictures/Tim_Test.jpg",
+    "reset_token": "",
+    "reset_token_expires_at": "",
     "created_at": "2026-07-19T11:30:21.143863",
-    "is_active": true
-  },
-  {
-    "id": "1d47cfd5-c679-41d6-809e-6b4c3d122501",
-    "name": "Gelöschtes Konto",
-    "email": "deleted+1d47cfd5-c679-41d6-809e-6b4c3d122501@replan.invalid",
-    "role": "user",
-    "password_hash": "",
-    "image_url": "",
-    "created_at": "2026-07-25T09:00:00",
-    "is_active": false
+    "is_active": true,
+    "favorite_targets": []
   },
   {
     "id": "7823f770-60ad-4e2f-9e61-328fd9e36bd8",
@@ -36,8 +19,11 @@
     "role": "admin",
     "password_hash": "0398c62aeb6698268b2f922bf891a5a177d10474b809678e7e4c3b004aac89eb:a9329660f64eca43197958b4e2d2da9a47c2c883a7e0b7749fa559fb2621cc86",
     "image_url": "/pictures/Denis.png",
+    "reset_token": "",
+    "reset_token_expires_at": "",
     "created_at": "2026-07-25T09:05:00",
-    "is_active": true
+    "is_active": true,
+    "favorite_targets": []
   },
   {
     "id": "e6105bc8-2c7f-4a67-9fa3-6ea538f1b5d1",
@@ -46,20 +32,23 @@
     "role": "admin",
     "password_hash": "1c0ca60ca9edc980a0d4ec728b80af99ddb7825e5eedd138ed19649aec0441dc:9f7ed11fb3e80016bae6cb8b155a72cf3ace45a3838fbb20b346798cb9bf501d",
     "image_url": "/pictures/Florian.jpg",
-    "created_at": "2026-07-25T09:10:00",
-    "is_active": true
-  },
-  {
-    "id": "d2885f9e-6735-4311-a357-ad6647a286ad",
-    "name": "Gelöschtes Konto",
-    "email": "deleted+d2885f9e-6735-4311-a357-ad6647a286ad@replan.invalid",
-    "role": "user",
-    "password_hash": "",
-    "image_url": "",
     "reset_token": "",
     "reset_token_expires_at": "",
-    "created_at": "2026-07-26T09:59:31.041361+00:00",
-    "is_active": false,
+    "created_at": "2026-07-25T09:10:00",
+    "is_active": true,
+    "favorite_targets": []
+  },
+  {
+    "id": "1bd67b48-80b2-4751-91fa-718651ead260",
+    "name": "Alexander Vetrenko",
+    "email": "alex@replan.de",
+    "role": "admin",
+    "password_hash": "cd2693703dddc1db8461f9281a309df84eb7c429025d0f12bf71577ce1e533aa:a635b33b54b7b650058e6e47070cbe91c9dce491572b0850bd24d538266965f1",
+    "image_url": "/pictures/Alexander.webp",
+    "reset_token": "",
+    "reset_token_expires_at": "",
+    "created_at": "2026-07-27T11:35:37.818432+00:00",
+    "is_active": true,
     "favorite_targets": []
   }
 ]

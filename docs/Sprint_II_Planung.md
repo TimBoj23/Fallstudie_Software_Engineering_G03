@@ -1,4 +1,4 @@
-# Sprint Planning - Sprint II
+# Sprint II – Planung
 
 ## Ziel des Sprint Plannings
 

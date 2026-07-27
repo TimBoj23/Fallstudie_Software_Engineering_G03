@@ -4,7 +4,6 @@ import Dashboard from "./pages/Dashboard.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import Rooms from "./pages/Rooms.jsx";
-import Seats from "./pages/Seats.jsx";
 import Assets from "./pages/Assets.jsx";
 import MyBookings from "./pages/MyBookings.jsx";
 import CreateBooking from "./pages/CreateBooking.jsx";
@@ -17,11 +16,13 @@ import { logoutUser } from "./api/authApi.js";
 import { getFavorites, setFavorite } from "./api/usersApi.js";
 import QrCheckIn from "./pages/QrCheckIn.jsx";
 import Settings from "./pages/Settings.jsx";
+import Notifications from "./pages/Notifications.jsx";
 
 export default function App() {
   const initialAuth = useMemo(() => loadAuthState(), []);
   const initialCheckInToken = useMemo(() => new URLSearchParams(window.location.search).get("checkin") || "", []);
-  const [page, setPage] = useState(initialCheckInToken ? "qrCheckIn" : "dashboard");
+  const initialInvitationCode = useMemo(() => new URLSearchParams(window.location.search).get("invite") || "", []);
+  const [page, setPage] = useState(initialCheckInToken ? "qrCheckIn" : initialInvitationCode ? "joinBooking" : "dashboard");
   const [auth, setAuth] = useState(initialAuth);
   const [bookingDefaults, setBookingDefaults] = useState({});
   const [theme, setTheme] = useState(loadTheme);
@@ -98,13 +99,13 @@ export default function App() {
     dashboard: <Dashboard setPage={navigate} isLoggedIn={isLoggedIn} />,
     login: <Login onLogin={handleLogin} setPage={navigate} />,
     register: <Register setPage={navigate} />,
-    rooms: <Rooms setPage={navigate} openCreateBooking={openCreateBooking} favorites={favorites} onToggleFavorite={isLoggedIn ? toggleFavorite : null} />,
-    seats: <Seats setPage={navigate} openCreateBooking={openCreateBooking} favorites={favorites} onToggleFavorite={isLoggedIn ? toggleFavorite : null} />,
+    rooms: <Rooms key="rooms" category="rooms" setPage={navigate} openCreateBooking={openCreateBooking} favorites={favorites} onToggleFavorite={isLoggedIn ? toggleFavorite : null} />,
+    sharedOffices: <Rooms key="shared-offices" category="sharedOffices" setPage={navigate} openCreateBooking={openCreateBooking} favorites={favorites} onToggleFavorite={isLoggedIn ? toggleFavorite : null} />,
     assets: <Assets setPage={navigate} openCreateBooking={openCreateBooking} favorites={favorites} onToggleFavorite={isLoggedIn ? toggleFavorite : null} />,
     bookings: <MyBookings isLoggedIn={isLoggedIn} setPage={navigate} openCreateBooking={openCreateBooking} />,
     createBooking: <CreateBooking isLoggedIn={isLoggedIn} setPage={navigate} bookingDefaults={bookingDefaults} />,
     availability: <Availability />,
-    joinBooking: <JoinBooking />,
+    joinBooking: <JoinBooking initialCode={initialInvitationCode} />,
     qrCheckIn: <QrCheckIn token={initialCheckInToken} isLoggedIn={isLoggedIn} setPage={navigate} />,
     admin: <Admin isAdmin={isAdmin} isLoggedIn={isLoggedIn} />,
     settings: (
@@ -116,6 +117,7 @@ export default function App() {
         onAccountDeleted={handleAccountDeleted}
       />
     ),
+    notifications: <Notifications isLoggedIn={isLoggedIn} user={auth.user} setPage={navigate} />,
   };
 
   return (

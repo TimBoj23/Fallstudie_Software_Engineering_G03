@@ -62,7 +62,7 @@ Das System soll folgende Ziele erfüllen:
 - Meetingräume
 - Konferenzräume
 - Arbeitsplätze
-- Sitzplätze in Großraumbüros
+- Sitzplätze in Shared Offices
 - Projekträume
 - Schulungsräume
 
@@ -82,7 +82,7 @@ Beispiel: `Raum 1001, Platz 23 [1001-23]`
 
 - Wir nutzen hauptsächlich zur Bearbeitung den Branch `G03`.
 - Es wird ein Pull Request erstellt, wenn eine Aufgabe fertig ist.
-- Die Arbeitsteilung halten wir in `TASKS.md` fest.
+- Die Arbeitsteilung und Meilensteine halten wir in `docs/Projekt_Zeitplan.md` fest.
 - Anforderungen, Dokumentation, Setup-Hinweise und Tests werden im Repository gepflegt.
 - Fertige oder geplante Aufgaben werden zusätzlich als GitHub Issues dokumentiert.
 - Die Dokumentation wird kontinuierlich gepflegt und nicht erst am Projektende ergänzt.
@@ -105,8 +105,10 @@ Eine mögliche Projektstruktur ist:
 .
 ├── README.md
 ├── docs/
+│   ├── Sprint_I_Architekturentscheidungen.md
+│   ├── Sprint_II_Planung.md
+│   ├── Sprint_III_Umsetzungsplan.md
 │   └── Konzeptionsplan.md
-├── TASKS.md
 ├── requirements.txt
 ├── app.py
 ├── src/
@@ -117,8 +119,8 @@ Eine mögliche Projektstruktur ist:
 │   └── src/
 ├── scripts/
 │   ├── demo.py
-│   ├── seed_demo_data.py
-│   └── legacy/
+│   ├── reset_demo_activity.py
+│   └── seed_demo_data.py
 └── tests/
 ```
 
@@ -131,7 +133,7 @@ Die konkrete Struktur kann im Verlauf der Umsetzung angepasst werden.
 - `tim@replan.de`
 - `denis@replan.de`
 
-Alle anderen vorbereiteten oder gelöschten Konten sind deaktiviert und anonymisiert. Bei einer selbst ausgeführten Kontolöschung wird die bisherige E-Mail-Adresse wieder für eine Registrierung freigegeben.
+Der bereinigte Demo-Datenbestand enthält ausschließlich diese vier aktiven Admin-Konten. Bei einer selbst ausgeführten Kontolöschung wird die bisherige E-Mail-Adresse wieder für eine Registrierung freigegeben.
 
 ## Ausführung des Programms
 
@@ -198,11 +200,12 @@ Das Frontend läuft anschließend unter:
 http://localhost:5173
 ```
 
-### Kurzfassung
+### Spätere Starts (nach abgeschlossener Installation)
 
 Terminal 1:
 
 ```bash
+source .venv/bin/activate
 python app.py
 ```
 
@@ -232,10 +235,10 @@ Anschließend die im Terminal angezeigte Netzwerkadresse im Browser öffnen. Der
 
 Die zu testenden Dateien werden im Ordner `tests/` abgelegt.
 
-Tests ausführen:
+Backend-Tests aus dem Hauptordner ausführen:
 
 ```bash
-pytest
+.venv/bin/python -m pytest
 ```
 
 Wichtige Testfälle:
@@ -312,16 +315,16 @@ Die Nutzung von KI-Unterstützung ist transparent dokumentiert:
 ## Abschluss- und Qualitätsdokumente
 
 - [`docs/Testdokumentation.md`](./docs/Testdokumentation.md)
-- [`docs/Engineering_Reflexion.md`](./docs/Engineering_Reflexion.md)
+- [`docs/Sprint_III_Engineering_Reflexion.md`](./docs/Sprint_III_Engineering_Reflexion.md)
 - [`docs/Kanban_Aktualisierungen.md`](./docs/Kanban_Aktualisierungen.md)
 - [`docs/Abschlussdokumentation.md`](./docs/Abschlussdokumentation.md)
-- [`docs/Qualitaetssheet.html`](./docs/Qualitaetssheet.html)
-- [`docs/Projektposter.pdf`](./docs/Projektposter.pdf)
+- [`docs/Qualitaetsbericht.html`](./docs/Qualitaetsbericht.html)
 
 ## Wichtige Projektdokumente
 
 - `README.md`: Repository-Übersicht, Arbeitsweise, Setup, Start und Tests
-- `Konzeptionsplan.md`: fachliche Planung, Lastenheft, Anforderungen, Stakeholderanalyse, Use Cases, MVP, Risiken, Sprints und Abschlussdokumentation
-- `TASKS.md`: konkrete Aufgabenverteilung im Team
+- `docs/Konzeptionsplan.md`: fachliche Planung, Lastenheft, Anforderungen, Stakeholderanalyse, Use Cases, MVP, Risiken, Sprints und Abschlussdokumentation
+- `docs/Projekt_Zeitplan.md`: Meilensteine und grober Projektzeitplan
+- `docs/Sprint_I_Architekturentscheidungen.md`, `docs/Sprint_II_Planung.md` und `docs/Sprint_III_Umsetzungsplan.md`: einheitliche Sprint-Serie
 - `requirements.txt`: technische Abhängigkeiten
 - `tests/`: automatisierte Tests

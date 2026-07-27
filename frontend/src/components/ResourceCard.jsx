@@ -2,7 +2,7 @@ import { CalendarDays, CalendarPlus, Heart, MapPin, Users } from "lucide-react";
 import { mediaUrl } from "../api/client.js";
 import Button from "./Button.jsx";
 
-export default function ResourceCard({ title, meta, description, chips = [], onBook, onViewCalendar, onToggleFavorite, favorite = false, capacity, location, imageUrl, imageFit = "cover", available }) {
+export default function ResourceCard({ title, meta, description, chips = [], onBook, bookLabel = "Reservieren", onViewCalendar, onToggleFavorite, favorite = false, capacity, location, imageUrl, imageFit = "cover", available }) {
   return (
     <article className={`resource-card ${onViewCalendar ? "is-clickable" : ""}`} onClick={onViewCalendar}>
       {imageUrl && (
@@ -71,7 +71,7 @@ export default function ResourceCard({ title, meta, description, chips = [], onB
               onBook();
             }}
           >
-            Reservieren
+            {bookLabel}
           </Button>
         )}
       </div>

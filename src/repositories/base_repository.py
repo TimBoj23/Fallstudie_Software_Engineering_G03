@@ -219,6 +219,22 @@ class JsonRepository(Generic[T]):
             self._write_all_raw(new_data)
         return True
 
+    def delete_all(self) -> int:
+        """Entfernt alle Einträge dieser Collection und liefert deren Anzahl."""
+        with self._lock:
+            all_data = self._read_all_raw()
+            self._write_all_raw([])
+        return len(all_data)
+
+    def retain(self, predicate) -> int:
+        """Behält nur passende Objekte und liefert die Zahl entfernter Einträge."""
+        with self._lock:
+            all_data = self._read_all_raw()
+            objects = [self.from_dict(item) for item in all_data]
+            kept = [item for item in objects if predicate(item)]
+            self._write_all_raw([self.to_dict(item) for item in kept])
+        return len(all_data) - len(kept)
+
     def count(self) -> int:
         """Gibt die Gesamtanzahl der Einträge zurück."""
         with self._lock:

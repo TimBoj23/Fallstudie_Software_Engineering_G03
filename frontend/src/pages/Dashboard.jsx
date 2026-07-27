@@ -25,7 +25,8 @@ export default function Dashboard({ setPage, isLoggedIn }) {
             loading: false,
             error: "",
             data: {
-              rooms: rooms.count ?? rooms.rooms?.length ?? 0,
+              rooms: (rooms.rooms || []).filter((room) => room.room_type !== "shared_desk").length,
+              sharedOffices: (rooms.rooms || []).filter((room) => room.room_type === "shared_desk").length,
               seats: seats.count ?? seats.seats?.length ?? 0,
               assets: assets.count ?? assets.assets?.length ?? 0,
             },
@@ -70,8 +71,9 @@ export default function Dashboard({ setPage, isLoggedIn }) {
         </StatusMessage>
       ) : (
         <div className="metric-grid">
-          <Metric label="Räume insgesamt" value={summary.data.rooms} />
-          <Metric label="Arbeitsplätze" value={summary.data.seats} />
+          <Metric label="Räume" value={summary.data.rooms} />
+          <Metric label="Shared Offices" value={summary.data.sharedOffices} />
+          <Metric label="Arbeitsplätze darin" value={summary.data.seats} />
           <Metric label="Ausstattung" value={summary.data.assets} />
           <Metric label="Konfliktprüfung" value="Aktiv" tone="success" />
         </div>
@@ -89,7 +91,7 @@ export default function Dashboard({ setPage, isLoggedIn }) {
       <Panel title="Direkt loslegen">
         <div className="quick-actions">
           <Button variant="secondary" icon={ClipboardList} onClick={() => setPage("rooms")}>Räume ansehen</Button>
-          <Button variant="secondary" icon={ClipboardList} onClick={() => setPage("seats")}>Arbeitsplätze ansehen</Button>
+          <Button variant="secondary" icon={ClipboardList} onClick={() => setPage("sharedOffices")}>Shared Offices ansehen</Button>
           <Button variant="secondary" icon={ClipboardList} onClick={() => setPage("assets")}>Ausstattung ansehen</Button>
           <Button variant="secondary" icon={CheckCircle2} onClick={() => setPage("bookings")} disabled={!isLoggedIn}>
             Meine Buchungen

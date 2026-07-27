@@ -123,6 +123,11 @@ def create_booking():
             booking,
             response_booking.get("target_name", ""),
         )
+        frontend_url = (
+            os.environ.get("FRONTEND_URL")
+            or request.headers.get("Origin")
+            or "http://localhost:5173"
+        ).rstrip("/")
         _audit_service.record(
             g.current_user.id,
             "booking.series_created" if len(bookings) > 1 else "booking.created",
@@ -136,6 +141,12 @@ def create_booking():
             "series_count": len(bookings),
             "confirmation": confirmation,
             "invitations": invitations,
+            "invitation": {
+                "code": booking.invitation_code,
+                "share_url": f"{frontend_url}/?invite={booking.invitation_code}",
+                "recipients": booking.invitation_emails,
+                "delivery": "manual",
+            } if booking.invitation_code else None,
         }), 201
     except BookingConflictError as e:
         suggestions = []
@@ -172,16 +183,102 @@ def get_booking(booking_id):
 def cancel_booking(booking_id):
     """Storniert eine Buchung (eigene oder als Admin jede)."""
     try:
-        booking = _booking_service.cancel_booking(booking_id, g.current_user)
-        _audit_service.record(g.current_user.id, "booking.cancelled", "booking", booking.id, "Buchung wurde storniert.")
+        scope = request.args.get("scope", "single")
+        bookings = _booking_service.cancel_booking_scope(booking_id, g.current_user, scope)
+        booking = bookings[0]
+        _audit_service.record(
+            g.current_user.id,
+            "booking.series_cancelled" if len(bookings) > 1 else "booking.cancelled",
+            "booking",
+            booking.series_id or booking.id,
+            f"{len(bookings)} Buchung(en) wurden storniert.",
+        )
         return jsonify({
-            "message": "Buchung wurde erfolgreich storniert.",
+            "message": f"{len(bookings)} Buchung(en) wurden erfolgreich storniert.",
+            "booking": _booking_to_response(booking),
+            "bookings": [_booking_to_response(item) for item in bookings],
+        }), 200
+    except BookingNotFoundError as e:
+        return jsonify({"error": str(e)}), 404
+    except AuthError as e:
+        return jsonify({"error": str(e)}), 403
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@bookings_bp.route("/<booking_id>", methods=["PUT"])
+@login_required
+def update_booking(booking_id):
+    """Bearbeitet einen Termin oder ihn und alle folgenden Serientermine."""
+    data = request.get_json(silent=True) or {}
+    try:
+        target_type = BookingTargetType(data["target_type"]) if data.get("target_type") else None
+        bookings = _booking_service.update_booking(
+            booking_id=booking_id,
+            requesting_user=g.current_user,
+            title=data.get("title") if "title" in data else None,
+            start_time=data.get("start_time") if "start_time" in data else None,
+            end_time=data.get("end_time") if "end_time" in data else None,
+            target_id=data.get("target_id") if "target_id" in data else None,
+            target_type=target_type,
+            scope=data.get("scope", "single"),
+        )
+        first = bookings[0]
+        _audit_service.record(
+            g.current_user.id,
+            "booking.series_updated" if len(bookings) > 1 else "booking.updated",
+            "booking",
+            first.series_id or first.id,
+            f"{len(bookings)} Buchung(en) wurden aktualisiert.",
+        )
+        return jsonify({
+            "message": f"{len(bookings)} Buchung(en) wurden aktualisiert.",
+            "booking": _booking_to_response(first),
+            "bookings": [_booking_to_response(item) for item in bookings],
+        }), 200
+    except BookingNotFoundError as e:
+        return jsonify({"error": str(e)}), 404
+    except AuthError as e:
+        return jsonify({"error": str(e)}), 403
+    except BookingConflictError as e:
+        return jsonify({
+            "error": str(e),
+            "conflicts": [_booking_to_response(item) for item in e.conflicts],
+        }), 409
+    except (ValueError, KeyError) as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@bookings_bp.route("/<booking_id>/extend", methods=["POST"])
+@login_required
+def extend_booking(booking_id):
+    data = request.get_json(silent=True) or {}
+    try:
+        booking = _booking_service.extend_booking(
+            booking_id, g.current_user, data.get("minutes", 30)
+        )
+        _audit_service.record(
+            g.current_user.id,
+            "booking.extended",
+            "booking",
+            booking.id,
+            f"Buchung wurde um {int(data.get('minutes', 30))} Minuten verlängert.",
+        )
+        return jsonify({
+            "message": "Buchung wurde verlängert.",
             "booking": _booking_to_response(booking),
         }), 200
     except BookingNotFoundError as e:
         return jsonify({"error": str(e)}), 404
     except AuthError as e:
         return jsonify({"error": str(e)}), 403
+    except BookingConflictError as e:
+        return jsonify({
+            "error": str(e),
+            "conflicts": [_booking_to_response(item) for item in e.conflicts],
+        }), 409
+    except (ValueError, TypeError) as e:
+        return jsonify({"error": str(e)}), 400
 
 
 @bookings_bp.route("/<booking_id>/check-in", methods=["POST"])
@@ -340,15 +437,64 @@ def join_booking(booking_id):
             email=data.get("email", ""),
             access_password=data.get("access_password", ""),
         )
+        target = _resolve_booking_target(booking) or {}
         return jsonify({
             "message": "Sie wurden erfolgreich in das Seminar eingebucht.",
-            "booking": _booking_to_response(booking),
+            "booking": {
+                "title": booking.title,
+                "start_time": booking.start_time,
+                "end_time": booking.end_time,
+                "target_name": target.get("target_name", "Raum"),
+            },
         }), 200
     except BookingNotFoundError as e:
         return jsonify({"error": str(e)}), 404
     except AuthError as e:
         return jsonify({"error": str(e)}), 403
     except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@bookings_bp.route("/join", methods=["POST"])
+def join_booking_by_code():
+    """Registriert eine eingeladene Person über einen kurzen Einladungscode."""
+    data = request.get_json(silent=True) or {}
+    try:
+        booking = _booking_service.join_by_invitation_code(
+            invitation_code=data.get("invitation_code", ""),
+            email=data.get("email", ""),
+            access_password=data.get("access_password", ""),
+        )
+        target = _resolve_booking_target(booking) or {}
+        return jsonify({
+            "message": "Sie wurden erfolgreich in die Buchung aufgenommen.",
+            "booking": {
+                "title": booking.title,
+                "start_time": booking.start_time,
+                "end_time": booking.end_time,
+                "target_name": target.get("target_name", "Raum"),
+            },
+        }), 200
+    except BookingNotFoundError as e:
+        return jsonify({"error": str(e)}), 404
+    except AuthError as e:
+        return jsonify({"error": str(e)}), 403
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@bookings_bp.route("/notifications", methods=["GET"])
+@login_required
+def get_notifications():
+    try:
+        notifications = _booking_service.get_user_notifications(
+            g.current_user, request.args.get("limit", 30)
+        )
+        return jsonify({
+            "notifications": notifications,
+            "count": len(notifications),
+        }), 200
+    except (ValueError, TypeError) as e:
         return jsonify({"error": str(e)}), 400
 
 

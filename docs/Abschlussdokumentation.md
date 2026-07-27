@@ -2,11 +2,15 @@
 
 ## Aktueller Funktionsumfang
 
-- Buchung von Seminarräumen, Shared-Desk-Sitzplätzen und Assets
+- Buchung von Seminarräumen, Shared-Office-Arbeitsplätzen und Assets
 - Konfliktprüfung gegen Doppelbuchungen
 - Nutzerregistrierung, Login, Logout und Passwort-Reset
 - Signierte, zeitlich begrenzte Bearer-Tokens statt offen übertragener Nutzer-IDs
-- Passwortgeschützte Seminarbuchungen mit Einladungen und externem Beitritt
+- Passwortgeschützte Raumreservierungen mit kurzem Einladungscode, manuell teilbarem Link und erlaubter E-Mail-Liste
+- Bearbeiten und Verlängern eigener zukünftiger Buchungen mit erneuter Konfliktprüfung
+- Bearbeiten oder Stornieren einzelner und zukünftiger Serientermine
+- Grafischer Shared-Office-Sitzplan mit Teilbelegung und freier Platzzahl
+- In-App-Benachrichtigungen ohne echten E-Mail-Versand
 - Admin-Verwaltung für Nutzer, Räume, Sitzplätze, Assets und Buchungen
 - Aktuelle, nach Raum gruppierte Belegungsübersicht im Admin-Bereich
 - Echter Check-in/Check-out als Grundlage der Belegungsübersicht
@@ -16,6 +20,7 @@
 - Kalenderexport eigener Buchungen im iCalendar-Format
 - Bearbeiten und Soft-Delete von Räumen, Sitzplätzen und Assets im Admin-Bereich
 - SQLite-backed Persistenzschicht mit JSON-Migration
+- Abgesicherter Demo-Reset für Buchungen, Statistik, Protokoll und Nicht-Admin-Konten
 
 ## Aktuelle Architektur
 
@@ -41,10 +46,11 @@ tests/          Backend-Tests
 | Raum buchen | Nutzer reserviert einen Seminarraum für einen Zeitraum. |
 | Sitzplatz buchen | Nutzer bucht einen konkreten oder automatisch zugewiesenen Arbeitsplatz. |
 | Asset buchen | Nutzer reserviert Ausstattung wie Laptop, Beamer oder Mikrofon. |
-| Buchungen verwalten | Nutzer sieht eigene Buchungen und kann diese stornieren. |
+| Buchungen verwalten | Nutzer sieht, bearbeitet, verlängert oder storniert eigene Buchungen und Serien. |
 | Admin verwaltet Nutzer | Admin legt Nutzer an, bearbeitet Rollen und setzt Passwörter zurück. |
 | Admin prüft Buchungen | Admin sieht alle Buchungen inklusive Nutzerkontext. |
-| Seminarteilnahme | Externe Personen treten mit Buchungscode, E-Mail und Passwort bei. |
+| Seminarteilnahme | Eingeladene Personen treten mit kurzem Einladungscode, erlaubter E-Mail und Passwort bei. |
+| Shared Office buchen | Nutzer lässt einen freien Arbeitsplatz automatisch zuweisen oder wählt ihn im grafischen Sitzplan. |
 | Raumbelegung prüfen | Admin sieht ausschließlich aktuell eingecheckte Buchungsinhaber. |
 
 ## Offene Punkte
@@ -60,6 +66,6 @@ tests/          Backend-Tests
 - `docs/Konzeptionsplan.md`
 - `docs/UML.md`
 - `docs/Testdokumentation.md`
-- `docs/Engineering_Reflexion.md`
+- `docs/Sprint_III_Engineering_Reflexion.md`
 - `docs/KI_Nutzung.md`
-- `docs/Qualitaetssheet.html`
+- `docs/Qualitaetsbericht.html`

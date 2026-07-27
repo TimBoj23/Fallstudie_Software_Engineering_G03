@@ -52,6 +52,7 @@ class Booking:
     end_time: str
     room_id: str = ""
     auto_assigned_seat: bool = False
+    invitation_code: str = ""
     access_password_hash: str = ""
     invitation_emails: List[str] = field(default_factory=list)
     participant_emails: List[str] = field(default_factory=list)
@@ -61,6 +62,7 @@ class Booking:
     recurrence_index: int = 0
     status: BookingStatus = BookingStatus.ACTIVE
     created_at: str = field(default_factory=utc_now_iso)
+    updated_at: str = field(default_factory=utc_now_iso)
 
     def to_dict(self) -> dict:
         """Serialisiert die Buchung für JSON-Persistenz."""
@@ -74,6 +76,7 @@ class Booking:
             "end_time": self.end_time,
             "room_id": self.room_id,
             "auto_assigned_seat": self.auto_assigned_seat,
+            "invitation_code": self.invitation_code,
             "access_password_hash": self.access_password_hash,
             "invitation_emails": self.invitation_emails,
             "participant_emails": self.participant_emails,
@@ -83,6 +86,7 @@ class Booking:
             "recurrence_index": self.recurrence_index,
             "status": self.status.value if isinstance(self.status, BookingStatus) else self.status,
             "created_at": self.created_at,
+            "updated_at": self.updated_at,
         }
 
     @classmethod
@@ -98,6 +102,7 @@ class Booking:
             end_time=data["end_time"],
             room_id=data.get("room_id", ""),
             auto_assigned_seat=data.get("auto_assigned_seat", False),
+            invitation_code=data.get("invitation_code", ""),
             access_password_hash=data.get("access_password_hash", ""),
             invitation_emails=data.get("invitation_emails", []),
             participant_emails=data.get("participant_emails", []),
@@ -107,6 +112,7 @@ class Booking:
             recurrence_index=int(data.get("recurrence_index", 0)),
             status=BookingStatus(data.get("status", BookingStatus.ACTIVE.value)),
             created_at=data.get("created_at", utc_now_iso()),
+            updated_at=data.get("updated_at", data.get("created_at", utc_now_iso())),
         )
 
     def is_active(self) -> bool:
