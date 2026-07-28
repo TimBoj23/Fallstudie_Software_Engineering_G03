@@ -23,6 +23,8 @@ export default function BookingCard({ booking, onCancel, onAttendance, onCopy, o
   const canExtend = active && !attendance.hasEnded;
   const targetName = booking.target_name || booking.target_id;
   const targetMeta = [typeLabels[booking.target_type] || booking.target_type, booking.target_meta].filter(Boolean).join(" · ");
+  const displayedEndTime = effectiveEndTime(booking);
+  const endedEarly = Boolean(booking.checked_out_at) && displayedEndTime !== booking.end_time;
 
   useEffect(() => {
     const remaining = new Date(booking.end_time).getTime() - Date.now();
@@ -66,7 +68,12 @@ export default function BookingCard({ booking, onCancel, onAttendance, onCopy, o
         <p className="resource-meta">
           {targetMeta}
         </p>
-        <p>{formatDate(booking.start_time)} bis {formatDate(booking.end_time)}</p>
+        <p>{formatDate(booking.start_time)} bis {formatDate(displayedEndTime)}</p>
+        {endedEarly && (
+          <small className="resource-meta">
+            Vorzeitig ausgecheckt · ursprünglich geplant bis {formatDate(booking.end_time)}
+          </small>
+        )}
       </div>
       <div className="booking-card-actions">
         <Button variant="secondary" icon={CalendarArrowDown} onClick={() => downloadBookingIcs(booking)}>Kalender</Button>
@@ -96,14 +103,24 @@ export default function BookingCard({ booking, onCancel, onAttendance, onCopy, o
 }
 
 export function attendanceState(booking, now = Date.now()) {
-  const hasEnded = now >= new Date(booking.end_time).getTime();
   const hasCheckedIn = Boolean(booking.checked_in_at);
-  const isCheckedOut = Boolean(booking.checked_out_at) || (hasCheckedIn && hasEnded);
+  const hasManualCheckout = Boolean(booking.checked_out_at);
+  const hasEnded = hasManualCheckout || now >= new Date(booking.end_time).getTime();
+  const isCheckedOut = hasManualCheckout || (hasCheckedIn && hasEnded);
   return {
     hasEnded,
     isCheckedIn: hasCheckedIn && !isCheckedOut,
     isCheckedOut,
   };
+}
+
+export function effectiveEndTime(booking) {
+  if (!booking.checked_out_at) return booking.end_time;
+  const checkedOutAt = new Date(booking.checked_out_at).getTime();
+  const plannedEnd = new Date(booking.end_time).getTime();
+  return Number.isFinite(checkedOutAt) && checkedOutAt < plannedEnd
+    ? booking.checked_out_at
+    : booking.end_time;
 }
 
 function formatDate(value) {

@@ -1138,3 +1138,86 @@ class TestTimezoneAndOccupancy:
         assert conflicts == []
         assert current_slot["available"] is True
         assert current_slot["booked"] is False
+
+    def test_kalender_laed_relevante_daten_nur_einmal(
+        self, booking_service, booking_repo, seat_repo, demo_room, monkeypatch
+    ):
+        booking_reads = 0
+        seat_reads = 0
+        original_booking_find_all = booking_repo.find_all
+        original_seat_find_all = seat_repo.find_all
+
+        def count_booking_reads():
+            nonlocal booking_reads
+            booking_reads += 1
+            return original_booking_find_all()
+
+        def count_seat_reads():
+            nonlocal seat_reads
+            seat_reads += 1
+            return original_seat_find_all()
+
+        monkeypatch.setattr(booking_repo, "find_all", count_booking_reads)
+        monkeypatch.setattr(seat_repo, "find_all", count_seat_reads)
+
+        schedule = booking_service.get_time_block_schedule(
+            demo_room.id,
+            BookingTargetType.ROOM,
+            start_date="2026-08-01",
+            days=7,
+        )
+
+        assert len(schedule) == 7
+        assert booking_reads == 1
+        assert seat_reads == 1
+
+    def test_optimierter_kalender_zeigt_shared_office_teilweise_und_voll_belegt(
+        self, booking_service, booking_repo, room_repo, seat_repo, demo_room, user
+    ):
+        demo_room.room_type = "shared_desk"
+        room_repo.update(demo_room)
+        first_seat = Seat(id=str(uuid.uuid4()), room_id=demo_room.id, label="A1")
+        second_seat = Seat(id=str(uuid.uuid4()), room_id=demo_room.id, label="A2")
+        seat_repo.save(first_seat)
+        seat_repo.save(second_seat)
+        booking_repo.save(Booking(
+            id=str(uuid.uuid4()),
+            user_id=user.id,
+            target_id=first_seat.id,
+            target_type=BookingTargetType.SEAT,
+            room_id=demo_room.id,
+            title="Erster Platz",
+            start_time="2026-08-01T10:00:00",
+            end_time="2026-08-01T11:00:00",
+        ))
+
+        partial_schedule = booking_service.get_time_block_schedule(
+            demo_room.id, BookingTargetType.ROOM, start_date="2026-08-01", days=1
+        )
+        partial_slot = next(
+            slot for slot in partial_schedule[0]["slots"] if slot["label"] == "10:00-11:00"
+        )
+        assert partial_slot["booked"] is True
+        assert partial_slot["available"] is True
+        assert partial_slot["occupied_seats"] == 1
+        assert partial_slot["available_seats"] == 1
+
+        booking_repo.save(Booking(
+            id=str(uuid.uuid4()),
+            user_id=str(uuid.uuid4()),
+            target_id=second_seat.id,
+            target_type=BookingTargetType.SEAT,
+            room_id=demo_room.id,
+            title="Zweiter Platz",
+            start_time="2026-08-01T10:00:00",
+            end_time="2026-08-01T11:00:00",
+        ))
+        full_schedule = booking_service.get_time_block_schedule(
+            demo_room.id, BookingTargetType.ROOM, start_date="2026-08-01", days=1
+        )
+        full_slot = next(
+            slot for slot in full_schedule[0]["slots"] if slot["label"] == "10:00-11:00"
+        )
+        assert full_slot["available"] is False
+        assert full_slot["occupied_seats"] == 2
+        assert full_slot["available_seats"] == 0

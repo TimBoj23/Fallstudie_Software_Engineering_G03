@@ -10,7 +10,7 @@
 | Einfache SQL-Persistenz | SQLite-backed Repository mit einmaliger JSON-Migration | Belastbarer für die lokale Demo, aber noch kein normalisiertes relationales Schema. |
 | Grundlegende Nutzerkonten | Registrierung, Login, Logout, Passwort-Reset, Profileinstellungen und Kontolöschung | Der Account-Lebenszyklus wurde deutlich vollständiger als ursprünglich geplant. |
 | Admin verwaltet Ressourcen | Nutzer, Rollen, Räume, Sitzplätze, Assets, Buchungen, Belegung, Statistik, Audit und Reset | Die Admin-Oberfläche wurde zu einem eigenen Kernbereich. |
-| Erweiterte Tests | 94 Backend- und 10 Frontend-Tests auf `G03_Backend` plus erfolgreicher Build | Browserbasierte E2E-Tests bleiben offen. |
+| Erweiterte Tests | 96 Backend- und 11 Frontend-Tests auf `G03_Backend` plus erfolgreicher Build | Browserbasierte E2E-Tests bleiben offen. |
 
 ## Wichtige Architekturentscheidungen
 

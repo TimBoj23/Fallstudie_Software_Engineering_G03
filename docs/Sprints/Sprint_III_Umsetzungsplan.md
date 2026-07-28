@@ -71,8 +71,8 @@ RePlan wurde vom lokalen MVP zu einer stabilen Fullstack-Demo mit gemeinsamer RE
 
 ## Nachweis auf diesem Branch
 
-- 94 Backend-Tests bestanden
-- 10 Frontend-Tests bestanden
+- 96 Backend-Tests bestanden
+- 11 Frontend-Tests bestanden
 - React-Produktions-Build erfolgreich
 
 ## Noch vor Abgabe

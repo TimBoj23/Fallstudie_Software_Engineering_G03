@@ -865,4 +865,4 @@ Wichtige Entscheidungen zu Anforderungen, Architektur, Priorisierung und Testing
 
 ### Qualitätsnachweis
 
-Auf `G03_Backend` wurden am 28.07.2026 **94 Backend-Tests**, **10 Frontend-Tests** und der React-Produktions-Build erfolgreich ausgeführt. Die konkreten Szenarien stehen in der [Testdokumentation](./4_Testdokumentation.md).
+Auf `G03_Backend` wurden am 28.07.2026 **96 Backend-Tests**, **11 Frontend-Tests** und der React-Produktions-Build erfolgreich ausgeführt. Die konkreten Szenarien stehen in der [Testdokumentation](./4_Testdokumentation.md).

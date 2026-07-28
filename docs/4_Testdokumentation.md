@@ -54,8 +54,8 @@ npm run build
 
 Am 28.07.2026 wurden auf `G03_Backend` folgende Prüfungen erfolgreich ausgeführt:
 
-- **94 Backend-Tests bestanden**
-- **10 Frontend-Tests bestanden**
+- **96 Backend-Tests bestanden**
+- **11 Frontend-Tests bestanden**
 - **React-Produktions-Build erfolgreich**
 
-Damit sind **104 automatisierte Tests** im dokumentierten Branch grün. Browserbasierte End-to-End-Tests und ein vollständiger Fremdgerätetest bleiben sinnvolle letzte Abnahmeschritte.
+Damit sind **107 automatisierte Tests** im dokumentierten Branch grün. Browserbasierte End-to-End-Tests und ein vollständiger Fremdgerätetest bleiben sinnvolle letzte Abnahmeschritte.

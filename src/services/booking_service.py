@@ -689,6 +689,42 @@ class BookingService:
             raise ValueError("start_date muss im Format YYYY-MM-DD angegeben werden.")
 
         day_count = max(1, min(int(days or 7), 31))
+        # Die für den Kalender relevanten Daten werden genau einmal geladen.
+        # Zuvor löste jeder der bis zu 434 Zeitblöcke mehrere Repository-Zugriffe
+        # aus, was insbesondere mit SQLite zu deutlich sichtbaren Ladezeiten führte.
+        room = self._room_repo.find_by_id(target_id) if target_type == BookingTargetType.ROOM else None
+        room_seats = self._seat_repo.find_by_room(target_id) if room else []
+        seat_ids = {seat.id for seat in room_seats}
+        target_seat = self._seat_repo.find_by_id(target_id) if target_type == BookingTargetType.SEAT else None
+        parent_room_id = target_seat.room_id if target_seat else ""
+        shared_office = bool(
+            room_seats and room and getattr(room, "room_type", "") == "shared_desk"
+        )
+
+        relevant_bookings = []
+        for booking in self._booking_repo.find_active():
+            if booking.checked_out_at:
+                continue
+            direct_target = (
+                booking.target_id == target_id and booking.target_type == target_type
+            )
+            room_dependency = (
+                target_type == BookingTargetType.ROOM
+                and booking.target_type == BookingTargetType.SEAT
+                and (booking.target_id in seat_ids or booking.room_id == target_id)
+            )
+            seat_dependency = (
+                target_type == BookingTargetType.SEAT
+                and booking.target_type == BookingTargetType.ROOM
+                and booking.target_id == parent_room_id
+            )
+            if direct_target or room_dependency or seat_dependency:
+                relevant_bookings.append((
+                    booking,
+                    parse_iso_datetime(booking.start_time),
+                    parse_iso_datetime(booking.end_time),
+                ))
+
         schedule = []
         for day_offset in range(day_count):
             block_date = current_date + timedelta(days=day_offset)
@@ -699,24 +735,12 @@ class BookingService:
             for hour in range(first_hour, last_hour):
                 block_start = f"{block_date.isoformat()}T{hour:02d}:00:00"
                 block_end = f"{block_date.isoformat()}T{hour + 1:02d}:00:00"
-                conflicts = self._find_booking_conflicts(
-                    target_id,
-                    target_type,
-                    block_start,
-                    block_end,
-                )
-                available = self._is_block_available(
-                    target_id,
-                    target_type,
-                    block_start,
-                    block_end,
-                )
-                if conflicts:
-                    booked_blocks += 1
-                if not available:
-                    unavailable_blocks += 1
-                room = self._room_repo.find_by_id(target_id) if target_type == BookingTargetType.ROOM else None
-                room_seats = self._seat_repo.find_by_room(target_id) if room and room.room_type == "shared_desk" else []
+                block_start_dt = parse_iso_datetime(block_start)
+                block_end_dt = parse_iso_datetime(block_end)
+                conflicts = [
+                    booking for booking, booking_start, booking_end in relevant_bookings
+                    if booking_start < block_end_dt and booking_end > block_start_dt
+                ]
                 occupied_seat_ids = {
                     conflict.target_id for conflict in conflicts
                     if conflict.target_type == BookingTargetType.SEAT
@@ -724,6 +748,15 @@ class BookingService:
                 whole_room_blocked = any(
                     conflict.target_type == BookingTargetType.ROOM for conflict in conflicts
                 )
+                available = (
+                    not whole_room_blocked and len(occupied_seat_ids) < len(room_seats)
+                    if shared_office
+                    else not conflicts
+                )
+                if conflicts:
+                    booked_blocks += 1
+                if not available:
+                    unavailable_blocks += 1
                 slots.append({
                     "start_time": block_start,
                     "end_time": block_end,
@@ -731,9 +764,9 @@ class BookingService:
                     "available": available,
                     "booked": bool(conflicts),
                     "conflict_count": len(conflicts),
-                    "total_seats": len(room_seats),
-                    "occupied_seats": len(room_seats) if whole_room_blocked else len(occupied_seat_ids),
-                    "available_seats": 0 if whole_room_blocked else (max(0, len(room_seats) - len(occupied_seat_ids)) if room_seats else 0),
+                    "total_seats": len(room_seats) if shared_office else 0,
+                    "occupied_seats": len(room_seats) if shared_office and whole_room_blocked else (len(occupied_seat_ids) if shared_office else 0),
+                    "available_seats": 0 if shared_office and whole_room_blocked else (max(0, len(room_seats) - len(occupied_seat_ids)) if shared_office else 0),
                 })
 
             total_blocks = len(slots)

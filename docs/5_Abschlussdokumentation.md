@@ -61,7 +61,7 @@ Die Datenbankdatei wird absichtlich nicht in Git versioniert. Gemeinsam versioni
 
 ## Qualität
 
-Der Branch `G03_Backend` wurde am 28.07.2026 mit **94 Backend-Tests**, **10 Frontend-Tests** und einem erfolgreichen Produktions-Build geprüft. Details stehen in der [Testdokumentation](./4_Testdokumentation.md).
+Der Branch `G03_Backend` wurde am 28.07.2026 mit **96 Backend-Tests**, **11 Frontend-Tests** und einem erfolgreichen Produktions-Build geprüft. Details stehen in der [Testdokumentation](./4_Testdokumentation.md).
 
 ## Bewusste Grenzen
 

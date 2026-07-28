@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { slotStatus } from "../components/ObjectCalendar.jsx";
-import { attendanceState } from "../components/BookingCard.jsx";
+import { attendanceState, effectiveEndTime } from "../components/BookingCard.jsx";
 import { buildOptions, parseEmails, toApiTargetType } from "../pages/CreateBooking.jsx";
 import { filterDismissedNotifications } from "../pages/Notifications.jsx";
 
@@ -51,5 +51,20 @@ describe("Buchungsoberfläche", () => {
       isCheckedIn: false,
       isCheckedOut: true,
     });
+  });
+
+  it("zeigt bei vorzeitigem Check-out den tatsächlichen Endzeitpunkt", () => {
+    const booking = {
+      checked_in_at: "2026-07-28T08:05:00Z",
+      checked_out_at: "2026-07-28T08:30:00Z",
+      end_time: "2026-07-28T10:00:00Z",
+    };
+
+    expect(attendanceState(booking, Date.parse("2026-07-28T08:31:00Z"))).toEqual({
+      hasEnded: true,
+      isCheckedIn: false,
+      isCheckedOut: true,
+    });
+    expect(effectiveEndTime(booking)).toBe("2026-07-28T08:30:00Z");
   });
 });
