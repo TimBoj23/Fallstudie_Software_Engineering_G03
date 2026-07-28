@@ -1,39 +1,48 @@
 # Sprint III – Engineering-Reflexion und Lessons Learned
 
+**Stand:** 28.07.2026
+
 ## Planung vs. Umsetzung
 
-| Geplant | Umgesetzt | Einordnung |
+| Geplant | Tatsächlich umgesetzt | Einordnung |
 | --- | --- | --- |
-| Räume und Ressourcen buchbar machen | Räume, Sitzplätze und Assets sind getrennt buchbar | Umfang wurde erweitert, weil Sitzplätze fachlich wichtig wurden. |
-| Einfache Datenhaltung | SQLite-backed Repository mit JSON-Migration | Für die Demo belastbarer als reine JSON-Dateien, aber noch kein vollständig relationales Schema. |
-| Nutzer können buchen | Nutzer haben Registrierung, Login, Logout, eigene Buchungen und Passwort-Reset | Authentifizierung bleibt MVP-nah, ist aber für die Präsentation nutzbar. |
-| Admin verwaltet Ressourcen | Admin kann Räume, Sitzplätze, Assets, Nutzer und Buchungen einsehen/bearbeiten | Admin-Oberfläche wurde deutlich wichtiger als am Anfang geplant. |
-| Grundlegende Tests | Backend-Tests für Services und Randfälle sowie kleine Frontend-Logiktests | Browserbasierte End-to-End-Tests bleiben ein offener Ausbauschritt. |
+| Räume und Ressourcen buchen | Räume, Sitzplätze und Assets mit eigener Navigation, Suche, Filtern und Verfügbarkeit | Sitzplätze wurden als fachlich notwendige eigene Entität ergänzt. |
+| Einfache SQL-Persistenz | SQLite-backed Repository mit einmaliger JSON-Migration | Belastbarer für die lokale Demo, aber noch kein normalisiertes relationales Schema. |
+| Grundlegende Nutzerkonten | Registrierung, Login, Logout, Passwort-Reset, Profileinstellungen und Kontolöschung | Der Account-Lebenszyklus wurde deutlich vollständiger als ursprünglich geplant. |
+| Admin verwaltet Ressourcen | Nutzer, Rollen, Räume, Sitzplätze, Assets, Buchungen, Belegung, Statistik, Audit und Reset | Die Admin-Oberfläche wurde zu einem eigenen Kernbereich. |
+| Erweiterte Tests | 94 Backend- und 10 Frontend-Tests auf `G03_Backend` plus erfolgreicher Build | Browserbasierte E2E-Tests bleiben offen. |
 
-## Architekturentscheidungen
+## Wichtige Architekturentscheidungen
 
-- Das Backend bleibt die zentrale Quelle für Buchungslogik und Konfliktprüfung.
-- Die API trennt Nutzerfunktionen und Adminfunktionen über Rollen.
-- Sitzplätze wurden als eigene Entität modelliert, damit Arbeitsplätze separat buchbar sind.
-- `room_type` trennt intern Shared-Office-Räume (`shared_desk`) von Seminarräumen und Studios; die Oberfläche verwendet den verständlicheren Begriff „Shared Office“.
-- SQLite wird als Persistenzschicht genutzt, die Repository-Abstraktion erlaubt später ein relationales Schema mit eigenen Tabellen.
+- Das Backend bleibt die einzige Quelle für Buchungs-, Konflikt- und Berechtigungsregeln.
+- React stellt Zustände dar, sendet lokale Eingaben als eindeutige Zeitstempel und zeigt fachliche Fehlermeldungen an.
+- `room_type=shared_desk` bleibt die interne Kompatibilitätsbezeichnung; die Oberfläche verwendet „Shared Office“.
+- Sitzplätze sind eigene buchbare Objekte und verweisen auf ihren Shared-Office-Raum.
+- Einladungen bestehen aus Code/Link, Passwort und optionaler E-Mail-Freigabeliste; echter Mailversand wurde ausdrücklich nicht umgesetzt.
+- Reservierung und Anwesenheit bleiben getrennt: Check-in/-out und automatischer Check-out liefern die tatsächliche Belegung.
+- Bilder und Seed-Definitionen werden über Git geteilt, die lokale SQLite-Datei dagegen nicht.
 
 ## Abweichungen und Gründe
 
-- Das Frontend wurde zwischenzeitlich stärker eigenständig entwickelt als geplant. Dadurch musste später gezielt an die REST API angebunden werden.
-- Die Datenhaltung wurde zunächst einfach gehalten. Für die Demo wurde SQLite ergänzt, ohne die gesamte Repository-Schicht neu zu schreiben.
-- Einladungen werden bewusst ohne SMTP als kurzer Code und manuell teilbarer Link umgesetzt.
-- Das Projektposter und Qualitätssheet wurden spät ergänzt, weil die Präsentationsanforderungen zum Ende konkreter wurden.
+- Das Frontend entstand zeitweise stärker unabhängig vom Backend. Die REST-API musste anschließend konsequent als gemeinsame Schnittstelle etabliert werden.
+- Der Funktionsumfang wuchs um Dark Mode, Favoriten, Serien, Einladungen, iCalendar, QR-Check-in, Statistik und Kontoeinstellungen, weil diese Abläufe die Demo wesentlich verständlicher machen.
+- Die Datenhaltung wurde ohne kompletten Austausch der Services von JSON auf SQLite umgestellt. Das sparte Risiko, lässt aber eine spätere relationale Normalisierung offen.
+- Zeitfehler traten auf, weil Browserzeit, UTC und lokale Backendzeit unterschiedlich interpretiert wurden. Eindeutige ISO-8601-Werte und gemeinsame Zeit-Hilfsfunktionen wurden deshalb zum Architekturthema.
+- Lokale Datenbanken führten zu unterschiedlichen Demo-Beständen im Team. Das idempotente Seed-Skript wurde zur verbindlichen Synchronisationsquelle.
 
 ## Lessons Learned
 
-- Schnittstellen zwischen Frontend und Backend müssen früh verbindlich beschrieben werden.
-- Demo-Daten sind kein Nebenthema: realistische Daten machen fachliche Abläufe verständlicher.
-- Eine Reservierung ist nicht automatisch eine Anwesenheit; Check-in und Belegung müssen fachlich getrennt werden.
-- Farbschemata lassen sich wartbarer über zentrale Design-Tokens statt über komponentenweise Sonderregeln umsetzen.
-- Technische IDs gehören nicht in Nutzeransichten.
-- Teilbelegung braucht eine sichtbare Legende und konkrete freie Platzzahlen; Farbe allein reicht nicht.
-- Änderungen an Buchungen müssen dieselbe Konfliktlogik wie Neuanlagen verwenden.
-- Admin-Funktionen brauchen mehr Kontext als reine Listen, zum Beispiel Nutzerbilder, Rollen und Buchungsbesitzer.
-- Kleine, testbare Backend-Services erleichtern spätere Änderungen erheblich.
-- KI-Unterstützung kann Umsetzung und Dokumentation beschleunigen, ersetzt aber keine fachliche Bewertung durch das Team.
+- Frontend und Backend brauchen früh einen verbindlichen API- und Zeitformatvertrag.
+- Ein laufender zweiter Backend-Prozess kann einen Fix verdecken; nach Änderungen müssen Prozesse kontrolliert neu gestartet werden.
+- Demo-Daten, Bilder und Seed-Prozess gehören zur reproduzierbaren Produktqualität.
+- Technische IDs gehören nicht in Nutzeransichten; sprechende Namen und konkrete Zustände sind entscheidend.
+- Farbe allein genügt nicht: Belegung braucht Text, Legende und freie Kapazität.
+- Erstellen, Bearbeiten, Verlängern und Serienänderung müssen dieselbe Konfliktlogik verwenden.
+- Ein manueller oder automatischer Check-out muss in allen Verfügbarkeitsansichten konsistent sichtbar werden.
+- Soft-Delete erfordert eine klare Regel für eindeutige Felder; gelöschte E-Mail-Adressen werden deshalb wieder freigegeben.
+- Kleine Service-Methoden und reproduzierbare Tests erleichtern späte Fehlerkorrekturen erheblich.
+- KI kann Analyse, Umsetzung und Dokumentation beschleunigen, ersetzt aber weder fachliche Entscheidungen noch Team-Review und Abnahme.
+
+## Abschlussbewertung
+
+Sprint III hat aus der MVP-Struktur eine vorführbare Fullstack-Anwendung gemacht. Für eine produktive Fortführung wären vor allem Browser-E2E-Tests, ein normalisiertes Datenbankschema, Deployment, Monitoring und – nur bei geänderter Anforderung – ein externer Maildienst nötig.

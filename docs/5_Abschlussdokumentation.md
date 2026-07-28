@@ -1,71 +1,82 @@
 # Abschlussdokumentation RePlan
 
-## Aktueller Funktionsumfang
+**Stand:** 28.07.2026
 
-- Buchung von Seminarräumen, Shared-Office-Arbeitsplätzen und Assets
-- Konfliktprüfung gegen Doppelbuchungen
-- Nutzerregistrierung, Login, Logout und Passwort-Reset
-- Signierte, zeitlich begrenzte Bearer-Tokens statt offen übertragener Nutzer-IDs
-- Passwortgeschützte Raumreservierungen mit kurzem Einladungscode, manuell teilbarem Link und erlaubter E-Mail-Liste
-- Bearbeiten und Verlängern eigener zukünftiger Buchungen mit erneuter Konfliktprüfung
-- Bearbeiten oder Stornieren einzelner und zukünftiger Serientermine
-- Grafischer Shared-Office-Sitzplan mit Teilbelegung und freier Platzzahl
-- In-App-Benachrichtigungen ohne echten E-Mail-Versand
-- Admin-Verwaltung für Nutzer, Räume, Sitzplätze, Assets und Buchungen
-- Aktuelle, nach Raum gruppierte Belegungsübersicht im Admin-Bereich
-- Echter Check-in/Check-out als Grundlage der Belegungsübersicht
-- Filter- und Suchfunktionen für die wichtigsten Übersichten
-- Bilder für Nutzer, Räume, Sitzplätze und Assets
-- Dark Mode mit gespeicherter Nutzerauswahl
-- Kalenderexport eigener Buchungen im iCalendar-Format
-- Bearbeiten und Soft-Delete von Räumen, Sitzplätzen und Assets im Admin-Bereich
-- SQLite-backed Persistenzschicht mit JSON-Migration
+## Ergebnis
+
+RePlan ist als lokale Fullstack-Demo mit Flask-Backend und React/Vite-Frontend lauffähig. Die Anwendung trennt Räume, Shared Offices und Ausstattung verständlich, verhindert Überschneidungen zentral im Backend und bietet Nutzenden sowie Admins passende Arbeitsabläufe.
+
+## Umgesetzter Funktionsumfang
+
+- Registrierung, Login, Logout und signierte, zeitlich begrenzte Bearer-Tokens
+- Passwort-Reset als lokaler Token-MVP; kein echter E-Mail-Versand
+- Kontoeinstellungen für Name, E-Mail, Profilbild, Passwort und sichere Kontolöschung
+- Wiederverwendung einer E-Mail-Adresse nach eigener Kontolöschung
+- Buchung von ganzen Räumen, konkreten oder automatisch zugewiesenen Shared-Office-Plätzen und Assets
+- Zentrale Konfliktprüfung gegen Doppelbuchungen und unzulässige parallele Sitzplatzbuchungen
+- Grafische Zeit- und Verfügbarkeitsansichten sowie Shared-Office-Sitzplan
+- Bearbeiten, Kopieren, Verlängern und Stornieren eigener zukünftiger Buchungen
+- Wöchentliche Serien sowie getrennte Bearbeitung/Stornierung einzelner und folgender Termine
+- Passwortgeschützte Einladungen mit kurzem Code, manuell teilbarem Link und optionaler E-Mail-Freigabeliste
+- In-App-Benachrichtigungen mit Löschfunktion, bewusst ohne Versand an externe Postfächer
+- Check-in per Oberfläche oder QR-Code, manueller Check-out und automatischer Check-out nach Buchungsende
+- iCalendar-Export einzelner Buchungen
+- Favoriten und Dark Mode mit lokal gespeicherter Auswahl
+- Admin-Verwaltung für Nutzer, Rollen, Räume, Sitzplätze, Assets und Buchungen
+- Admin-Ansichten für aktuelle Belegung, Auslastungsstatistik und Audit-Protokoll
 - Abgesicherter Demo-Reset für Buchungen, Statistik, Protokoll und Nicht-Admin-Konten
+- SQLite-backed Repository mit einmaliger Migration vorhandener JSON-Daten
+- Idempotentes Seed-Skript für gemeinsame Demo-Ressourcen, Bilder und vier Demo-Admins
 
-## Aktuelle Architektur
+## Architektur
 
 ```text
-frontend/ React + Vite
-    |
-    | REST API
-    v
-app.py / Flask Blueprints
-    |
-src/routes      HTTP-Endpunkte
-src/services    Geschäftslogik
-src/repositories Datenzugriff
-src/models      Domänenmodelle
-data/           Demo-Daten, Bilder, SQLite
-tests/          Backend-Tests
+React/Vite-Frontend (localhost:5173)
+              |
+              | REST/JSON + Bearer-Token
+              v
+Flask-App / Blueprints (localhost:5002)
+              |
+       Services und Modelle
+              |
+       Repository-Abstraktion
+              |
+SQLite data/replan.sqlite + einmalige JSON-Migration
 ```
 
-## Aktualisierte Use Cases
+Die Datenbankdatei wird absichtlich nicht in Git versioniert. Gemeinsam versioniert werden Quellcode, Bilder und Seed-Definitionen; jedes Teammitglied synchronisiert seine lokale Demo-Datenbank mit `python scripts/seed_demo_data.py`.
 
-| Use Case | Kurzbeschreibung |
+## Zentrale Use Cases
+
+| Use Case | Ergebnis |
 | --- | --- |
-| Raum buchen | Nutzer reserviert einen Seminarraum für einen Zeitraum. |
-| Sitzplatz buchen | Nutzer bucht einen konkreten oder automatisch zugewiesenen Arbeitsplatz. |
-| Asset buchen | Nutzer reserviert Ausstattung wie Laptop, Beamer oder Mikrofon. |
-| Buchungen verwalten | Nutzer sieht, bearbeitet, verlängert oder storniert eigene Buchungen und Serien. |
-| Admin verwaltet Nutzer | Admin legt Nutzer an, bearbeitet Rollen und setzt Passwörter zurück. |
-| Admin prüft Buchungen | Admin sieht alle Buchungen inklusive Nutzerkontext. |
-| Seminarteilnahme | Eingeladene Personen treten mit kurzem Einladungscode, erlaubter E-Mail und Passwort bei. |
-| Shared Office buchen | Nutzer lässt einen freien Arbeitsplatz automatisch zuweisen oder wählt ihn im grafischen Sitzplan. |
-| Raumbelegung prüfen | Admin sieht ausschließlich aktuell eingecheckte Buchungsinhaber. |
+| Raum buchen | Ganzer Raum wird für den gewählten Zeitraum reserviert und für Überschneidungen gesperrt. |
+| Shared Office buchen | Konkreter oder automatisch ausgewählter freier Sitzplatz wird reserviert. |
+| Asset buchen | Ausstattung wird unabhängig von Räumen reserviert. |
+| Buchung verwalten | Eigene Buchung wird angezeigt, bearbeitet, verlängert, kopiert, exportiert oder storniert. |
+| Einladung nutzen | Manuell eingeladene Person tritt mit Code/Link, Passwort und optionaler E-Mail-Freigabe bei. |
+| Anwesenheit erfassen | Check-in/-out unterscheidet Reservierung und tatsächliche Belegung. |
+| Konto verwalten | Profildaten und Passwort werden geändert oder das eigene Konto wird gelöscht. |
+| Administration | Admin verwaltet Stammdaten, Rollen, Buchungen und prüft Belegung, Statistik und Protokoll. |
 
-## Offene Punkte
+## Qualität
 
-- Echtes relationales SQL-Schema mit Tabellen für Nutzer, Räume, Sitzplätze, Assets und Buchungen
-- Produktiver E-Mail-Versand über SMTP oder externen Maildienst
-- Frontend-End-to-End-Tests
-- Refresh-Tokens und serverseitige Sperrliste für vorzeitig widerrufene Auth-Tokens
-- Deployment-Konfiguration außerhalb der lokalen Demo
+Der Branch `G03_Backend` wurde am 28.07.2026 mit **94 Backend-Tests**, **10 Frontend-Tests** und einem erfolgreichen Produktions-Build geprüft. Details stehen in der [Testdokumentation](./4_Testdokumentation.md).
+
+## Bewusste Grenzen
+
+- kein produktiver E-Mail-Versand oder SMTP-Dienst
+- keine browserbasierten End-to-End-Tests
+- keine produktive Deployment-Konfiguration
+- keine Refresh-Tokens oder serverseitige Sperrliste für vorzeitig widerrufene Tokens
+- SQLite speichert die Repository-Datensätze generisch; ein vollständig normalisiertes relationales Schema bleibt eine mögliche Weiterentwicklung
 
 ## Verweise
 
-- `docs/Konzeptionsplan.md`
-- `docs/UML.md`
-- `docs/Testdokumentation.md`
-- `docs/Sprint_III_Engineering_Reflexion.md`
-- `docs/KI_Nutzung.md`
-- `docs/Qualitaetsbericht.html`
+- [Konzeptionsplan](./2_Konzeptionsplan.md)
+- [UML und Architektur](./3_UML.md)
+- [Testdokumentation](./4_Testdokumentation.md)
+- [Sprint-III-Reflexion](./Sprints/Sprint_III_Engineering_Reflexion.md)
+- [Sprint-III-Umsetzungsplan](./Sprints/Sprint_III_Umsetzungsplan.md)
+- [KI-Nutzung](./9_KI_Nutzung.md)
+- [Qualitätsbericht](./Sprints/Qualitaetsbericht.html)

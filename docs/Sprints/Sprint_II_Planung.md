@@ -1,5 +1,7 @@
 # Sprint II – Planung
 
+> **Historische Einordnung (Stand 28.07.2026):** Dieses Dokument hält die damalige Planung und Präsentationsvorbereitung für Sprint II fest. Aussagen wie JSON als primäre Persistenz oder noch offene Integrationsaufgaben sind Sprint-II-Momentaufnahmen. Der aktuelle Stand ist im [`Sprint_III_Umsetzungsplan.md`](./Sprint_III_Umsetzungsplan.md), in der [`../5_Abschlussdokumentation.md`](../5_Abschlussdokumentation.md) und im Projekt-`README.md` dokumentiert.
+
 ## Ziel des Sprint Plannings
 
 In diesem Sprint Planning wird festgelegt, welche Aufgaben in der kommenden Woche bis zum naechsten Review bearbeitet werden. Der Fokus liegt darauf, das bestehende Backend, das React-Frontend und die Praesentationsfaehigkeit des Systems zu stabilisieren.

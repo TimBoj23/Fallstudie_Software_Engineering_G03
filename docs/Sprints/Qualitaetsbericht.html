@@ -653,13 +653,14 @@
         <p class="eyebrow">RePlan Workspace</p>
         <h1 id="title">Qualitätssheet Sprint I bis III</h1>
         <p class="lead">Von der ersten Buchungslogik bis zur RePlan-Demo mit SQLite, Bildern, Adminbereich und
-          realistischeren Demo-Daten: Projektstand, Entscheidungen und Qualitätssicherung auf einen Blick.</p>
+          reproduzierbaren Demo-Daten: Projektstand, Entscheidungen und Qualitätssicherung auf einen Blick. Stand:
+          28.07.2026.</p>
       </div>
       <div class="hero-grid" aria-label="Projektkennzahlen">
         <div class="metric"><strong>3</strong><span>Sprints vom Grundmodell bis zur integrierten Demo</span></div>
         <div class="metric"><strong>4</strong><span>Rollencluster aus Backend, Frontend, Requirements und
             Projektsteuerung</span></div>
-        <div class="metric"><strong>94</strong><span>automatisierte Backend- und Frontend-Tests</span></div>
+        <div class="metric"><strong>104</strong><span>grüne Tests auf G03_Backend: 94 Backend und 10 Frontend</span></div>
         <div class="metric"><strong>1</strong><span>integrierte RePlan-Demo mit Backend, Frontend und Demo-Daten</span>
         </div>
       </div>
@@ -677,8 +678,8 @@
             und erste Tests.</span></article>
         <article class="agenda-item"><span class="agenda-time">3</span><b>Sprint II</b><span>REST API, Integration und
             Sitzplatzlogik.</span></article>
-        <article class="agenda-item"><span class="agenda-time">4</span><b>Sprint III</b><span>SQLite-Migration,
-            Suchfilter, Medien, Admin-Funktionen und strengere Buchungsregeln.</span></article>
+        <article class="agenda-item"><span class="agenda-time">4</span><b>Sprint III</b><span>SQLite, Buchungs-Lifecycle,
+            Admin-Funktionen, Demo-Daten und UI-Anbindung.</span></article>
         <article class="agenda-item"><span class="agenda-time">5</span><b>Demo</b><span>Buchung, Filter, Nutzerrollen
             und Administrationssicht.</span></article>
         <article class="agenda-item"><span class="agenda-time">6</span><b>Abschluss</b><span>Qualitätsstand und nächste
@@ -747,7 +748,7 @@
             <h3>Sprint III</h3>
             <span class="badge">Demoqualität</span>
           </div>
-          <div class="progress" aria-label="Sprint III Fortschritt"><span style="--value: 96%"></span></div>
+          <div class="progress" aria-label="Sprint III Fortschritt"><span style="--value: 100%"></span></div>
           <div class="stage-list">
             <div class="stage">
               <div class="dot">1</div>
@@ -761,8 +762,8 @@
             </div>
             <div class="stage">
               <div class="dot">3</div>
-              <div><strong>Präsentationsstand</strong><span>Adminbereich, Bilder, Filter, Einladungen, Benachrichtigungen
-                  und bereinigte Demo-Daten machen den Ablauf vorführbar.</span></div>
+              <div><strong>Abnahmestand</strong><span>Die Demo enthält reproduzierbare Seed-Daten, 104 grüne Tests,
+                  klare Buchungsabläufe und einen erfolgreichen Produktions-Build.</span></div>
             </div>
           </div>
         </article>
@@ -853,24 +854,24 @@
       </div>
       <div class="quality-grid">
         <article class="quality">
-          <div class="ring" style="--score: 92%">92%</div>
+          <div class="ring" style="--score: 96%">96%</div>
           <strong>Backend-Stabilität</strong>
-          <span>Services, Repositories, SQLite-Migration, Validierungen und automatisierte Tests laufen.</span>
+          <span>Services, Repositories, SQLite-Migration, Validierungen und 94 Backend-Tests laufen.</span>
+        </article>
+        <article class="quality">
+          <div class="ring" style="--score: 92%">92%</div>
+          <strong>API-Anbindung</strong>
+          <span>Frontend nutzt zentrale Endpunkte; 10 Logiktests und der Produktions-Build sind grün.</span>
         </article>
         <article class="quality">
           <div class="ring" style="--score: 88%">88%</div>
-          <strong>API-Anbindung</strong>
-          <span>Frontend nutzt zentrale Endpunkte für Suche, Filter, Buchungen, Adminbereich und Nutzerhistorie.</span>
-        </article>
-        <article class="quality">
-          <div class="ring" style="--score: 86%">86%</div>
           <strong>Datenqualität</strong>
-          <span>Demo-Nutzer, Räume, Assets, Sitzplätze und Bilder wurden bereinigt und ergänzt.</span>
+          <span>Versionierte Bilder und ein idempotenter Seed halten die lokale Demo reproduzierbar.</span>
         </article>
         <article class="quality">
-          <div class="ring" style="--score: 90%">90%</div>
+          <div class="ring" style="--score: 94%">94%</div>
           <strong>Demonstrationsreife</strong>
-          <span>Admin-Sichten, Passwortprozesse, Einladungen, Benachrichtigungen und Buchungsregeln sind vorführbar.</span>
+          <span>Buchungen, Einladungen, Anwesenheit, Konten und Admin-Sichten sind nachvollziehbar.</span>
         </article>
       </div>
     </section>
@@ -885,8 +886,8 @@
         <div class="flow-item"><b>Schnittstelle</b><span>Frontend und Backend über definierte REST-Endpunkte
             verbinden.</span></div>
         <div class="flow-item"><b>Architektur</b><span>REST API, Services, Repositories, SQLite und Migration.</span></div>
-        <div class="flow-item"><b>Nutzerfokus</b><span>Realistische Daten, Bilder, Filter, Historie und Admin-Sicht.</span></div>
-        <div class="flow-item"><b>Qualität</b><span>Tests, Build, GitHub-Issues, Dokumente und klare Rollen.</span></div>
+        <div class="flow-item"><b>Nutzerfokus</b><span>Reale Bilder, klare Namen, Dark Mode, Sitz- und Zeitplan.</span></div>
+        <div class="flow-item"><b>Qualität</b><span>104 Tests, Build, Seed-Synchronisierung und Dokumentationsabgleich.</span></div>
       </div>
     </section>
 
@@ -930,8 +931,8 @@
       {
         title: "Sprint III · Demo",
         problem: "Die MVP-Demo brauchte echte Persistenz, realistische Daten und mehr fachliche Kontrolle im Adminbereich.",
-        decision: "SQLite einführen, JSON-Daten migrieren und die wichtigsten Nutzer-, Buchungs- und Filterprozesse integrieren.",
-        result: "Bereinigte Demo-Daten, neue Räume und Assets, Bilder, Nutzerfotos, Passwortreset, Einladungen und nachvollziehbare Buchungsregeln."
+        decision: "SQLite, Migration und fachlich verständliche Nutzer-, Buchungs-, Anwesenheits- und Admin-Prozesse integrieren.",
+        result: "Reproduzierbare Demo-Daten, 104 grüne Tests, Check-in/-out und erfolgreicher Build."
       }
     ];
 
