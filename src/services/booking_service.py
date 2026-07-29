@@ -266,7 +266,7 @@ class BookingService:
         return suggestions
 
     def get_utilization_stats(self, requesting_user: User, days: int = 30) -> dict:
-        """Kompakte Admin-Kennzahlen für den gewählten Rückblickzeitraum."""
+        """Admin-Kennzahlen zu geplanter und tatsächlich belegter Zeit."""
         if not requesting_user.is_admin():
             raise AuthError("Nur Administratoren können Auslastungsdaten einsehen.")
         day_count = max(1, min(int(days or 30), 365))
@@ -278,14 +278,55 @@ class BookingService:
             and parse_iso_datetime(booking.start_time) <= period_end
         ]
         active = [booking for booking in bookings if booking.is_active()]
-        by_type = {target_type.value: {"count": 0, "hours": 0.0} for target_type in BookingTargetType}
+        by_type = {
+            target_type.value: {"count": 0, "hours": 0.0, "used_hours": 0.0}
+            for target_type in BookingTargetType
+        }
+        meeting_booked_hours = 0.0
+        used_hours = 0.0
         for booking in active:
-            hours = max(0.0, (parse_iso_datetime(booking.end_time) - parse_iso_datetime(booking.start_time)).total_seconds() / 3600)
+            planned_start = max(parse_iso_datetime(booking.start_time), period_start)
+            planned_end = min(parse_iso_datetime(booking.end_time), period_end)
+            hours = max(0.0, (planned_end - planned_start).total_seconds() / 3600)
             bucket = by_type[booking.target_type.value]
             bucket["count"] += 1
             bucket["hours"] = round(bucket["hours"] + hours, 1)
-        attendance_candidates = [booking for booking in active if booking.target_type != BookingTargetType.ASSET]
+
+            if booking.target_type == BookingTargetType.ASSET:
+                continue
+            meeting_booked_hours += hours
+            if booking.checked_in_at:
+                actual_start = max(parse_iso_datetime(booking.checked_in_at), planned_start)
+                actual_end = (
+                    parse_iso_datetime(booking.checked_out_at)
+                    if booking.checked_out_at
+                    else min(period_end, planned_end)
+                )
+                actual_end = min(actual_end, planned_end, period_end)
+                actual_hours = max(0.0, (actual_end - actual_start).total_seconds() / 3600)
+                used_hours += actual_hours
+                bucket["used_hours"] = round(bucket["used_hours"] + actual_hours, 1)
+
+        attendance_candidates = [
+            booking for booking in active
+            if booking.target_type != BookingTargetType.ASSET
+            and parse_iso_datetime(booking.start_time) <= period_end
+        ]
         checked_in = [booking for booking in attendance_candidates if booking.checked_in_at]
+        completed = [
+            booking for booking in attendance_candidates
+            if booking.checked_out_at or parse_iso_datetime(booking.end_time) <= period_end
+        ]
+        no_shows = [booking for booking in completed if not booking.checked_in_at]
+        currently_used = [
+            booking for booking in attendance_candidates
+            if booking.checked_in_at
+            and not booking.checked_out_at
+            and parse_iso_datetime(booking.start_time) <= period_end
+            < parse_iso_datetime(booking.end_time)
+        ]
+        meeting_booked_hours = round(meeting_booked_hours, 1)
+        used_hours = round(used_hours, 1)
         return {
             "days": day_count,
             "booking_count": len(bookings),
@@ -293,6 +334,13 @@ class BookingService:
             "cancelled_count": len(bookings) - len(active),
             "booked_hours": round(sum(item["hours"] for item in by_type.values()), 1),
             "check_in_rate": round((len(checked_in) / len(attendance_candidates) * 100), 1) if attendance_candidates else 0,
+            "meeting_booked_hours": meeting_booked_hours,
+            "used_hours": used_hours,
+            "unused_hours": round(max(0.0, meeting_booked_hours - used_hours), 1),
+            "actual_usage_rate": round((used_hours / meeting_booked_hours * 100), 1) if meeting_booked_hours else 0,
+            "completed_count": len(completed),
+            "no_show_count": len(no_shows),
+            "currently_used_count": len(currently_used),
             "by_type": by_type,
         }
 

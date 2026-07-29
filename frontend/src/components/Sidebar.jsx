@@ -5,6 +5,7 @@
   Building2,
   ClipboardList,
   Gauge,
+  Heart,
   PlusCircle,
   SearchCheck,
   Settings,
@@ -28,6 +29,7 @@ const bookingItems = [
 ];
 
 const accountItems = [
+  { id: "favorites", label: "Favoriten", icon: Heart },
   { id: "notifications", label: "Benachrichtigungen", icon: Bell },
   { id: "settings", label: "Einstellungen", icon: Settings },
 ];

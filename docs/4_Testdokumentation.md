@@ -42,6 +42,9 @@ npm run build
 | Shared Office buchen | Nutzende wählen einen freien Arbeitsplatz grafisch oder lassen einen freien Platz automatisch zuweisen. |
 | Asset buchen | Ausstattung kann im selben Zeitraum nicht doppelt gebucht werden. |
 | Eigene Buchung bearbeiten | Nur zulässige zukünftige Änderungen werden gespeichert; die Konfliktprüfung läuft erneut. |
+| Favoritenübersicht | Kontobezogene Favoriten werden zu Räumen, Arbeitsplätzen und Ausstattung aufgelöst. |
+| Visuelle Verfügbarkeit | Freie und belegte Zeiträume werden mit Ressource, Zeitraum und Konflikten dargestellt. |
+| Reale Nutzung | Geplante Meetingzeit wird anhand von Check-in und Check-out der tatsächlichen Nutzung gegenübergestellt. |
 | Check-in/-out | Check-in ist ab lokalem Buchungsbeginn möglich; ein beendeter Termin wird automatisch ausgecheckt. |
 | Einladung annehmen | Eine Person tritt über manuell geteilten Code/Link, Passwort und gegebenenfalls freigegebene E-Mail bei. |
 | Kontoeinstellungen | Name, E-Mail, Bild und Passwort können geändert werden; nach Löschung ist die E-Mail wieder registrierbar. |
@@ -54,8 +57,8 @@ npm run build
 
 Am 28.07.2026 wurden auf `G03_Backend` folgende Prüfungen erfolgreich ausgeführt:
 
-- **96 Backend-Tests bestanden**
-- **11 Frontend-Tests bestanden**
+- **97 Backend-Tests bestanden**
+- **13 Frontend-Tests bestanden**
 - **React-Produktions-Build erfolgreich**
 
-Damit sind **107 automatisierte Tests** im dokumentierten Branch grün. Browserbasierte End-to-End-Tests und ein vollständiger Fremdgerätetest bleiben sinnvolle letzte Abnahmeschritte.
+Damit sind **110 automatisierte Tests** im dokumentierten Branch grün. Browserbasierte End-to-End-Tests und ein vollständiger Fremdgerätetest bleiben sinnvolle letzte Abnahmeschritte.

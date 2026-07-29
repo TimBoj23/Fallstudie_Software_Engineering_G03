@@ -49,10 +49,10 @@ Das System soll folgende Ziele erfüllen:
 - optionaler Dark Mode mit gespeicherter Auswahl
 - Check-in und Check-out für tatsächliche Raumbelegung
 - Kalenderexport einzelner Buchungen als `.ics`
-- Favoriten für häufig genutzte Räume, Arbeitsplätze und Ausstattung
+- kontobezogene Favoritenübersicht für häufig genutzte Räume, Arbeitsplätze und Ausstattung
 - wiederkehrende wöchentliche Buchungen und freie Alternativtermine
 - QR-Code-Check-in für eigene Buchungen
-- Admin-Auslastungsstatistik und Änderungsprotokoll
+- Admin-Statistik mit geplanter und tatsächlicher Nutzung, No-Shows und Änderungsprotokoll
 - Kontoeinstellungen für Profilbild, Name, E-Mail, Passwort und sichere Kontolöschung
 
 ## Beispiele für Räume und Ressourcen

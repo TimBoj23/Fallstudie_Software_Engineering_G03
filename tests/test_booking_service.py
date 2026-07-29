@@ -193,7 +193,39 @@ class TestCreateBooking:
         analytics = booking_service.get_utilization_stats(admin, days=30)
         assert analytics["active_count"] == 1
         assert analytics["booked_hours"] == 2.0
+        assert analytics["meeting_booked_hours"] == 2.0
+        assert analytics["used_hours"] == 0.0
+        assert analytics["unused_hours"] == 2.0
+        assert analytics["actual_usage_rate"] == 0
+        assert analytics["no_show_count"] == 1
         assert analytics["by_type"]["room"]["count"] == 1
+
+    def test_admin_statistik_vergleicht_geplante_und_tatsaechliche_nutzung(
+        self, booking_service, demo_room, user, admin, monkeypatch
+    ):
+        now = datetime(2026, 7, 29, 12, 0, tzinfo=timezone.utc)
+        monkeypatch.setattr("src.services.booking_service.utc_now", lambda: now)
+        booking_service._booking_repo.save(Booking(
+            id=str(uuid.uuid4()),
+            user_id=user.id,
+            target_id=demo_room.id,
+            target_type=BookingTargetType.ROOM,
+            title="Teilweise genutztes Meeting",
+            start_time="2026-07-29T09:00:00+00:00",
+            end_time="2026-07-29T11:00:00+00:00",
+            checked_in_at="2026-07-29T09:15:00+00:00",
+            checked_out_at="2026-07-29T10:15:00+00:00",
+        ))
+
+        analytics = booking_service.get_utilization_stats(admin, days=7)
+
+        assert analytics["meeting_booked_hours"] == 2.0
+        assert analytics["used_hours"] == 1.0
+        assert analytics["unused_hours"] == 1.0
+        assert analytics["actual_usage_rate"] == 50.0
+        assert analytics["check_in_rate"] == 100.0
+        assert analytics["no_show_count"] == 0
+        assert analytics["by_type"]["room"]["used_hours"] == 1.0
 
     def test_raum_erfolgreich_buchen(self, booking_service, demo_room, user):
         """Ein freier Raum kann erfolgreich gebucht werden."""

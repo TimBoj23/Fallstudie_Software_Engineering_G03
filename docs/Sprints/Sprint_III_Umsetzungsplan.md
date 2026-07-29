@@ -24,8 +24,8 @@ RePlan wurde vom lokalen MVP zu einer stabilen Fullstack-Demo mit gemeinsamer RE
 - [x] Ganzraumbuchungen für Überschneidungen vollständig gesperrt
 - [x] konkrete und automatisch zugewiesene Shared-Office-Plätze umgesetzt
 - [x] grafischen Sitzplan und Zeitraster ergänzt
-- [x] Suche, Filter, Favoriten und sprechende Objektnamen ergänzt
-- [x] Verfügbarkeitsfarben durch Text und Kapazitätsangaben erklärt
+- [x] Suche, Filter, kontobezogene Favoritenübersicht und sprechende Objektnamen ergänzt
+- [x] Verfügbarkeit durch visuelle Frei-/Belegt-Anzeige, Zeitraum und Konfliktdetails erklärt
 
 ### Buchungsverwaltung
 
@@ -50,7 +50,7 @@ RePlan wurde vom lokalen MVP zu einer stabilen Fullstack-Demo mit gemeinsamer RE
 - [x] Profilbild, Name, E-Mail und Passwort in den Kontoeinstellungen änderbar
 - [x] eigene Kontolöschung mit Passwortbestätigung und anschließender E-Mail-Wiederverwendung
 - [x] Nutzer-, Rollen-, Raum-, Sitzplatz-, Asset- und Buchungsverwaltung
-- [x] aktuelle Belegung, Auslastungsstatistik und Audit-Protokoll
+- [x] aktuelle Belegung, tatsächliche Nutzung, No-Shows, Auslastungsstatistik und Audit-Protokoll
 - [x] vier benannte Demo-Admin-Konten mit Profilbildern synchronisiert
 
 ### UX, Qualität und Dokumentation
@@ -71,8 +71,8 @@ RePlan wurde vom lokalen MVP zu einer stabilen Fullstack-Demo mit gemeinsamer RE
 
 ## Nachweis auf diesem Branch
 
-- 96 Backend-Tests bestanden
-- 11 Frontend-Tests bestanden
+- 97 Backend-Tests bestanden
+- 13 Frontend-Tests bestanden
 - React-Produktions-Build erfolgreich
 
 ## Noch vor Abgabe

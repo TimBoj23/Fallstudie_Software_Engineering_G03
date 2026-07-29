@@ -21,9 +21,9 @@ RePlan ist als lokale Fullstack-Demo mit Flask-Backend und React/Vite-Frontend l
 - In-App-Benachrichtigungen mit Löschfunktion, bewusst ohne Versand an externe Postfächer
 - Check-in per Oberfläche oder QR-Code, manueller Check-out und automatischer Check-out nach Buchungsende
 - iCalendar-Export einzelner Buchungen
-- Favoriten und Dark Mode mit lokal gespeicherter Auswahl
+- kontobezogene Favoritenübersicht und Dark Mode mit gespeicherter Auswahl
 - Admin-Verwaltung für Nutzer, Rollen, Räume, Sitzplätze, Assets und Buchungen
-- Admin-Ansichten für aktuelle Belegung, Auslastungsstatistik und Audit-Protokoll
+- Admin-Ansichten für aktuelle Belegung, geplante und tatsächliche Nutzung, No-Shows, Auslastungsstatistik und Audit-Protokoll
 - Abgesicherter Demo-Reset für Buchungen, Statistik, Protokoll und Nicht-Admin-Konten
 - SQLite-backed Repository mit einmaliger Migration vorhandener JSON-Daten
 - Idempotentes Seed-Skript für gemeinsame Demo-Ressourcen, Bilder und vier Demo-Admins
@@ -61,7 +61,7 @@ Die Datenbankdatei wird absichtlich nicht in Git versioniert. Gemeinsam versioni
 
 ## Qualität
 
-Der Branch `G03_Backend` wurde am 28.07.2026 mit **96 Backend-Tests**, **11 Frontend-Tests** und einem erfolgreichen Produktions-Build geprüft. Details stehen in der [Testdokumentation](./4_Testdokumentation.md).
+Der Branch `G03_Backend` wurde am 29.07.2026 mit **97 Backend-Tests**, **13 Frontend-Tests** und einem erfolgreichen Produktions-Build geprüft. Details stehen in der [Testdokumentation](./4_Testdokumentation.md).
 
 ## Bewusste Grenzen
 

@@ -119,16 +119,6 @@ export default function MyBookings({ isLoggedIn, setPage, openCreateBooking }) {
         </form>
       </Panel>
 
-      {editing && (
-        <BookingEditForm
-          booking={editing}
-          onSave={handleEdit}
-          onClose={() => setEditing(null)}
-          saving={state.loading}
-          error={state.error}
-        />
-      )}
-
       {state.loading ? <LoadingState /> : (
         <div className="booking-list">
           {state.bookings.length === 0 ? (
@@ -138,19 +128,29 @@ export default function MyBookings({ isLoggedIn, setPage, openCreateBooking }) {
               action={<Button icon={PlusCircle} onClick={() => setPage("createBooking")}>Buchung erstellen</Button>}
             />
           ) : state.bookings.map((booking) => (
-            <BookingCard
-              key={booking.id}
-              booking={booking}
-              onCancel={handleCancel}
-              onAttendance={handleAttendance}
-              onEdit={setEditing}
-              onExtend={handleExtend}
-              onCopy={(item) => openCreateBooking({
-                targetType: item.target_type,
-                targetId: item.target_id,
-                title: item.title,
-              })}
-            />
+            <div className="booking-list-entry" key={booking.id}>
+              <BookingCard
+                booking={booking}
+                onCancel={handleCancel}
+                onAttendance={handleAttendance}
+                onEdit={setEditing}
+                onExtend={handleExtend}
+                onCopy={(item) => openCreateBooking({
+                  targetType: item.target_type,
+                  targetId: item.target_id,
+                  title: item.title,
+                })}
+              />
+              {editing?.id === booking.id && (
+                <BookingEditForm
+                  booking={editing}
+                  onSave={handleEdit}
+                  onClose={() => setEditing(null)}
+                  saving={state.loading}
+                  error={state.error}
+                />
+              )}
+            </div>
           ))}
         </div>
       )}

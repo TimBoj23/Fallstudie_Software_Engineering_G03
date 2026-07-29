@@ -3,6 +3,8 @@ import { slotStatus } from "../components/ObjectCalendar.jsx";
 import { attendanceState, effectiveEndTime } from "../components/BookingCard.jsx";
 import { buildOptions, parseEmails, toApiTargetType } from "../pages/CreateBooking.jsx";
 import { filterDismissedNotifications } from "../pages/Notifications.jsx";
+import { availabilityPresentation } from "../pages/Availability.jsx";
+import { resolveFavorites } from "../pages/Favorites.jsx";
 
 describe("Buchungsoberfläche", () => {
   it("unterscheidet Ganzraumbelegung und Shared-Office-Teilbelegung", () => {
@@ -66,5 +68,23 @@ describe("Buchungsoberfläche", () => {
       isCheckedOut: true,
     });
     expect(effectiveEndTime(booking)).toBe("2026-07-28T08:30:00Z");
+  });
+
+  it("löst gespeicherte Favoriten zu sichtbaren Ressourcen auf", () => {
+    const result = resolveFavorites(
+      [{ key: "room:room-1", target_type: "room", target_id: "room-1" }],
+      { rooms: [{ id: "room-1", name: "Alpha", room_type: "shared_desk", equipment: [] }] },
+    );
+
+    expect(result[0]).toMatchObject({
+      title: "Alpha",
+      favoriteType: "room",
+      bookingTargetType: "shared_office_auto",
+    });
+  });
+
+  it("liefert klare visuelle Texte für freie und belegte Zeiträume", () => {
+    expect(availabilityPresentation({ available: true }).title).toBe("Frei und buchbar");
+    expect(availabilityPresentation({ available: false }).title).toBe("Bereits belegt");
   });
 });

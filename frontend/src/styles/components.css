@@ -500,6 +500,156 @@
   gap: var(--space-3);
 }
 
+.booking-list-entry {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.booking-list-entry > .panel {
+  margin-left: 124px;
+  border-color: var(--color-primary);
+}
+
+.availability-result-card {
+  display: grid;
+  gap: var(--space-5);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+}
+
+.availability-result-card.is-free {
+  border-color: var(--color-success);
+  background: linear-gradient(135deg, var(--color-success-soft), var(--color-surface) 58%);
+}
+
+.availability-result-card.is-blocked {
+  border-color: var(--color-danger);
+  background: linear-gradient(135deg, var(--color-danger-soft), var(--color-surface) 58%);
+}
+
+.availability-result-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.availability-result-heading h2 {
+  margin-bottom: var(--space-1);
+  font-size: var(--font-size-2xl);
+}
+
+.availability-result-icon {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  flex: 0 0 58px;
+  border-radius: 50%;
+  color: #ffffff;
+  background: var(--color-success);
+}
+
+.is-blocked .availability-result-icon {
+  background: var(--color-danger);
+}
+
+.availability-result-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.availability-result-details > div {
+  display: grid;
+  gap: var(--space-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  background: color-mix(in srgb, var(--color-surface) 88%, transparent);
+}
+
+.availability-result-details span,
+.availability-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-soft);
+}
+
+.availability-visual {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(8px, 1fr));
+  gap: 4px;
+  min-height: 34px;
+}
+
+.availability-visual span {
+  border-radius: 4px;
+  background: var(--color-success);
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.08);
+}
+
+.availability-visual span.blocked {
+  background: var(--color-danger);
+}
+
+.availability-result-actions,
+.availability-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.analytics-usage-card {
+  display: grid;
+  gap: var(--space-3);
+  margin: var(--space-5) 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  background: var(--color-surface-muted);
+}
+
+.analytics-usage-heading,
+.analytics-usage-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.analytics-usage-heading > div {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.analytics-usage-heading span,
+.analytics-usage-footer {
+  color: var(--color-text-soft);
+  font-size: var(--font-size-sm);
+}
+
+.analytics-progress {
+  height: 18px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--color-border);
+}
+
+.analytics-progress span {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-success));
+}
+
+.data-row.analytics-data-row {
+  grid-template-columns: minmax(140px, 1fr) repeat(3, minmax(120px, auto));
+}
+
 .conflict-item {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -639,6 +789,7 @@
 }
 
 .seat-map-place {
+  position: relative;
   display: grid;
   place-items: center;
   gap: var(--space-2);
@@ -649,6 +800,28 @@
   color: var(--color-text);
   background: var(--color-surface);
   box-shadow: var(--shadow-sm);
+}
+
+.seat-map-book-button {
+  display: grid;
+  place-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  border: 0;
+  color: inherit;
+  background: transparent;
+}
+
+.seat-map-book-button:disabled {
+  cursor: not-allowed;
+}
+
+.seat-favorite-button {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  width: 32px;
+  height: 32px;
 }
 
 .seat-map-place.available {
@@ -1121,5 +1294,21 @@
   .resource-card-main {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .booking-list-entry > .panel {
+    margin-left: 0;
+  }
+
+  .availability-result-heading,
+  .analytics-usage-heading,
+  .analytics-usage-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .availability-result-details,
+  .data-row.analytics-data-row {
+    grid-template-columns: 1fr;
   }
 }
