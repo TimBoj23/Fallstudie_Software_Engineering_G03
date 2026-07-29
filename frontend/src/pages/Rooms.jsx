@@ -80,7 +80,12 @@ export default function Rooms({ category = "rooms", openCreateBooking, favorites
             onSelectBlock={(defaults) => openCreateBooking(defaults)}
           />
           {isSharedOfficeView && (
-            <SharedOfficeMap room={selectedRoom} openCreateBooking={openCreateBooking} />
+            <SharedOfficeMap
+              room={selectedRoom}
+              openCreateBooking={openCreateBooking}
+              favorites={favorites}
+              onToggleFavorite={onToggleFavorite}
+            />
           )}
         </>
       )}

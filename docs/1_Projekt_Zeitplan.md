@@ -1,25 +1,38 @@
 # Projektzeitplan – Fallstudie Software Engineering
 
-## Ziel
+## Ziel und Stand
 
-Diese Datei dient als grober Fahrplan für die Fallstudie im Bereich Software Engineering.  
-Da die konkrete Projektidee noch nicht final ausgewählt wurde, orientiert sich der Plan zunächst an allgemeinen Arbeitspaketen, die später an das gewählte Thema angepasst werden können.
+Der Projektzeitplan dokumentiert die Meilensteine der Fallstudie **RePlan**. Das Thema „Raum- und Ressourcenplanung für Unternehmen“ ist umgesetzt; der technische Sprint III ist abgeschlossen und die verbleibende Zeit dient der Dokumentations-, Präsentations- und Abgabevorbereitung.
 
-## Wichtige Termine
+**Dokumentationsstand:** 28.07.2026
 
-| Meilenstein | Datum |
-| --- | ---: |
-| Themenfindung | 24.04.2026 |
-| Sprint I | 11.06.2026 |
-| Sprint II | 20.07.2026 |
-| Sprint III | 28.07.2026 |
-| Projektposter | 01.08.2026 |
-| Finalisierung | 03.08.2026 |
-| Abgabe / Vorstellung | 04.08.2026 |
+## Meilensteine
 
----
+| Meilenstein | Datum | Ergebnis / Status |
+| --- | ---: | --- |
+| Themenfindung | 24.04.2026 | RePlan als Projektthema ausgewählt |
+| Sprint I | 11.06.2026 | Domänenmodell, Schichtenarchitektur und Buchungskern umgesetzt |
+| Sprint II | 20.07.2026 | REST-API, React-Frontend und Sitzplatzlogik integriert |
+| Sprint III | 28.07.2026 | SQLite, Admin-Bereich, Einladungen, Check-in/-out, Serienbuchungen, UX und Tests finalisiert |
+| Projektposter | 01.08.2026 | Präsentationsmaterial fertigstellen |
+| Finalisierung | 03.08.2026 | Fremdgerätetest, Dokumentationskontrolle und Demo-Probelauf |
+| Abgabe / Vorstellung | 04.08.2026 | Finaler Projektstand und Präsentation |
 
-## Nächste Schritte (bis zum 18.05.2026, 13:30 Uhr)
-- Projektplan erstellen: Florian
-- MVP erstellen: Ganze Gruppe
-- Merge mit Main
+## Verantwortlichkeiten
+
+| Bereich | Hauptverantwortung |
+| --- | --- |
+| Projektmanagement | Florian Haentjes |
+| Scrum / Qualitätsmanagement | Tim-Oliver Strauß |
+| Requirements / Dokumentation | Alexander Vetrenko |
+| Frontend / UX | Denis Nickel und Florian Haentjes |
+| Backend | Alexander Vetrenko und Tim-Oliver Strauß |
+| Architektur, Review und Abnahme | gesamtes Team |
+
+## Verbleibende Abschlussarbeiten
+
+- Setup auf mindestens einem weiteren Rechner nach `README.md` vollständig prüfen
+- Demo-Ablauf mit Raum-, Shared-Office-, Asset- und Admin-Szenario proben
+- Poster und Präsentationsunterlagen final abstimmen
+- offene GitHub-Issues prüfen und Sprint-III-Branch kontrolliert zusammenführen
+- finale Tests und Produktions-Build unmittelbar vor der Abgabe wiederholen

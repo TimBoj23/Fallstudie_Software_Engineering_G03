@@ -2,6 +2,8 @@
 
 ## Projekt: Entwicklung einer Raum- und Ressourcenplanungs-App
 
+> **Dokumentstatus 28.07.2026:** Die Abschnitte 1 bis 10 dokumentieren Planung und Entwicklung über drei Sprints. Abschnitt 11 gleicht diese Planung mit dem tatsächlich umgesetzten Fullstack-Prototyp ab. Aktuelle technische Details stehen ergänzend in der [UML- und Architekturübersicht](./3_UML.md) und der [Abschlussdokumentation](./5_Abschlussdokumentation.md).
+
 ## Projektziel
 
 Ziel des Projekts ist die Konzeption, Planung und prototypische Umsetzung einer webbasierten Raum- und Ressourcenplanungs-App.
@@ -45,9 +47,9 @@ Das Thema eignet sich daher besonders gut für eine Fallstudie mit Software-Engi
 
 - Gemeinsames Repository anlegen: erfolgt am 13.04.2026
 - Branching-Strategie definieren: erfolgt am 13.04.2026
-- Kommunikationskanäle festlegen: noch abzustimmen
-- Meeting-Rhythmus abstimmen: noch abzustimmen
-- Definition von Arbeitsweise und Abstimmungsformaten: noch abzustimmen
+- Kommunikationskanäle: Teamabsprachen und GitHub Issues/Kanban
+- Meeting-Rhythmus: sprintbezogene Planungs-, Review- und Abstimmungstermine
+- Arbeitsweise: Feature-Branches, Pull Requests, Reviews, automatisierte Tests und gemeinsame Abnahme
 
 ### Vorgesehene Projektrollen
 
@@ -72,7 +74,7 @@ Die Rollen dienen in erster Linie der Strukturierung und Verantwortung, können 
 - Frühe Priorisierung zentraler Funktionen
 - Kontinuierliche Dokumentation statt Dokumentation erst am Ende
 - Arbeitspakete werden zusätzlich als GitHub Issues dokumentiert
-- Die Arbeitsteilung wird in `docs/Projekt_Zeitplan.md` festgehalten
+- Die Arbeitsteilung wird im [Projektzeitplan](./1_Projekt_Zeitplan.md) festgehalten
 
 ---
 
@@ -378,6 +380,8 @@ Die Anforderungen werden zusätzlich als GitHub Issues gepflegt. Erste User Stor
 
 ### Abgrenzung des MVP
 
+Die folgende Liste beschreibt die ursprüngliche MVP-Abgrenzung. Mehrere zunächst zurückgestellte Punkte wurden in Sprint III bewusst als Demo-Erweiterungen umgesetzt.
+
 Der MVP konzentriert sich auf die zentralen Kernfunktionen:
 
 - Anzeige von Räumen und Ressourcen
@@ -394,15 +398,15 @@ Der MVP konzentriert sich auf die zentralen Kernfunktionen:
 Nicht Teil des MVP:
 
 - komplexes Rollen- und Rechtesystem
-- Benachrichtigungen per E-Mail
-- Kalender-Synchronisierung
+- produktiver Benachrichtigungsversand per E-Mail
+- bidirektionale Kalender-Synchronisierung
 - Mehrsprachigkeit
 - Optimierungsalgorithmen
 - Echtzeit-Kollaboration
 - Single-Sign-On
 - Abrechnungssysteme
 - mobile App
-- erweiterte Statistiken zur Raumauslastung
+- weiterführende produktive BI-/Auslastungsberichte
 
 ### Priorisierung der Anforderungen
 
@@ -501,7 +505,7 @@ Die Priorisierung erfolgt nach:
 |---|---|---|
 | Doppelbuchungen werden nicht korrekt verhindert | hohe Fehleranfälligkeit im Kernprozess | Buchungslogik früh entwickeln und testen |
 | Zu großer Funktionsumfang | Projekt wird nicht rechtzeitig fertig | Muss-, Soll- und Kann-Anforderungen priorisieren |
-| Unklare Aufgabenverteilung | Verzögerungen im Team | Rollen und Aufgaben in `docs/Projekt_Zeitplan.md` festhalten |
+| Unklare Aufgabenverteilung | Verzögerungen im Team | Rollen und Aufgaben im [Projektzeitplan](./1_Projekt_Zeitplan.md) festhalten |
 | Technische Probleme bei der Installation | Anwendung läuft nicht auf anderen Rechnern | `requirements.txt` und Setup-Anleitung pflegen |
 | Fehlende Tests | Fehler bleiben unentdeckt | zentrale Funktionen mit `pytest` testen |
 
@@ -764,7 +768,7 @@ Die Dokumentation soll deutlich machen:
 
 ### Termin
 
-**Freitag, 16.05.2025, 09:00 – 12:15 Uhr**
+**Dienstag, 04.08.2026**
 
 ### Ziel der Vorstellung
 
@@ -822,3 +826,43 @@ Da der Schwerpunkt auf Software Engineering liegt, ist eine kleinere, aber saube
 ### Nachvollziehbarkeit von Entscheidungen
 
 Wichtige Entscheidungen zu Anforderungen, Architektur, Priorisierung und Testing sollen stets begründet und dokumentiert werden.
+
+---
+
+## 11. Umsetzungsabgleich zum Projektabschluss
+
+### Erfüllte Kernanforderungen
+
+| Anforderung | Stand 28.07.2026 |
+| --- | --- |
+| zentrale Ressourcenübersicht | Räume, Shared Offices mit einzelnen Sitzplätzen und Assets sind getrennt sichtbar, such- und filterbar |
+| konfliktfreie Buchung | zentrale Backend-Prüfung für Anlage, Bearbeitung, Verlängerung und Serien umgesetzt |
+| eigene Buchungen | Übersicht, Historienfilter, Kopie, Bearbeitung, Verlängerung, Stornierung und iCalendar-Export umgesetzt |
+| Rollen und Administration | Nutzer-/Rollen-, Ressourcen- und Buchungsverwaltung sowie Belegung, Statistik, Audit und Demo-Reset umgesetzt |
+| Anwesenheit | Check-in per Oberfläche/QR-Code, Check-out und automatischer Check-out umgesetzt |
+| Shared Office | grafischer Sitzplan, freie Kapazität, konkrete oder automatische Platzwahl umgesetzt |
+| Einladungen | Passwort, kurzer Code/Link, optionale E-Mail-Freigabeliste und Beitritt umgesetzt; kein echter E-Mail-Versand |
+| Kontoverwaltung | Profil, E-Mail, Bild, Passwort und eigene Kontolöschung mit E-Mail-Wiederverwendung umgesetzt |
+| Benutzerfreundlichkeit | Dark Mode, Favoriten, verständliche Namen, leere Zustände, Bilder und klare Navigation umgesetzt |
+| Persistenz | SQLite-backed Repository mit einmaliger JSON-Migration und idempotentem Demo-Seed umgesetzt |
+
+### Zusätzlich zum ursprünglichen MVP umgesetzt
+
+- wiederkehrende Buchungen sowie Bearbeitung/Stornierung einzelner und folgender Termine
+- In-App-Benachrichtigungen mit Löschfunktion
+- grafische Zeit- und Sitzplanansichten
+- QR-Code-Check-in und aktuelle Admin-Belegung
+- Auslastungsstatistik und Audit-Protokoll
+- versionierte Demo-Bilder und reproduzierbare Seed-Synchronisierung
+
+### Bewusst nicht umgesetzt
+
+- echter E-Mail- oder SMTP-Versand
+- bidirektionale Synchronisierung mit externen Kalendersystemen; umgesetzt ist ein `.ics`-Export
+- produktive Cloud-Bereitstellung, Monitoring und Hochverfügbarkeit
+- browserbasierte End-to-End-Testautomatisierung
+- vollständig normalisiertes produktives Datenbankschema
+
+### Qualitätsnachweis
+
+Auf `G03_Backend` wurden am 29.07.2026 **97 Backend-Tests**, **13 Frontend-Tests** und der React-Produktions-Build erfolgreich ausgeführt. Die konkreten Szenarien stehen in der [Testdokumentation](./4_Testdokumentation.md).

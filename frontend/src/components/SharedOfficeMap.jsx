@@ -1,4 +1,4 @@
-import { Monitor, RefreshCw, Users } from "lucide-react";
+import { Heart, Monitor, RefreshCw, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { getSeats } from "../api/seatsApi.js";
@@ -9,7 +9,7 @@ import Panel from "./Panel.jsx";
 import StatusMessage from "./StatusMessage.jsx";
 
 
-export default function SharedOfficeMap({ room, openCreateBooking }) {
+export default function SharedOfficeMap({ room, openCreateBooking, favorites = [], onToggleFavorite }) {
   const [range, setRange] = useState(defaultRange);
   const [state, setState] = useState({ loading: true, error: "", seats: [] });
 
@@ -53,25 +53,42 @@ export default function SharedOfficeMap({ room, openCreateBooking }) {
           {state.seats.map((seat) => {
             const available = seat.available !== false;
             return (
-              <button
+              <div
                 key={seat.id}
-                type="button"
                 role="listitem"
                 className={`seat-map-place ${available ? "available" : "occupied"}`}
-                disabled={!available}
-                onClick={() => openCreateBooking({
-                  targetType: "seat",
-                  targetId: seat.id,
-                  startTime: range.start,
-                  endTime: range.end,
-                  title: `${room.name} – Arbeitsplatz ${seat.label}`,
-                })}
               >
-                <span className="seat-map-monitor"><Monitor size={22} /></span>
-                <strong>{seat.label}</strong>
-                <small>{seat.monitor_count || 1} Monitor(e)</small>
-                <span>{available ? "Frei" : "Belegt"}</span>
-              </button>
+                <button
+                  type="button"
+                  className="seat-map-book-button"
+                  disabled={!available}
+                  onClick={() => openCreateBooking({
+                    targetType: "seat",
+                    targetId: seat.id,
+                    startTime: range.start,
+                    endTime: range.end,
+                    title: `${room.name} – Arbeitsplatz ${seat.label}`,
+                  })}
+                >
+                  <span className="seat-map-monitor"><Monitor size={22} /></span>
+                  <strong>{seat.label}</strong>
+                  <small>{seat.monitor_count || 1} Monitor(e)</small>
+                  <span>{available ? "Frei" : "Belegt"}</span>
+                </button>
+                {onToggleFavorite && (
+                  <button
+                    type="button"
+                    className={`favorite-button seat-favorite-button ${favorites.some((favorite) => favorite.key === `seat:${seat.id}`) ? "active" : ""}`}
+                    aria-label="Arbeitsplatz als Favorit speichern"
+                    onClick={() => onToggleFavorite("seat", seat.id)}
+                  >
+                    <Heart
+                      size={17}
+                      fill={favorites.some((favorite) => favorite.key === `seat:${seat.id}`) ? "currentColor" : "none"}
+                    />
+                  </button>
+                )}
+              </div>
             );
           })}
         </div>

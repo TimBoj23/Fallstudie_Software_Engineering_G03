@@ -1,57 +1,64 @@
 # Testdokumentation RePlan
 
-## Automatisierte Tests
+**Geprüfter Branch:** `G03_Backend`
+**Prüfstand:** 28.07.2026
 
-Die Backend-Tests liegen im Ordner `tests/` und werden mit `pytest` ausgeführt. Kleine Frontend-Logiktests liegen unter `frontend/src/tests/` und werden mit Vitest ausgeführt.
+## Automatisierte Prüfungen
+
+Backend-Tests aus dem Projektstamm:
 
 ```bash
-pytest
+.venv/bin/python -m pytest -q
 ```
+
+Frontend-Tests und Produktions-Build:
 
 ```bash
 cd frontend
-npm test
+npm test -- --run
+npm run build
 ```
 
-Aktueller Schwerpunkt:
-
-| Bereich | Beispiele |
+| Bereich | Abgedeckte Beispiele |
 | --- | --- |
-| Nutzer | Registrierung, Login, Profiländerung, eigener Passwortwechsel, anonymisierter Soft-Delete, E-Mail-Wiederverwendung |
-| Räume | Anlegen, Aktualisieren, Deaktivieren, Kapazitätsfilter |
-| Assets | Anlegen, Suchen, Filtern, Deaktivieren |
-| Buchungen | Erfolgreiche Buchung, Konfliktprüfung, Bearbeitung, Verlängerung, Stornierung, Rechteprüfung |
-| Sitzplätze | Direkte Sitzplatzbuchung, automatische Zuweisung, parallele Sitzplatzkonflikte |
-| Randfälle | Startzeit nach Endzeit, gleiche Zeitpunkte, überschneidende Buchungen, stornierte Buchungen |
-| Frontend | Kalenderfarben, Normalisierung von Einladungsadressen sowie getrennte Raum-/Shared-Office-Auswahl |
-| Kalenderexport | UTC-Zeiten und korrekt maskierte iCalendar-Inhalte |
-| Anwesenheit | Check-in, Check-out, verfrühter Check-in und Admin-Belegung |
-| Neue Sprint-Features | Einladungscodes, Einladungskapazität, sichere Einladungsliste, Serienbearbeitung, In-App-Hinweise, Demo-Reset und Auslastungsstatistik |
+| Nutzer und Authentifizierung | Registrierung, Login, Rollen, Bearer-Token, Profiländerung, Passwortwechsel, Passwort-Reset, Kontolöschung und E-Mail-Wiederverwendung |
+| Räume und Assets | Anlegen, Bearbeiten, Deaktivieren, Suche, Filter und Bildpfade |
+| Buchungen | Anlage, Konfliktprüfung, Bearbeitung, Kopie, Verlängerung, Stornierung und Rechteprüfung |
+| Shared Offices | konkrete und automatische Sitzplatzwahl, parallele Sitzplatzkonflikte und Sitzplanlogik |
+| Einladungen | Einladungscode, Passwort, E-Mail-Freigabeliste und Kapazitätsgrenzen – bewusst ohne echten E-Mail-Versand |
+| Serien | wöchentliche Wiederholung sowie Änderung/Stornierung einzelner und folgender Termine |
+| Anwesenheit | Check-in, Check-out, verfrühter Check-in, automatischer Check-out und Admin-Belegung |
+| Zeitverarbeitung | UTC-Normalisierung, lokale Anzeige, Zeitbereichsvalidierung und iCalendar-Export |
+| Administration | Nutzer- und Ressourcenverwaltung, Statistik, Audit-Protokoll und abgesicherter Demo-Reset |
+| Frontend-Logik | Theme, Kalenderfarben, Datumsformat, Buchungs-UI sowie Raum-/Shared-Office-Trennung |
 
-## Manuelle Tests
+## Manuelle Abnahmeszenarien
 
 | Ablauf | Erwartung |
 | --- | --- |
-| Registrierung und Login | Nutzer kann Konto erstellen und sich anmelden. |
-| Raum buchen | Seminarraum ist im Zeitraum für andere blockiert. |
-| Arbeitsplatz buchen | Nur Arbeitsplätze aus Shared Offices werden angeboten; Sitzplan und automatische Auswahl verwenden dieselbe Konfliktlogik. |
-| Asset buchen | Asset ist im Zeitraum nicht doppelt buchbar. |
-| Admin-Nutzerverwaltung | Admin sieht Nutzer mit Bildern und kann Rollen bearbeiten. |
-| Passwort vergessen | Reset ist über E-Mail oder Token-MVP möglich. |
-| Buchungsübersicht | Nutzer sehen sprechende Namen statt technischer IDs. |
-| Seminareinladung | Externe Person kann nur mit gültigem Code, Passwort und – falls vorhanden – eingeladener E-Mail beitreten. |
-| Buchung bearbeiten | Nur zukünftige aktive Buchungen werden gespeichert; Konflikte werden abgewiesen. |
-| Buchung verlängern | Verlängerung gelingt nur, wenn der Folgezeitraum frei ist. |
-| Serienverwaltung | Einzeltermin oder aktueller und alle folgenden Termine können geändert/storniert werden. |
-| Demo-Reset | Passwort, Bestätigungstext und Adminrolle sind erforderlich; Ressourcen und Admins bleiben erhalten. |
-| Aktuelle Raumbelegung | Admin sieht nur eingecheckte Personen in gerade laufenden Buchungen. |
-| Dark Mode | Umschalter wechselt das Farbschema und behält die Auswahl nach Neuladen. |
-| Admin-Ressourcen | Räume, Sitzplätze und Assets können bearbeitet und deaktiviert werden. |
-| Kalenderexport | Exportierte `.ics`-Datei lässt sich in einer Kalenderanwendung öffnen. |
-| Kontoeinstellungen | Name, E-Mail und Profilbild werden aktualisiert; Rollen bleiben unverändert. |
-| Eigenes Passwort | Änderung gelingt nur mit richtigem aktuellem Passwort. |
-| Konto löschen | Bestätigung und Passwort sind nötig; danach verliert die Sitzung den Zugriff und die E-Mail kann erneut registriert werden. |
+| Erstinstallation | Backend und Frontend starten nach Anleitung; `/api/health` antwortet erfolgreich. |
+| Seed-Synchronisierung | `scripts/seed_demo_data.py` ergänzt idempotent Räume, Sitzplätze, neun Assets, Bilder und vier Demo-Admins. |
+| Raum buchen | Eine Ganzraumbuchung blockiert den Raum für überschneidende Buchungen. |
+| Shared Office buchen | Nutzende wählen einen freien Arbeitsplatz grafisch oder lassen einen freien Platz automatisch zuweisen. |
+| Asset buchen | Ausstattung kann im selben Zeitraum nicht doppelt gebucht werden. |
+| Eigene Buchung bearbeiten | Nur zulässige zukünftige Änderungen werden gespeichert; die Konfliktprüfung läuft erneut. |
+| Favoritenübersicht | Kontobezogene Favoriten werden zu Räumen, Arbeitsplätzen und Ausstattung aufgelöst. |
+| Visuelle Verfügbarkeit | Freie und belegte Zeiträume werden mit Ressource, Zeitraum und Konflikten dargestellt. |
+| Reale Nutzung | Geplante Meetingzeit wird anhand von Check-in und Check-out der tatsächlichen Nutzung gegenübergestellt. |
+| Check-in/-out | Check-in ist ab lokalem Buchungsbeginn möglich; ein beendeter Termin wird automatisch ausgecheckt. |
+| Einladung annehmen | Eine Person tritt über manuell geteilten Code/Link, Passwort und gegebenenfalls freigegebene E-Mail bei. |
+| Kontoeinstellungen | Name, E-Mail, Bild und Passwort können geändert werden; nach Löschung ist die E-Mail wieder registrierbar. |
+| Admin-Bereich | Admin sieht Nutzerbilder, Ressourcen, Buchungen, Belegung, Statistik und Audit-Ereignisse. |
+| Demo-Reset | Adminrolle, Passwort und Bestätigungstext sind erforderlich; Demo-Ressourcen und Admins bleiben erhalten. |
+| Dark Mode | Auswahl bleibt nach einem Neuladen erhalten. |
+| Kalenderexport | `.ics`-Datei lässt sich in einer Kalenderanwendung öffnen. |
 
-## Testergebnis
+## Ergebnis
 
-Der aktuelle Stand wurde am 27.07.2026 mit **87 bestandenen Backend-Tests**, **7 bestandenen Frontend-Tests** und einem erfolgreichen Produktions-Build geprüft. Browserbasierte End-to-End-Tests bleiben ein sinnvoller nächster Ausbauschritt.
+Am 28.07.2026 wurden auf `G03_Backend` folgende Prüfungen erfolgreich ausgeführt:
+
+- **97 Backend-Tests bestanden**
+- **13 Frontend-Tests bestanden**
+- **React-Produktions-Build erfolgreich**
+
+Damit sind **110 automatisierte Tests** im dokumentierten Branch grün. Browserbasierte End-to-End-Tests und ein vollständiger Fremdgerätetest bleiben sinnvolle letzte Abnahmeschritte.

@@ -1,37 +1,40 @@
 # KI-Nutzung im Projekt RePlan
 
-Dieses Dokument beschreibt, an welchen Stellen im Projekt KI-Unterstützung genutzt wurde und welche Arbeiten eigenständig durch das Team erfolgt sind. Ziel ist eine transparente Einordnung der Hilfsmittel, ohne die fachliche Eigenleistung des Teams zu verschleiern.
+**Stand:** 28.07.2026
 
-## Grundsatz
-
-KI wurde als unterstützendes Werkzeug eingesetzt. Die fachlichen Entscheidungen, die Bewertung der Ergebnisse, die Abnahme der Änderungen und die Präsentationsausrichtung lagen beim Projektteam.
+Dieses Dokument ordnet die eingesetzte KI-Unterstützung transparent ein. Fachliche Entscheidungen, Priorisierung, Abnahme und Verantwortung lagen jederzeit beim Projektteam.
 
 ## Eigenständige Arbeit des Teams
 
-| Bereich | Eigenständige Leistung |
+| Bereich | Leistung des Teams |
 | --- | --- |
-| Fachliche Anforderungen | Definition der RePlan-Idee: Buchung von Seminarräumen, Sitzplätzen und Assets. |
-| Projektentscheidungen | Priorisierung der Funktionen für die Demo und Festlegung der Sprint-Schwerpunkte. |
-| Rollen und Organisation | Aufgabenverteilung im Team, Sprintplanung, GitHub-Issues und Präsentationsstruktur. |
-| Bewertung der Oberfläche | Einschätzung, welche UI-Elemente für Nutzer verständlich oder untypisch sind. |
-| Demo-Inhalte | Auswahl realistischer Nutzer, Räume, Assets und Bilder für die Präsentation. |
-| Qualitätssicherung | Manuelle Prüfung der Anwendung, fachliche Abnahme und Entscheidung über notwendige Korrekturen. |
+| Fachliche Anforderungen | Definition der RePlan-Idee und der Abläufe für Räume, Shared Offices, Assets, Einladungen und Administration |
+| Projektsteuerung | Rollen, Sprintziele, GitHub-Issues, Kanban-Status und Abnahmereihenfolge |
+| UX-Bewertung | Entscheidung über Navigation, verständliche Bezeichnungen, Farben, Bilder und notwendige Rückmeldungen |
+| Demo-Daten | Auswahl der Räume, Geräte, Arbeitsplätze, Admin-Konten und Bildmotive |
+| Qualitätssicherung | Manuelle Abnahme, Reproduktion gemeldeter Fehler und Entscheidung über notwendige Korrekturen |
+| Präsentation | Festlegung von Schwerpunkt, Demo-Ablauf, Verantwortlichkeiten und Endauswahl der Artefakte |
 
-## KI-Unterstützung
+## Art der KI-Unterstützung
 
-| Bereich | Art der Unterstützung |
+| Bereich | Unterstützung |
 | --- | --- |
-| Code-Analyse | Untersuchung der bestehenden Backend- und Frontend-Struktur. |
-| Backend-Umsetzung | Unterstützung bei Repository-Logik, Sitzplatzbuchungen, Filterlogik, Passwortfunktionen und Admin-Funktionen. |
-| Fehlersuche | Analyse von Fehlermeldungen, zum Beispiel bei SQLite, Passwort-Reset und API-Anbindung. |
-| Demo-Daten | Unterstützung beim Bereinigen und Strukturieren von Nutzern, Räumen, Sitzplätzen und Assets. |
-| Dokumentation | Entwurf und Überarbeitung von Sprint-, Rollen- und Qualitätsdokumenten. |
-| Präsentationsmaterial | Erstellung des visuellen Qualitätssheets als Grundlage für die Projektvorstellung. |
+| Analyse und Refactoring | Untersuchung von Backend, Frontend, Datenhaltung und Dokumentstruktur sowie Vorschläge für kleine, überprüfbare Änderungen |
+| Backend | Unterstützung bei Repository-, Buchungs-, Einladungs-, Check-in/-out-, Profil- und Admin-Logik |
+| Frontend | Unterstützung bei API-Anbindung, Dark Mode, Navigation, Buchungsansichten, Sitzplan und responsivem Layout |
+| Fehlersuche | Analyse von Zeitformaten, Zeitzonen, Check-in-Grenzen, Ressourcenfreigabe, SQLite-Daten und gleichzeitig laufenden Serverprozessen |
+| Demo-Daten | Bereinigung lokaler Nutzer und Aktivitäten sowie idempotente Synchronisierung gemeinsamer Bilder und Ressourcen |
+| Tests | Ergänzung und Ausführung automatisierter Backend- und Frontend-Tests sowie Produktions-Builds |
+| Dokumentation | Abgleich und Aktualisierung von Konzept, UML, Sprint-, Test-, Abschluss- und Qualitätsdokumenten |
 
-## Abgrenzung
+## Arbeitsweise und Kontrolle
 
-KI hat keine eigenständigen Projektentscheidungen getroffen. Vorschläge und Codeänderungen wurden anhand der Anforderungen des Teams bewertet und angepasst. Insbesondere fachliche Rückmeldungen, wie die realistische Gestaltung der Oberfläche, die Trennung zwischen Admin- und Nutzeransicht oder die Bewertung der Datenbankstruktur, kamen aus dem Team.
+- Änderungen wurden auf Anforderungen oder Rückmeldungen des Teams zurückgeführt.
+- Vor Commits wurden relevante Tests und Builds ausgeführt.
+- Sicherheits- und Umfangsentscheidungen wurden ausdrücklich dokumentiert, insbesondere der Verzicht auf echten E-Mail-Versand.
+- Zugangsdaten und lokale Datenbanken wurden nicht als Dokumentationsinhalt oder Git-Artefakt behandelt.
+- Vom Team gemeldete UI- und Zeitfehler wurden reproduziert und anhand des Codes überprüft.
 
 ## Verantwortlichkeit
 
-Die Verantwortung für den finalen Projektstand liegt beim Team. KI wurde genutzt, um Umsetzung, Fehlersuche und Dokumentation zu beschleunigen. Die inhaltliche Kontrolle, Priorisierung und Präsentationsentscheidung erfolgte durch die Projektmitglieder.
+KI war ein Entwicklungs- und Dokumentationswerkzeug, kein autonomes Teammitglied. Das Projektteam bleibt verantwortlich für fachliche Richtigkeit, Code-Review, Abnahme, Präsentation und den final veröffentlichten Stand.

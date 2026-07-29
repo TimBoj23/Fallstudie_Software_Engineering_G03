@@ -17,6 +17,7 @@ import { getFavorites, setFavorite } from "./api/usersApi.js";
 import QrCheckIn from "./pages/QrCheckIn.jsx";
 import Settings from "./pages/Settings.jsx";
 import Notifications from "./pages/Notifications.jsx";
+import Favorites from "./pages/Favorites.jsx";
 
 export default function App() {
   const initialAuth = useMemo(() => loadAuthState(), []);
@@ -104,7 +105,7 @@ export default function App() {
     assets: <Assets setPage={navigate} openCreateBooking={openCreateBooking} favorites={favorites} onToggleFavorite={isLoggedIn ? toggleFavorite : null} />,
     bookings: <MyBookings isLoggedIn={isLoggedIn} setPage={navigate} openCreateBooking={openCreateBooking} />,
     createBooking: <CreateBooking isLoggedIn={isLoggedIn} setPage={navigate} bookingDefaults={bookingDefaults} />,
-    availability: <Availability />,
+    availability: <Availability openCreateBooking={openCreateBooking} />,
     joinBooking: <JoinBooking initialCode={initialInvitationCode} />,
     qrCheckIn: <QrCheckIn token={initialCheckInToken} isLoggedIn={isLoggedIn} setPage={navigate} />,
     admin: <Admin isAdmin={isAdmin} isLoggedIn={isLoggedIn} />,
@@ -118,6 +119,15 @@ export default function App() {
       />
     ),
     notifications: <Notifications isLoggedIn={isLoggedIn} user={auth.user} setPage={navigate} />,
+    favorites: (
+      <Favorites
+        isLoggedIn={isLoggedIn}
+        favorites={favorites}
+        onToggleFavorite={toggleFavorite}
+        openCreateBooking={openCreateBooking}
+        setPage={navigate}
+      />
+    ),
   };
 
   return (

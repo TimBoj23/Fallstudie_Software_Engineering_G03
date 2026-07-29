@@ -12,7 +12,7 @@ Das System soll Mitarbeitenden ermöglichen, verfügbare Räume, Arbeitsplätze 
 
 Die ausführliche fachliche Planung, das Lastenheft, die Stakeholderanalyse, Use Cases, Anforderungen, Priorisierung, Risiken, Sprintplanung und **Rollenverteilung** befinden sich im Dokument:
 
-- [`Konzeptionsplan.md`](./docs/Konzeptionsplan.md)
+- [`docs/2_Konzeptionsplan.md`](./docs/2_Konzeptionsplan.md)
 
 ## Teilnehmer
 
@@ -49,10 +49,10 @@ Das System soll folgende Ziele erfüllen:
 - optionaler Dark Mode mit gespeicherter Auswahl
 - Check-in und Check-out für tatsächliche Raumbelegung
 - Kalenderexport einzelner Buchungen als `.ics`
-- Favoriten für häufig genutzte Räume, Arbeitsplätze und Ausstattung
+- kontobezogene Favoritenübersicht für häufig genutzte Räume, Arbeitsplätze und Ausstattung
 - wiederkehrende wöchentliche Buchungen und freie Alternativtermine
 - QR-Code-Check-in für eigene Buchungen
-- Admin-Auslastungsstatistik und Änderungsprotokoll
+- Admin-Statistik mit geplanter und tatsächlicher Nutzung, No-Shows und Änderungsprotokoll
 - Kontoeinstellungen für Profilbild, Name, E-Mail, Passwort und sichere Kontolöschung
 
 ## Beispiele für Räume und Ressourcen
@@ -80,35 +80,36 @@ Beispiel: `Raum 1001, Platz 23 [1001-23]`
 
 ## Repository und Arbeitsweise
 
-- Wir nutzen hauptsächlich zur Bearbeitung den Branch `G03`.
+- Wir arbeiten mit aufgabenbezogenen Branches; Sprint III wird im Branch `G03_Backend` dokumentiert und per Pull Request zusammengeführt.
 - Es wird ein Pull Request erstellt, wenn eine Aufgabe fertig ist.
-- Die Arbeitsteilung und Meilensteine halten wir in `docs/Projekt_Zeitplan.md` fest.
+- Die Arbeitsteilung und Meilensteine halten wir in [`docs/1_Projekt_Zeitplan.md`](./docs/1_Projekt_Zeitplan.md) fest.
 - Anforderungen, Dokumentation, Setup-Hinweise und Tests werden im Repository gepflegt.
 - Fertige oder geplante Aufgaben werden zusätzlich als GitHub Issues dokumentiert.
 - Die Dokumentation wird kontinuierlich gepflegt und nicht erst am Projektende ergänzt.
 
-## Geplante technische Umsetzung
+## Technische Umsetzung
 
-Die genaue technische Umsetzung kann im Projektverlauf angepasst werden. Geplant ist eine webbasierte Anwendung mit:
+Die webbasierte Anwendung verwendet:
 
 - Python als Programmiersprache
 - Weboberfläche im Browser
-- Speicherung der Daten in einer einfachen Datenbank oder Datei
+- SQLite-backed Speicherung mit einmaliger JSON-Migration
 - Tests mit `pytest`
 - Dokumentation im GitHub-Repository
 
 ## Projektstruktur
 
-Eine mögliche Projektstruktur ist:
-
 ```text
 .
 ├── README.md
 ├── docs/
-│   ├── Sprint_I_Architekturentscheidungen.md
-│   ├── Sprint_II_Planung.md
-│   ├── Sprint_III_Umsetzungsplan.md
-│   └── Konzeptionsplan.md
+│   ├── 1_Projekt_Zeitplan.md
+│   ├── 2_Konzeptionsplan.md
+│   ├── 3_UML.md
+│   ├── 4_Testdokumentation.md
+│   ├── 5_Abschlussdokumentation.md
+│   ├── 9_KI_Nutzung.md
+│   └── Sprints/
 ├── requirements.txt
 ├── app.py
 ├── src/
@@ -124,7 +125,7 @@ Eine mögliche Projektstruktur ist:
 └── tests/
 ```
 
-Die konkrete Struktur kann im Verlauf der Umsetzung angepasst werden.
+Die lokale SQLite-Datei, installierte Abhängigkeiten und Build-Ausgaben sind bewusst nicht Teil des Repository-Inhalts.
 
 ## Aktive Admin-Konten
 
@@ -319,21 +320,24 @@ Hinweis zur Prüfung auf einem weiteren Rechner: Backend-Setup, Frontend-Setup, 
 
 Die Nutzung von KI-Unterstützung ist transparent dokumentiert:
 
-- [`docs/KI_Nutzung.md`](./docs/KI_Nutzung.md)
+- [`docs/9_KI_Nutzung.md`](./docs/9_KI_Nutzung.md)
 
 ## Abschluss- und Qualitätsdokumente
 
-- [`docs/Testdokumentation.md`](./docs/Testdokumentation.md)
-- [`docs/Sprint_III_Engineering_Reflexion.md`](./docs/Sprint_III_Engineering_Reflexion.md)
-- [`docs/Kanban_Aktualisierungen.md`](./docs/Kanban_Aktualisierungen.md)
-- [`docs/Abschlussdokumentation.md`](./docs/Abschlussdokumentation.md)
-- [`docs/Qualitaetsbericht.html`](./docs/Qualitaetsbericht.html)
+- [`docs/4_Testdokumentation.md`](./docs/4_Testdokumentation.md)
+- [`docs/Sprints/Sprint_III_Engineering_Reflexion.md`](./docs/Sprints/Sprint_III_Engineering_Reflexion.md)
+- [`docs/Sprints/Sprint_III_Umsetzungsplan.md`](./docs/Sprints/Sprint_III_Umsetzungsplan.md)
+- [`docs/5_Abschlussdokumentation.md`](./docs/5_Abschlussdokumentation.md)
+- [`docs/Sprints/Qualitaetsbericht.html`](./docs/Sprints/Qualitaetsbericht.html)
+
+Der verbindliche Aufgabenstatus wird direkt in GitHub Issues und im Kanban-Board gepflegt; eine separate Kanban-Markdown-Datei wird nicht mehr geführt.
 
 ## Wichtige Projektdokumente
 
 - `README.md`: Repository-Übersicht, Arbeitsweise, Setup, Start und Tests
-- `docs/Konzeptionsplan.md`: fachliche Planung, Lastenheft, Anforderungen, Stakeholderanalyse, Use Cases, MVP, Risiken, Sprints und Abschlussdokumentation
-- `docs/Projekt_Zeitplan.md`: Meilensteine und grober Projektzeitplan
-- `docs/Sprint_I_Architekturentscheidungen.md`, `docs/Sprint_II_Planung.md` und `docs/Sprint_III_Umsetzungsplan.md`: einheitliche Sprint-Serie
+- `docs/2_Konzeptionsplan.md`: fachliche Planung, Lastenheft, Anforderungen, Stakeholderanalyse, Use Cases, MVP und Umsetzungsabgleich
+- `docs/1_Projekt_Zeitplan.md`: Meilensteine, Verantwortlichkeiten und Abschlussarbeiten
+- `docs/3_UML.md`: aktuelle Domänen-, Schichten- und Ablaufmodelle
+- `docs/Sprints/`: historische Sprint-Planung, Sprint-III-Umsetzungsstand, Reflexion und Qualitätsbericht
 - `requirements.txt`: technische Abhängigkeiten
 - `tests/`: automatisierte Tests

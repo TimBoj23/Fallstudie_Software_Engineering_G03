@@ -622,17 +622,46 @@ function UserAdminList({ users, selectUser, filters, setFilters }) {
 
 function AnalyticsAdmin({ analytics }) {
   const types = analytics.by_type || {};
+  const usageRate = Math.max(0, Math.min(Number(analytics.actual_usage_rate || 0), 100));
   return (
     <Panel title="Auslastungsstatistik" caption={`Rückblick: ${analytics.days || 30} Tage`}>
       <div className="metric-grid">
-        <div className="metric-card"><strong>{analytics.active_count || 0}</strong><span>aktive Buchungen</span></div>
+        <div className="metric-card"><strong>{analytics.active_count || 0}</strong><span>gültige Buchungen</span></div>
         <div className="metric-card"><strong>{analytics.cancelled_count || 0}</strong><span>stornierte Buchungen</span></div>
-        <div className="metric-card"><strong>{analytics.booked_hours || 0} h</strong><span>gebuchte Zeit</span></div>
+        <div className="metric-card"><strong>{analytics.meeting_booked_hours || 0} h</strong><span>geplante Meetingzeit</span></div>
+        <div className="metric-card success"><strong>{analytics.used_hours || 0} h</strong><span>tatsächlich genutzt</span></div>
+        <div className="metric-card"><strong>{analytics.unused_hours || 0} h</strong><span>nicht genutzte Planzeit</span></div>
+        <div className="metric-card success"><strong>{usageRate} %</strong><span>reale Nutzungsquote</span></div>
         <div className="metric-card"><strong>{analytics.check_in_rate || 0} %</strong><span>Check-in-Quote</span></div>
+        <div className="metric-card"><strong>{analytics.no_show_count || 0}</strong><span>No-Shows</span></div>
       </div>
+
+      <div className="analytics-usage-card">
+        <div className="analytics-usage-heading">
+          <div>
+            <strong>Tatsächliche Nutzung der geplanten Meetingzeit</strong>
+            <span>Räume und Shared-Office-Arbeitsplätze, ohne reine Ausstattung</span>
+          </div>
+          <strong>{analytics.used_hours || 0} von {analytics.meeting_booked_hours || 0} Stunden</strong>
+        </div>
+        <div className="analytics-progress" role="progressbar" aria-valuenow={usageRate} aria-valuemin="0" aria-valuemax="100">
+          <span style={{ width: `${usageRate}%` }} />
+        </div>
+        <div className="analytics-usage-footer">
+          <span>{analytics.completed_count || 0} abgeschlossene Termine</span>
+          <span>{analytics.currently_used_count || 0} aktuell in Nutzung</span>
+          <span>{analytics.no_show_count || 0} ohne Check-in</span>
+        </div>
+      </div>
+
       <div className="data-table">
         {Object.entries(types).map(([type, values]) => (
-          <div className="data-row" key={type}><strong>{typeLabel(type)}</strong><span>{values.count} Buchung(en)</span><span>{values.hours} Stunden</span></div>
+          <div className="data-row analytics-data-row" key={type}>
+            <strong>{typeLabel(type)}</strong>
+            <span>{values.count} Buchung(en)</span>
+            <span>{values.hours} h geplant</span>
+            <span>{type === "asset" ? "keine Anwesenheitsmessung" : `${values.used_hours || 0} h genutzt`}</span>
+          </div>
         ))}
       </div>
     </Panel>
