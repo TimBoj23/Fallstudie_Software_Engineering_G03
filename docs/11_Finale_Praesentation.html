@@ -1,0 +1,999 @@
+<!doctype html>
+<html lang="de">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RePlan Finale Präsentation</title>
+  <style>
+    :root {
+      --ink: #111827;
+      --muted: #5d6b82;
+      --line: #d9e2ef;
+      --paper: #f5f7fb;
+      --card: #ffffff;
+      --blue: #2563eb;
+      --cyan: #0891b2;
+      --green: #16a34a;
+      --amber: #f59e0b;
+      --red: #dc2626;
+      --violet: #7c3aed;
+      --dark: #0f172a;
+      --shadow: 0 20px 60px rgba(15, 23, 42, .12);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: var(--paper);
+      color: var(--ink);
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .deck {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: none;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      padding: 38px 56px 32px;
+      background:
+        radial-gradient(circle at 8% 0%, rgba(37, 99, 235, .13), transparent 32rem),
+        radial-gradient(circle at 92% 4%, rgba(8, 145, 178, .10), transparent 24rem),
+        linear-gradient(180deg, #fbfdff 0%, #f3f6fb 100%);
+    }
+
+    .slide.is-active {
+      display: grid;
+    }
+
+    .slide.dark {
+      background:
+        radial-gradient(circle at 16% 6%, rgba(37, 99, 235, .22), transparent 30rem),
+        radial-gradient(circle at 88% 10%, rgba(22, 163, 74, .14), transparent 26rem),
+        linear-gradient(145deg, #07111f 0%, #101827 100%);
+      color: #f8fafc;
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      gap: 28px;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    .brand img {
+      width: 106px;
+      height: 58px;
+      border-radius: 12px;
+      object-fit: cover;
+      background: #fff;
+      box-shadow: 0 8px 22px rgba(15, 23, 42, .12);
+    }
+
+    .brand span {
+      display: block;
+      color: var(--blue);
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .dark .brand span {
+      color: #80b5ff;
+    }
+
+    .brand strong {
+      display: block;
+      margin-top: 2px;
+      font-size: 20px;
+    }
+
+    .content {
+      min-height: 0;
+      display: grid;
+      align-content: center;
+      gap: 24px;
+      padding: 28px 0;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      max-width: 980px;
+      font-size: clamp(54px, 7vw, 98px);
+      line-height: .95;
+      letter-spacing: -.03em;
+    }
+
+    h2 {
+      max-width: 980px;
+      font-size: clamp(42px, 5vw, 74px);
+      line-height: 1;
+      letter-spacing: -.03em;
+    }
+
+    .lead {
+      max-width: 900px;
+      color: var(--muted);
+      font-size: clamp(20px, 2.1vw, 29px);
+      line-height: 1.35;
+    }
+
+    .dark .lead,
+    .dark .muted,
+    .dark .card span,
+    .dark .item span {
+      color: #cbd5e1;
+    }
+
+    .grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .grid.four {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .card {
+      min-height: 190px;
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, .9);
+      box-shadow: var(--shadow);
+    }
+
+    .dark .card {
+      border-color: rgba(255, 255, 255, .12);
+      background: rgba(255, 255, 255, .08);
+    }
+
+    .card b {
+      display: block;
+      font-size: 25px;
+      line-height: 1.08;
+    }
+
+    .card span {
+      display: block;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.36;
+    }
+
+    .metric {
+      display: grid;
+      align-content: space-between;
+      min-height: 170px;
+    }
+
+    .metric strong {
+      font-size: 58px;
+      line-height: .9;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 13px;
+      align-items: stretch;
+    }
+
+    .item {
+      min-height: 155px;
+      display: grid;
+      align-content: space-between;
+      gap: 16px;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+    }
+
+    .dark .item {
+      border-color: rgba(255, 255, 255, .13);
+      background: rgba(255, 255, 255, .08);
+    }
+
+    .num {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #fff;
+      background: var(--blue);
+      font-weight: 950;
+    }
+
+    .item b {
+      display: block;
+      font-size: 20px;
+    }
+
+    .item span {
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .compare {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 18px;
+    }
+
+    .compare .card {
+      min-height: 360px;
+    }
+
+    .list {
+      display: grid;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .check {
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      font-size: 20px;
+      line-height: 1.28;
+    }
+
+    .check::before {
+      content: "";
+      width: 14px;
+      height: 14px;
+      margin-top: 7px;
+      border-radius: 4px;
+      background: var(--green);
+    }
+
+    .warn::before {
+      background: var(--amber);
+    }
+
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .person {
+      min-height: 260px;
+      padding: 22px;
+      border-radius: 20px;
+      color: #fff;
+      background: linear-gradient(145deg, #172033, #2563eb);
+      box-shadow: var(--shadow);
+    }
+
+    .person:nth-child(2) {
+      background: linear-gradient(145deg, #172033, #0891b2);
+    }
+
+    .person:nth-child(3) {
+      background: linear-gradient(145deg, #172033, #16a34a);
+    }
+
+    .person:nth-child(4) {
+      background: linear-gradient(145deg, #172033, #7c3aed);
+    }
+
+    .avatar {
+      width: 56px;
+      height: 56px;
+      display: grid;
+      place-items: center;
+      border-radius: 17px;
+      margin-bottom: 18px;
+      color: #172033;
+      background: #fff;
+      font-size: 21px;
+      font-weight: 950;
+    }
+
+    .person strong {
+      display: block;
+      font-size: 24px;
+    }
+
+    .person small {
+      display: block;
+      margin-top: 8px;
+      color: rgba(255, 255, 255, .78);
+      font-size: 15px;
+      line-height: 1.32;
+    }
+
+    .person ul {
+      margin: 18px 0 0;
+      padding-left: 18px;
+      line-height: 1.45;
+    }
+
+    .arch {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      align-items: center;
+    }
+
+    .layer {
+      min-height: 175px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+    }
+
+    .layer b {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 20px;
+    }
+
+    .layer span {
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .arrow {
+      position: relative;
+    }
+
+    .arrow::after {
+      content: "→";
+      position: absolute;
+      right: -17px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--blue);
+      font-size: 34px;
+      font-weight: 900;
+      z-index: 2;
+    }
+
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .sprint {
+      min-height: 420px;
+      position: relative;
+      overflow: hidden;
+      padding: 25px;
+      border-radius: 22px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    .sprint::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto;
+      height: 8px;
+      background: var(--accent);
+    }
+
+    .sprint h3 {
+      font-size: 31px;
+    }
+
+    .sprint[data-accent="blue"] {
+      --accent: var(--blue);
+    }
+
+    .sprint[data-accent="amber"] {
+      --accent: var(--amber);
+    }
+
+    .sprint[data-accent="green"] {
+      --accent: var(--green);
+    }
+
+    .tag {
+      display: inline-flex;
+      margin: 14px 0 18px;
+      border-radius: 999px;
+      padding: 7px 11px;
+      color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 12%, white);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .score {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 22px;
+      align-items: center;
+    }
+
+    .rubric {
+      display: grid;
+      gap: 12px;
+    }
+
+    .rubric-row {
+      display: grid;
+      grid-template-columns: 1fr 120px;
+      gap: 12px;
+      align-items: center;
+      padding: 16px 18px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--card);
+      box-shadow: 0 10px 30px rgba(15, 23, 42, .06);
+    }
+
+    .bar {
+      height: 12px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e5eaf3;
+    }
+
+    .bar span {
+      display: block;
+      width: var(--value);
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--blue), #7dd3fc);
+    }
+
+    .requirements {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 16px;
+    }
+
+    .requirement {
+      min-height: 62px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+      padding: 12px 15px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, .92);
+      box-shadow: 0 8px 22px rgba(15, 23, 42, .06);
+    }
+
+    .requirement b {
+      display: block;
+      font-size: 16px;
+      line-height: 1.2;
+    }
+
+    .requirement small {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.25;
+    }
+
+    .status {
+      min-width: 72px;
+      padding: 5px 8px;
+      border-radius: 8px;
+      color: #166534;
+      background: #dcfce7;
+      font-size: 12px;
+      font-weight: 900;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .status.open {
+      color: #92400e;
+      background: #fef3c7;
+    }
+
+    .footer,
+    .footer * {
+      font-family: inherit;
+    }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .progress {
+      width: min(420px, 42vw);
+      height: 8px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #d8e0ee;
+    }
+
+    .progress span {
+      display: block;
+      width: var(--progress);
+      height: 100%;
+      border-radius: inherit;
+      background: var(--blue);
+    }
+
+    .controls {
+      position: fixed;
+      right: 26px;
+      bottom: 22px;
+      z-index: 10;
+      display: flex;
+      gap: 8px;
+    }
+
+    .controls button {
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .84);
+      color: var(--ink);
+      font-size: 18px;
+      font-weight: 900;
+      box-shadow: 0 10px 22px rgba(15, 23, 42, .10);
+      cursor: pointer;
+    }
+
+    .note {
+      border-left: 6px solid var(--blue);
+      padding: 18px 22px;
+      border-radius: 18px;
+      background: rgba(37, 99, 235, .08);
+      font-size: 22px;
+      line-height: 1.35;
+    }
+
+    @media print {
+      body {
+        overflow: visible;
+      }
+
+      .slide {
+        position: relative;
+        display: grid !important;
+        width: 297mm;
+        height: 167mm;
+        page-break-after: always;
+      }
+
+      .controls {
+        display: none;
+      }
+    }
+
+    @media (max-width: 900px) {
+      body {
+        overflow: auto;
+      }
+
+      .deck {
+        height: auto;
+      }
+
+      .slide,
+      .slide.is-active {
+        position: relative;
+        min-height: 100vh;
+        display: grid;
+        padding: 28px 22px;
+      }
+
+      .top {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .grid.two,
+      .grid.three,
+      .grid.four,
+      .compare,
+      .role-grid,
+      .timeline,
+      .arch,
+      .flow,
+      .score,
+      .requirements {
+        grid-template-columns: 1fr;
+      }
+
+      .arrow::after {
+        display: none;
+      }
+
+      .controls {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="deck" aria-live="polite">
+    <section class="slide dark is-active">
+      <div class="top">
+        <div class="brand">
+          <img src="../frontend/src/assets/LogoRePlan.png" alt="RePlan">
+          <div><span>Fallstudie Software Engineering</span><strong>Gruppe 03</strong></div>
+        </div>
+      </div>
+      <div class="content">
+        <h1>RePlan Workspace</h1>
+        <p class="lead">Eine Webanwendung für Buchungen von Seminarräumen, Sitzplätzen in Shared Offices und Assets.</p>
+        <div class="grid four">
+          <div class="card metric"><strong>3</strong><span>Sprints</span></div>
+          <div class="card metric"><strong>23</strong><span>Anforderungen aus dem Lastenheft</span></div>
+          <div class="card metric"><strong>110</strong><span>automatisierte Tests</span></div>
+          <div class="card metric"><strong>4</strong><span>Teammitglieder mit festen Rollen</span></div>
+        </div>
+      </div>
+      <footer class="footer"><span>Fallstudie Software Engineering · Gruppe 03</span><div class="progress"><span></span></div><span>1 / 15</span></footer>
+    </section>
+
+    <section class="slide">
+      <div class="top">
+        <div class="brand">
+          <img src="../frontend/src/assets/LogoRePlan.png" alt="RePlan">
+          <div><span>Projektorganisation</span><strong>Rollen und Zuständigkeiten</strong></div>
+        </div>
+      </div>
+      <div class="content">
+        <h2>Vier Personen, benannte Verantwortung</h2>
+        <div class="role-grid">
+          <article class="person"><div class="avatar">TS</div><strong>Tim-Oliver</strong><small>Scrum Master, Backend, Qualität</small><ul><li>Sprinttermine und Reviews</li><li>Buchungslogik</li><li>Fehleranalyse und Tests</li></ul></article>
+          <article class="person"><div class="avatar">AV</div><strong>Alexander</strong><small>Requirements, Backend, Dokumentation</small><ul><li>Lastenheft und Use Cases</li><li>Backend-Modelle</li><li>Anforderungsabgleich</li></ul></article>
+          <article class="person"><div class="avatar">FH</div><strong>Florian</strong><small>Projektmanagement, Frontend, Issues</small><ul><li>Zeitplan und Meetings</li><li>Kanban-Board</li><li>Frontend-Anbindung</li></ul></article>
+          <article class="person"><div class="avatar">DN</div><strong>Denis</strong><small>Frontend, UX, Qualitätssicherung</small><ul><li>Bedienabläufe</li><li>React-Komponenten</li><li>Funktionstests</li></ul></article>
+        </div>
+      </div>
+      <footer class="footer"><span>Nachweis: docs/1_Projekt_Zeitplan.md</span><div class="progress"><span></span></div><span>2 / 15</span></footer>
+    </section>
+
+    <section class="slide">
+      <div class="top">
+        <div class="brand">
+          <img src="../frontend/src/assets/LogoRePlan.png" alt="RePlan">
+          <div><span>Ausgangslage</span><strong>Problem und Auftrag</strong></div>
+        </div>
+      </div>
+      <div class="content">
+        <h2>Drei Objektarten, ein Buchungssystem</h2>
+        <div class="grid three">
+          <div class="card"><b>Seminarräume</b><span>Ein Raum wird als Ganzes für feste Zeitblöcke gebucht.</span></div>
+          <div class="card"><b>Shared Offices</b><span>Ein Nutzer wählt einen Sitzplatz oder lässt einen freien Platz zuweisen.</span></div>
+          <div class="card"><b>Assets</b><span>Beamer, Laptops und weiteres Inventar werden getrennt reserviert.</span></div>
+        </div>
+        <p class="note">Der Auftrag: Verfügbarkeit prüfen, Konflikte verhindern und Buchungen für Nutzer und Administratoren nachvollziehbar verwalten.</p>
+      </div>
+      <footer class="footer"><span>Nachweis: docs/2_Konzeptionsplan.md</span><div class="progress"><span></span></div><span>3 / 15</span></footer>
+    </section>
+
+    <section class="slide">
+      <div class="top">
+        <div class="brand">
+          <img src="../frontend/src/assets/LogoRePlan.png" alt="RePlan">
+          <div><span>Projektverlauf</span><strong>Drei Sprints</strong></div>
+        </div>
+      </div>
+      <div class="content">
+        <h2>Jeder Sprint löste ein anderes Problem</h2>
+        <div class="timeline">
+          <article class="sprint" data-accent="blue"><h3>Sprint I</h3><span class="tag">Planung</span><div class="list"><div class="check">Stakeholder und Lastenheft</div><div class="check">MVP und Rollen</div><div class="check">Domänenmodell</div><div class="check warn">Offen: technische Schnittstellen</div></div></article>
+          <article class="sprint" data-accent="amber"><h3>Sprint II</h3><span class="tag">Integration</span><div class="list"><div class="check">REST API und Login</div><div class="check">Räume, Assets und Sitzplätze</div><div class="check">Konfliktprüfung</div><div class="check warn">Problem: Frontend lief zunächst autark</div></div></article>
+          <article class="sprint" data-accent="green"><h3>Sprint III</h3><span class="tag">Stabilisierung</span><div class="list"><div class="check">SQLite und JSON-Migration</div><div class="check">Kalender, Zeitblöcke, Admin</div><div class="check">Bilder und Demo-Daten</div><div class="check">110 Tests und Produktions-Build</div></div></article>
+        </div>
+      </div>
+      <footer class="footer"><span>Nachweis: docs/Sprints</span><div class="progress"><span></span></div><span>4 / 15</span></footer>
+    </section>
+
+    <section class="slide">
+      <div class="top">
+        <div class="brand">
+          <img src="../frontend/src/assets/LogoRePlan.png" alt="RePlan">
+          <div><span>Lastenheft</span><strong>Funktionale Anforderungen 1 bis 7</strong></div>
+        </div>
+      </div>
+      <div class="content">
+        <h2>Verwalten, finden und konfliktfrei buchen</h2>
+        <div class="requirements">
+          <div class="requirement"><div><b>1. Räume verwalten</b><small>Adminbereich für Anlage, Änderung und Deaktivierung</small></div><span class="status">erfüllt</span></div>
+          <div class="requirement"><div><b>2. Ressourcen erfassen</b><small>Assets und Sitzplätze als getrennte Objekte</small></div><span class="status">erfüllt</span></div>
+          <div class="requirement"><div><b>3. Räume und Ressourcen anzeigen</b><small>Eigene Übersichten mit Bildern und Daten aus der API</small></div><span class="status">erfüllt</span></div>
+          <div class="requirement"><div><b>4. Verfügbarkeit für Zeiträume prüfen</b><small>Kalender, Filter und stündliche Zeitblöcke</small></div><span class="status">erfüllt</span></div>
+          <div class="requirement"><div><b>5. Räume oder Ressourcen buchen</b><small>Raum, Sitzplatz und Asset über denselben Buchungsprozess</small></div><span class="status">erfüllt</span></div>
+          <div class="requirement"><div><b>6. Konflikte erkennen</b><small>Überschneidungen werden im BookingService geprüft</small></div><span class="status">erfüllt</span></div>
+          <div class="requirement"><div><b>7. Doppelbuchungen verhindern</b><small>Die API lehnt kollidierende Buchungen ab</small></div><span class="status">erfüllt</span></div>
+        </div>
+      </div>
+      <footer class="footer"><span>Nachweis: src/services/booking_service.py · frontend/src/pages/Rooms.jsx · Assets.jsx</span><div class="progress"><span></span></div><span>5 / 15</span></footer>
+    </section>
+
+    <section class="slide">
+      <div class="top">
+        <div class="brand">
+          <img src="../frontend/src/assets/LogoRePlan.png" alt="RePlan">
+          <div><span>Lastenheft</span><strong>Funktionale Anforderungen 8 bis 13</strong></div>
+        </div>
+      </div>
+      <div class="content">
+        <h2>Übersicht, Storno, Admin und Rechte</h2>
+        <div class="requirements">
+          <div class="requirement"><div><b>8. Eigene Buchungen anzeigen</b><small>Aktive Buchungen und Historie mit Datum und Objektname</small></div><span class="status">erfüllt</span></div>
+          <div class="requirement"><div><b>9. Buchungen stornieren</b><small>Einzeltermine und folgende Termine einer Serie</small></div><span class="status">erfüllt</span></div>
+          <div class="requirement"><div><b>10. Räume, Ressourcen und Buchungen administrieren</b><small>Geschützter Adminbereich mit Suche und Bearbeitung</small></div><span class="status">erfüllt</span></div>
+          <div class="requirement"><div><b>11. Rollen und Rechte unterscheiden</b><small>User und Admin werden im Backend geprüft</small></div><span class="status">erfüllt</span></div>
+          <div class="requirement"><div><b>12. Verfügbarkeit nachvollziehbar anzeigen</b><small>Kalendertage und Zeitblöcke zeigen die Belegung</small></div><span class="status">erfüllt</span></div>
+          <div class="requirement"><div><b>13. Abläufe über eine Weboberfläche bedienen</b><small>React-Frontend nutzt die Flask-API</small></div><span class="status">erfüllt</span></div>
+        </div>
+      </div>
+      <footer class="footer"><span>Nachweis: frontend/src/pages/MyBookings.jsx · Admin.jsx · src/utils/auth_middleware.py</span><div class="progress"><span></span></div><span>6 / 15</span></footer>
+    </section>
+
+    <section class="slide">
+      <div class="top">
+        <div class="brand">
+          <img src="../frontend/src/assets/LogoRePlan.png" alt="RePlan">
+          <div><span>Lastenheft</span><strong>Nicht-funktionale Anforderungen</strong></div>
+        </div>
+      </div>
+      <div class="content">
+        <h2>Zehn Qualitätsanforderungen mit Nachweis</h2>
+        <div class="requirements">
+          <div class="requirement"><div><b>1. Verständliche Bedienung</b><small>Objektnamen, Bilder, Navigation und leere Zustände</small></div><span class="status">erfüllt</span></div>
+          <div class="requirement"><div><b>2. Übersichtliche Oberfläche</b><small>Getrennte Bereiche für Räume, Shared Offices und Assets</small></div><span class="status">erfüllt</span></div>
+          <div class="requirement"><div><b>3. Nachvollziehbare Buchungen</b><small>Status, Zeitraum, Nutzer und Objekt sind sichtbar</small></div><span class="status">erfüllt</span></div>
+          <div class="requirement"><div><b>4. Verständliche Fehler</b><small>Validierungsfehler kommen als fachliche API-Antwort</small></div><span class="status">erfüllt</span></div>
+          <div class="requirement"><div><b>5. Testbare Geschäftslogik</b><small>Services sind getrennt von Routes und UI</small></div><span class="status">erfüllt</span></div>
+          <div class="requirement"><div><b>6. Wartbare Struktur</b><small>Models, Routes, Services und Repositories sind getrennt</small></div><span class="status">erfüllt</span></div>
+          <div class="requirement"><div><b>7. Dokumentierte Entscheidungen</b><small>Konzept, UML, Tests, Sprints und Abschlussbericht</small></div><span class="status">erfüllt</span></div>
+          <div class="requirement"><div><b>8. Realistischer Projektumfang</b><small>MVP wurde priorisiert und später gezielt ergänzt</small></div><span class="status">erfüllt</span></div>
+          <div class="requirement"><div><b>9. Stabilität vor Funktionsmenge</b><small>110 Tests und erfolgreicher Produktions-Build</small></div><span class="status">erfüllt</span></div>
+          <div class="requirement"><div><b>10. Dokumentierter Start</b><small>README enthält Installation und Startbefehle</small></div><span class="status">erfüllt</span></div>
+        </div>
+      </div>
+      <footer class="footer"><span>Nachweis: README.md · docs/3_UML.md · docs/4_Testdokumentation.md</span><div class="progress"><span></span></div><span>7 / 15</span></footer>
+    </section>
+
+    <section class="slide">
+      <div class="top">
+        <div class="brand">
+          <img src="../frontend/src/assets/LogoRePlan.png" alt="RePlan">
+          <div><span>Systemaufbau</span><strong>Frontend, API und Datenhaltung</strong></div>
+        </div>
+      </div>
+      <div class="content">
+        <h2>Die Buchungsregeln liegen im Backend</h2>
+        <div class="arch">
+          <div class="layer arrow"><b>React und Vite</b><span>Seiten, Formulare, Kalender und Adminbereich</span></div>
+          <div class="layer arrow"><b>REST und JSON</b><span>API-Clients senden Bearer-Token und Nutzdaten</span></div>
+          <div class="layer arrow"><b>Flask Routes</b><span>Blueprints prüfen Eingaben und liefern Statuscodes</span></div>
+          <div class="layer arrow"><b>Services</b><span>Konflikte, Rollen, Serien und Sitzplatzregeln</span></div>
+          <div class="layer"><b>SQLite</b><span>Repositories speichern Datensätze; JSON wird einmal migriert</span></div>
+        </div>
+        <p class="note">Das Frontend zeigt den Zustand. Der BookingService entscheidet, ob eine Buchung zulässig ist.</p>
+      </div>
+      <footer class="footer"><span>Nachweis: frontend/src/api · src/routes · src/services · src/repositories</span><div class="progress"><span></span></div><span>8 / 15</span></footer>
+    </section>
+
+    <section class="slide">
+      <div class="top">
+        <div class="brand">
+          <img src="../frontend/src/assets/LogoRePlan.png" alt="RePlan">
+          <div><span>Backend</span><strong>Regeln, Nutzer und Persistenz</strong></div>
+        </div>
+      </div>
+      <div class="content">
+        <h2>Eine Prüfung gilt für jeden Client</h2>
+        <div class="grid three">
+          <div class="card"><b>Buchungslogik</b><span>Zeiträume, Überschneidungen, Serien, Storno und Sitzplatzkonflikte werden serverseitig geprüft.</span></div>
+          <div class="card"><b>Nutzerprozesse</b><span>Registrierung, Login, Passwortwechsel, Passwortreset, Rollen und Kontolöschung laufen über die API.</span></div>
+          <div class="card"><b>SQLite</b><span>Die Repository-Schicht speichert Laufzeitdaten. Bestehende JSON-Daten werden einmalig übernommen.</span></div>
+        </div>
+      </div>
+      <footer class="footer"><span>Nachweis: src/services/booking_service.py · user_service.py · repositories/base_repository.py</span><div class="progress"><span></span></div><span>9 / 15</span></footer>
+    </section>
+
+    <section class="slide">
+      <div class="top">
+        <div class="brand">
+          <img src="../frontend/src/assets/LogoRePlan.png" alt="RePlan">
+          <div><span>Frontend</span><strong>Buchungen ohne technische IDs</strong></div>
+        </div>
+      </div>
+      <div class="content">
+        <h2>Objekt, Zeitraum und Person sind sichtbar</h2>
+        <div class="grid four">
+          <div class="card"><b>Objekte</b><span>Räume, Shared Offices und Assets haben eigene Übersichten.</span></div>
+          <div class="card"><b>Verfügbarkeit</b><span>Kalender und Zeitblöcke zeigen freie und belegte Zeiten.</span></div>
+          <div class="card"><b>Buchungen</b><span>Name, Bild, Zeitraum, Status und Aktionen ersetzen UUIDs in der Oberfläche.</span></div>
+          <div class="card"><b>Administration</b><span>Nutzerbilder, Rollen, Buchungen, Belegung und Audit-Ereignisse sind bearbeitbar oder einsehbar.</span></div>
+        </div>
+      </div>
+      <footer class="footer"><span>Nachweis: frontend/src/pages · frontend/src/components</span><div class="progress"><span></span></div><span>10 / 15</span></footer>
+    </section>
+
+    <section class="slide">
+      <div class="top">
+        <div class="brand">
+          <img src="../frontend/src/assets/LogoRePlan.png" alt="RePlan">
+          <div><span>Qualitätssicherung</span><strong>Automatische und manuelle Prüfungen</strong></div>
+        </div>
+      </div>
+      <div class="content">
+        <h2>110 Tests plus dokumentierte Abnahme</h2>
+        <div class="score">
+          <div class="rubric">
+            <div class="rubric-row"><b>Backend</b><span>97 Tests bestanden</span></div>
+            <div class="rubric-row"><b>Frontend</b><span>13 Tests bestanden</span></div>
+            <div class="rubric-row"><b>Produktions-Build</b><span>erfolgreich</span></div>
+            <div class="rubric-row"><b>Manuelle Abnahme</b><span>16 dokumentierte Abläufe</span></div>
+          </div>
+          <div class="card"><b>Geprüfte Bereiche</b><span>Authentifizierung, Konflikte, Shared Offices, Serien, Check-in, Zeitverarbeitung, Adminfunktionen und Frontend-Logik.</span></div>
+        </div>
+      </div>
+      <footer class="footer"><span>Nachweis: docs/4_Testdokumentation.md · pytest · Vitest · Vite Build</span><div class="progress"><span></span></div><span>11 / 15</span></footer>
+    </section>
+
+    <section class="slide">
+      <div class="top">
+        <div class="brand">
+          <img src="../frontend/src/assets/LogoRePlan.png" alt="RePlan">
+          <div><span>Problemlösung</span><strong>Drei Änderungen am ursprünglichen Plan</strong></div>
+        </div>
+      </div>
+      <div class="content">
+        <h2>Probleme wurden zu technischen Aufgaben</h2>
+        <div class="grid three">
+          <div class="card"><b>Frontend ohne Backenddaten</b><span>API-Clients ersetzten lokale Demo-Zustände. Danach nutzten Login, Listen und Buchungen dieselben Daten.</span></div>
+          <div class="card"><b>JSON-Dateien als Laufzeitspeicher</b><span>Eine SQLite-Schicht übernahm die Datensätze. Die Service-Schnittstellen blieben bestehen.</span></div>
+          <div class="card"><b>Unklare Sitzplatzlogik</b><span>Sitzplätze wurden eigene Entitäten. Das Backend prüft Raumbelegung, konkrete Platzwahl und automatische Zuweisung.</span></div>
+        </div>
+      </div>
+      <footer class="footer"><span>Nachweis: docs/Sprints/Sprint_III_Engineering_Reflexion.md</span><div class="progress"><span></span></div><span>12 / 15</span></footer>
+    </section>
+
+    <section class="slide">
+      <div class="top">
+        <div class="brand">
+          <img src="../frontend/src/assets/LogoRePlan.png" alt="RePlan">
+          <div><span>Eigenleistung</span><strong>Beitrag jedes Teammitglieds</strong></div>
+        </div>
+      </div>
+      <div class="content">
+        <h2>Vier Beiträge zum gemeinsamen System</h2>
+        <div class="grid four">
+          <div class="card"><b>Tim-Oliver</b><span>Sprints, Backendintegration, Buchungsregeln und Fehlerbehebung.</span></div>
+          <div class="card"><b>Alexander</b><span>Anforderungen, Use Cases, Backendmodelle und Dokumentation.</span></div>
+          <div class="card"><b>Florian</b><span>Zeitplan, GitHub Issues, Frontendanbindung und Adminansichten.</span></div>
+          <div class="card"><b>Denis</b><span>React-Oberfläche, Bedienabläufe, Komponenten und Funktionstests.</span></div>
+        </div>
+      </div>
+      <footer class="footer"><span>Nachweis: docs/10_Kundendokumentation.md</span><div class="progress"><span></span></div><span>13 / 15</span></footer>
+    </section>
+
+    <section class="slide">
+      <div class="top">
+        <div class="brand">
+          <img src="../frontend/src/assets/LogoRePlan.png" alt="RePlan">
+          <div><span>Projektgrenze</span><strong>Offene Punkte nach dem MVP</strong></div>
+        </div>
+      </div>
+      <div class="content">
+        <h2>Vier Themen bleiben für einen Produktivbetrieb offen</h2>
+        <div class="grid four">
+          <div class="card"><b>E-Mail-Versand</b><span>Einladung und Passwortreset sind im System vorhanden. Ein SMTP-Dienst fehlt.</span></div>
+          <div class="card"><b>Kalenderabgleich</b><span>RePlan exportiert iCalendar-Dateien. Änderungen externer Kalender kommen nicht zurück.</span></div>
+          <div class="card"><b>Betrieb</b><span>Cloud-Deployment, Monitoring, Backup und Hochverfügbarkeit sind nicht Teil der Demo.</span></div>
+          <div class="card"><b>Datenmodell und E2E</b><span>Für Produktion fehlen normalisierte SQL-Tabellen und browserbasierte End-to-End-Tests.</span></div>
+        </div>
+        <p class="note">Umgesetzt wurden auch Funktionen außerhalb des ursprünglichen MVP: Serien, QR-Check-in, Favoriten, Audit-Protokoll, Benachrichtigungen und Statistiken.</p>
+      </div>
+      <footer class="footer"><span>Nachweis: docs/2_Konzeptionsplan.md</span><div class="progress"><span></span></div><span>14 / 15</span></footer>
+    </section>
+
+    <section class="slide dark">
+      <div class="top">
+        <div class="brand">
+          <img src="../frontend/src/assets/LogoRePlan.png" alt="RePlan">
+          <div><span>RePlan Workspace</span><strong>Live-Demo</strong></div>
+        </div>
+      </div>
+      <div class="content">
+        <h1>Live-Demo</h1>
+        <p class="lead">RePlan Workspace in der Anwendung</p>
+      </div>
+      <footer class="footer"><span>RePlan Workspace · Live-Demo</span><div class="progress"><span></span></div><span>15 / 15</span></footer>
+    </section>
+  </main>
+
+  <div class="controls" aria-label="Foliensteuerung">
+    <button type="button" id="prev" aria-label="Vorherige Folie">‹</button>
+    <button type="button" id="next" aria-label="Nächste Folie">›</button>
+  </div>
+
+  <script>
+    const slides = [...document.querySelectorAll(".slide")];
+    const progressBars = [...document.querySelectorAll(".progress span")];
+    let index = 0;
+
+    function showSlide(nextIndex) {
+      index = Math.max(0, Math.min(slides.length - 1, nextIndex));
+      slides.forEach((slide, i) => slide.classList.toggle("is-active", i === index));
+      progressBars.forEach((bar) => {
+        bar.style.setProperty("--progress", `${((index + 1) / slides.length) * 100}%`);
+      });
+    }
+
+    document.getElementById("prev").addEventListener("click", () => showSlide(index - 1));
+    document.getElementById("next").addEventListener("click", () => showSlide(index + 1));
+
+    document.addEventListener("keydown", (event) => {
+      if (["ArrowRight", "PageDown", " "].includes(event.key)) {
+        event.preventDefault();
+        showSlide(index + 1);
+      }
+      if (["ArrowLeft", "PageUp"].includes(event.key)) {
+        event.preventDefault();
+        showSlide(index - 1);
+      }
+      if (event.key === "Home") showSlide(0);
+      if (event.key === "End") showSlide(slides.length - 1);
+    });
+
+    showSlide(0);
+  </script>
+</body>
+
+</html>

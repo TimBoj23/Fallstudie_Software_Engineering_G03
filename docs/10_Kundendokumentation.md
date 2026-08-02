@@ -1,107 +1,167 @@
-# Kundendokumentation und Teamreflexion RePlan
+# Kundendokumentation und Fallstudienreflexion RePlan
 
 **Projekt:** RePlan Workspace  
-**Stand:** 29.07.2026  
-**Bezug:** Konzeptionsplan / Lastenheft in [2_Konzeptionsplan.md](./2_Konzeptionsplan.md)
+**Stand:** 02.08.2026  
+**Grundlage:** Lastenheft und Konzeptionsplan in [`2_Konzeptionsplan.md`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/docs/2_Konzeptionsplan.md)
 
-Dieses Handout fasst den aktuellen Stand der Anwendung aus zwei Perspektiven zusammen:
-
-1. Kundensicht: Was kann die Anwendung, welche Anforderungen wurden umgesetzt und welche Architektur wurde gewählt?
-2. Teamsicht: Welche Tätigkeiten, Entscheidungen und Problemlösungen haben die vier Entwickler übernommen?
+Dieses Handout bündelt die Dokumentation für den Kunden und die Fallstudie. Es zeigt zuerst den fachlichen Nutzen der Anwendung und ordnet danach Source Code, Architektur, Datenbank, Anforderungen, Qualitätssicherung, Projektmanagement und persönliche Reflexion ein.
 
 ---
 
-## Teil 1: Kundenteil
+## 1. Dokumentation für den Kunden
 
-### 1. Ziel der Anwendung
+### 1.1 Ziel und Nutzen
 
-RePlan ist eine webbasierte Raum- und Ressourcenplanungs-App. Die Anwendung unterstützt Unternehmen dabei, Räume, Sitzplätze in Shared Offices und Ausstattung zentral zu verwalten, Verfügbarkeiten zu prüfen und Buchungen konfliktfrei durchzuführen.
+RePlan ist eine webbasierte Anwendung zur Buchung und Verwaltung von Räumen, Sitzplätzen in Shared Offices und Ausstattung. Ziel ist, Buchungsprozesse zentral abzubilden, Verfügbarkeiten transparent zu machen und Doppelbuchungen zu verhindern.
 
-Die zentrale Idee aus dem Lastenheft war:
+Für den Kunden stehen drei Fragen im Vordergrund:
 
-- Räume und Ressourcen sollen auffindbar und buchbar sein.
-- Doppelbuchungen sollen verhindert werden.
-- Nutzer sollen eigene Buchungen verwalten können.
-- Administratoren sollen Stammdaten und Buchungen zentral kontrollieren können.
-- Die Anwendung soll über eine Weboberfläche bedienbar und nachvollziehbar dokumentiert sein.
+- Welche Objekte können gebucht werden?
+- Wie wird verhindert, dass Buchungen kollidieren?
+- Wie behalten Nutzer und Administratoren den Überblick?
 
-### 2. Implementierter Funktionsumfang
-
-#### Nutzerfunktionen
+### 1.2 Funktionen für Nutzer
 
 - Registrierung, Login und Logout
-- Bearbeitung des eigenen Profils inklusive Name, E-Mail, Passwort und Profilbild
-- Passwort-vergessen-/Passwort-zurücksetzen-Funktion als lokaler MVP
-- Anzeige von Räumen, Shared Offices/Sitzplätzen und Ausstattung
+- eigenes Profil mit Name, E-Mail, Passwort und Profilbild
+- Passwort-vergessen-/Passwort-zurücksetzen-Funktion
+- Übersicht über Räume, Shared Offices/Sitzplätze und Ausstattung
 - Suche und Filterung nach Objekttyp, Zeitraum und Verfügbarkeit
 - Buchung ganzer Räume
-- Buchung konkreter Sitzplätze in Shared Offices
-- automatische Sitzplatzzuweisung, wenn kein konkreter Platz gewählt wird
+- Buchung eines konkreten Sitzplatzes
+- automatische Sitzplatzzuweisung, wenn kein Sitzplatz ausgewählt wird
 - Buchung von Assets wie Beamer, Laptop oder Whiteboard
-- Kalender- und Zeitblockansichten für buchbare Objekte
-- Anzeige, Bearbeitung, Verlängerung, Kopie und Stornierung eigener Buchungen
-- Historie der eigenen Buchungen nach Typ und Datum
-- Einladungsfunktion per manuell teilbarem Code/Link
-- Check-in und Check-out, zusätzlich QR-Code-gestützte Prüfung
-- iCalendar-Export einzelner Buchungen
-- Favoriten und Dark Mode
-- In-App-Benachrichtigungen
+- Kalender- und Zeitblockansicht für buchbare Objekte
+- eigene Buchungen anzeigen, filtern, bearbeiten, verlängern, kopieren und stornieren
+- Buchungshistorie nach Datum und Objekttyp
+- Einladungen per manuell teilbarem Code oder Link
+- Check-in und Check-out, inklusive QR-Code-Unterstützung
+- iCalendar-Export
+- Favoriten, Dark Mode und In-App-Benachrichtigungen
 
-#### Administratorfunktionen
+### 1.3 Funktionen für Administratoren
 
 - geschützter Adminbereich
 - Verwaltung von Räumen, Sitzplätzen und Assets
 - Verwaltung aller Buchungen
-- Anzeige, welcher Nutzer eine Buchung erstellt hat
-- Nutzerverwaltung inklusive Rollenänderung
-- Anlegen neuer Nutzer
-- zentrales Zurücksetzen von Passwörtern
-- Anzeige von Nutzerfotos
+- Anzeige, von wem eine Buchung stammt
+- Nutzerverwaltung mit Profilbildanzeige
+- Nutzer anlegen und bearbeiten
+- Rollen ändern
+- Passwörter zentral zurücksetzen
 - Belegungs-, Statistik- und Audit-Ansichten
-- Demo-Reset für präsentationsfähige Ausgangsdaten
+- Demo-Reset für reproduzierbare Präsentationsdaten
 
-### 3. Gegenüberstellung Lastenheft und Umsetzung
+### 1.4 Kurzanleitung für die lokale Nutzung
 
-| Anforderung aus dem Lastenheft | Umsetzung | Relevante Dateien |
+Die Anwendung besteht aus Backend und Frontend. Beide Teile werden getrennt gestartet.
+
+Backend:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python src/main.py
+```
+
+Frontend:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Wichtige Dateien:
+
+- [`README.md`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/README.md#fallstudie-software-engineering--gruppe-03)
+- [`requirements.txt`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/requirements.txt)
+- [`frontend/package.json`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/package.json)
+- [`src/main.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/main.py)
+
+### 1.5 Lastenheft gegen implementierte Funktionen
+
+| Lastenheft-Anforderung | Umsetzungsstand | Relevante GitHub-Dateien |
 | --- | --- | --- |
-| Räume sollen verwaltet werden können. | Räume können im Backend modelliert, gespeichert, über API bereitgestellt und im Adminbereich verwaltet werden. | [src/models/room.py](../src/models/room.py), [src/services/room_service.py](../src/services/room_service.py), [src/routes/room_routes.py](../src/routes/room_routes.py), [frontend/src/pages/Admin.jsx](../frontend/src/pages/Admin.jsx) |
-| Ressourcen wie Beamer, Laptops oder Whiteboards sollen erfassbar sein. | Assets sind als eigener Objekttyp umgesetzt und können angezeigt, gefiltert, gebucht und administriert werden. | [src/models/asset.py](../src/models/asset.py), [src/services/asset_service.py](../src/services/asset_service.py), [src/routes/asset_routes.py](../src/routes/asset_routes.py), [frontend/src/pages/Assets.jsx](../frontend/src/pages/Assets.jsx) |
-| Nutzer sollen Räume und Ressourcen anzeigen können. | Frontend-Seiten zeigen Räume, Shared Offices und Ausstattung getrennt und nutzen API-Endpunkte. | [frontend/src/pages/Rooms.jsx](../frontend/src/pages/Rooms.jsx), [frontend/src/pages/Availability.jsx](../frontend/src/pages/Availability.jsx), [frontend/src/pages/Assets.jsx](../frontend/src/pages/Assets.jsx), [frontend/src/api/roomsApi.js](../frontend/src/api/roomsApi.js), [frontend/src/api/assetsApi.js](../frontend/src/api/assetsApi.js) |
-| Verfügbarkeiten sollen für Zeiträume prüfbar sein. | Verfügbarkeit wird über Backend-Services geprüft und im Frontend mit Kalender-/Statusansichten dargestellt. | [src/services/booking_service.py](../src/services/booking_service.py), [frontend/src/components/ObjectCalendar.jsx](../frontend/src/components/ObjectCalendar.jsx), [frontend/src/utils/calendar.js](../frontend/src/utils/calendar.js) |
-| Nutzer sollen Räume oder Ressourcen buchen können. | Buchungen werden über ein zentrales Buchungsformular erstellt und backendseitig validiert. | [frontend/src/pages/CreateBooking.jsx](../frontend/src/pages/CreateBooking.jsx), [frontend/src/api/bookingsApi.js](../frontend/src/api/bookingsApi.js), [src/routes/booking_routes.py](../src/routes/booking_routes.py), [src/services/booking_service.py](../src/services/booking_service.py) |
-| Das System soll Buchungskonflikte erkennen. | Der BookingService prüft Überschneidungen und lehnt Konflikte ab. | [src/services/booking_service.py](../src/services/booking_service.py), [src/repositories/booking_repository.py](../src/repositories/booking_repository.py) |
-| Das System soll Doppelbuchungen verhindern. | Räume, Assets und Sitzplätze werden gegen parallele Buchungen geprüft; zusätzlich darf ein Nutzer nicht mehrere Sitzplätze gleichzeitig buchen. | [src/services/booking_service.py](../src/services/booking_service.py), [src/models/booking.py](../src/models/booking.py) |
-| Nutzer sollen eigene Buchungen sehen und stornieren können. | Eigene Buchungen werden inklusive Historie, Filter, Status und Stornierung angezeigt. | [frontend/src/pages/MyBookings.jsx](../frontend/src/pages/MyBookings.jsx), [frontend/src/components/BookingCard.jsx](../frontend/src/components/BookingCard.jsx), [src/routes/booking_routes.py](../src/routes/booking_routes.py) |
-| Administratoren sollen Räume, Ressourcen und Buchungen verwalten können. | Der Adminbereich bündelt Verwaltung für Stammdaten, Nutzer und Buchungen. | [frontend/src/pages/Admin.jsx](../frontend/src/pages/Admin.jsx), [src/routes/user_routes.py](../src/routes/user_routes.py), [src/routes/room_routes.py](../src/routes/room_routes.py), [src/routes/asset_routes.py](../src/routes/asset_routes.py), [src/routes/seat_routes.py](../src/routes/seat_routes.py) |
-| Rollen und Rechte sollen einfach unterstützt werden. | Nutzerrollen werden im Backend gespeichert, geprüft und im Frontend sichtbar gemacht. | [src/models/user.py](../src/models/user.py), [src/utils/auth_middleware.py](../src/utils/auth_middleware.py), [src/services/user_service.py](../src/services/user_service.py), [frontend/src/state/authStore.js](../frontend/src/state/authStore.js) |
-| Die wichtigsten Abläufe sollen über eine Weboberfläche bedienbar sein. | React/Vite-Frontend bietet Navigation, Formulare, Karten, Kalender, Adminbereich und Buchungshistorie. | [frontend/src/App.jsx](../frontend/src/App.jsx), [frontend/src/components/AppShell.jsx](../frontend/src/components/AppShell.jsx), [frontend/src/components/ResourceCard.jsx](../frontend/src/components/ResourceCard.jsx) |
-| Die Geschäftslogik soll testbar sein. | Backend- und Frontend-Tests prüfen Buchungslogik, Kalenderfunktionen, UI-Hilfslogik und Zeitumrechnung. | [docs/4_Testdokumentation.md](./4_Testdokumentation.md), [frontend/src/tests/calendar.test.js](../frontend/src/tests/calendar.test.js), [frontend/src/tests/bookingUi.test.js](../frontend/src/tests/bookingUi.test.js) |
-| Architektur und Entscheidungen sollen dokumentiert werden. | Konzeptionsplan, UML-Übersicht, Testdokumentation, Abschlussdokumentation und Sprintdokumente beschreiben Planung und Umsetzung. | [docs/2_Konzeptionsplan.md](./2_Konzeptionsplan.md), [docs/3_UML.md](./3_UML.md), [docs/5_Abschlussdokumentation.md](./5_Abschlussdokumentation.md), [docs/Sprints/Sprint_III_Umsetzungsplan.md](./Sprints/Sprint_III_Umsetzungsplan.md) |
-| Installation und Ausführung sollen beschrieben werden. | Die Anwendung ist als lokale Fullstack-Demo mit getrenntem Backend und Frontend lauffähig. | [README.md](../README.md), [requirements.txt](../requirements.txt), [frontend/package.json](../frontend/package.json), [src/main.py](../src/main.py) |
+| Räume sollen verwaltet werden können. | umgesetzt: Räume sind modelliert, werden gespeichert, per API ausgeliefert und im Adminbereich verwaltet | [`src/models/room.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/models/room.py), [`src/services/room_service.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/services/room_service.py), [`src/routes/room_routes.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/routes/room_routes.py), [`frontend/src/pages/Admin.jsx`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/pages/Admin.jsx) |
+| Ressourcen sollen erfassbar sein. | umgesetzt: Assets sind eigener Objekttyp mit Anzeige, Filterung, Buchung und Verwaltung | [`src/models/asset.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/models/asset.py), [`src/services/asset_service.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/services/asset_service.py), [`src/routes/asset_routes.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/routes/asset_routes.py), [`frontend/src/pages/Assets.jsx`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/pages/Assets.jsx) |
+| Nutzer sollen Räume und Ressourcen anzeigen können. | umgesetzt: getrennte Übersichten für Räume, Shared Offices und Ausstattung | [`frontend/src/pages/Rooms.jsx`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/pages/Rooms.jsx), [`frontend/src/pages/Availability.jsx`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/pages/Availability.jsx), [`frontend/src/pages/Assets.jsx`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/pages/Assets.jsx), [`frontend/src/api/roomsApi.js`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/api/roomsApi.js), [`frontend/src/api/assetsApi.js`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/api/assetsApi.js) |
+| Verfügbarkeiten sollen prüfbar sein. | umgesetzt: Verfügbarkeit wird im Backend berechnet und im Frontend mit Kalender-/Zeitblockansichten dargestellt | [`src/services/booking_service.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/services/booking_service.py), [`src/repositories/booking_repository.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/repositories/booking_repository.py), [`frontend/src/components/ObjectCalendar.jsx`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/components/ObjectCalendar.jsx), [`frontend/src/utils/calendar.js`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/utils/calendar.js) |
+| Räume oder Ressourcen sollen buchbar sein. | umgesetzt: Räume, Sitzplätze und Assets können gebucht werden | [`frontend/src/pages/CreateBooking.jsx`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/pages/CreateBooking.jsx), [`frontend/src/api/bookingsApi.js`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/api/bookingsApi.js), [`src/routes/booking_routes.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/routes/booking_routes.py), [`src/services/booking_service.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/services/booking_service.py) |
+| Buchungskonflikte sollen erkannt werden. | umgesetzt: Überschneidungen werden zentral im BookingService geprüft | [`src/services/booking_service.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/services/booking_service.py), [`src/models/booking.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/models/booking.py) |
+| Doppelbuchungen sollen verhindert werden. | umgesetzt: Räume, Assets und Sitzplätze werden gegen parallele Buchungen geprüft; zusätzlich kann ein Nutzer nicht mehrere Sitzplätze gleichzeitig buchen | [`src/services/booking_service.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/services/booking_service.py), [`src/repositories/booking_repository.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/repositories/booking_repository.py) |
+| Nutzer sollen eigene Buchungen sehen. | umgesetzt: eigene Buchungen werden mit Status, Zeitraum, Ressource und Filtermöglichkeiten angezeigt | [`frontend/src/pages/MyBookings.jsx`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/pages/MyBookings.jsx), [`frontend/src/components/BookingCard.jsx`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/components/BookingCard.jsx), [`src/routes/booking_routes.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/routes/booking_routes.py) |
+| Buchungen sollen stornierbar sein. | umgesetzt: Nutzer und Admins können zulässige Buchungen stornieren; Serien können differenziert behandelt werden | [`src/services/booking_service.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/services/booking_service.py), [`frontend/src/components/BookingEditForm.jsx`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/components/BookingEditForm.jsx), [`frontend/src/components/BookingCard.jsx`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/components/BookingCard.jsx) |
+| Administratoren sollen Räume, Ressourcen und Buchungen verwalten. | umgesetzt: Adminbereich bündelt Räume, Sitzplätze, Assets, Buchungen und Nutzer | [`frontend/src/pages/Admin.jsx`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/pages/Admin.jsx), [`src/routes/user_routes.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/routes/user_routes.py), [`src/routes/room_routes.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/routes/room_routes.py), [`src/routes/asset_routes.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/routes/asset_routes.py), [`src/routes/seat_routes.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/routes/seat_routes.py) |
+| Rollen und Rechte sollen unterstützt werden. | umgesetzt: Rollen sind im Backend hinterlegt und API-Zugriffe werden geschützt | [`src/models/user.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/models/user.py), [`src/utils/auth_middleware.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/utils/auth_middleware.py), [`src/services/user_service.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/services/user_service.py), [`frontend/src/state/authStore.js`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/state/authStore.js) |
+| Die Weboberfläche soll verständlich bedienbar sein. | umgesetzt: React/Vite-Frontend mit Navigation, Karten, Formularen, Kalendern, Adminbereich und Buchungshistorie | [`frontend/src/App.jsx`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/App.jsx), [`frontend/src/components/AppShell.jsx`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/components/AppShell.jsx), [`frontend/src/components/ResourceCard.jsx`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/components/ResourceCard.jsx), [`frontend/src/styles/`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/tree/main/frontend/src/styles) |
+| Die Geschäftslogik soll testbar sein. | umgesetzt: Backend- und Frontend-Tests prüfen Buchungslogik, Kalenderlogik, UI-Hilfen und Zeitverarbeitung | [`docs/4_Testdokumentation.md`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/docs/4_Testdokumentation.md), [`frontend/src/tests/calendar.test.js`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/tests/calendar.test.js), [`frontend/src/tests/bookingUi.test.js`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/tests/bookingUi.test.js) |
+| Architektur und Entscheidungen sollen dokumentiert werden. | umgesetzt: Konzeptionsplan, UML, Testdokumentation, Abschlussdokumentation und Sprintdokumente liegen vor | [`docs/2_Konzeptionsplan.md`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/docs/2_Konzeptionsplan.md), [`docs/3_UML.md`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/docs/3_UML.md), [`docs/4_Testdokumentation.md`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/docs/4_Testdokumentation.md), [`docs/5_Abschlussdokumentation.md`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/docs/5_Abschlussdokumentation.md), [`docs/Sprints/Sprint_III_Umsetzungsplan.md`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/docs/Sprints/Sprint_III_Umsetzungsplan.md) |
 
-### 4. Sonderfunktionen über das ursprüngliche MVP hinaus
+### 1.6 Sonderfunktionen
 
-Einige Funktionen wurden über die Kernanforderungen hinaus umgesetzt, weil sie die Demo fachlich vollständiger und für Kunden besser nachvollziehbar machen:
+Über das ursprüngliche MVP hinaus wurden mehrere Funktionen ergänzt, weil sie die Demo näher an eine reale Unternehmensanwendung bringen:
 
-- Sitzplätze als eigene buchbare Entität innerhalb eines Raumes
+- Sitzplätze als eigene Entität innerhalb eines Raumes
 - automatische Sitzplatzzuweisung
-- Regel gegen parallele Sitzplatzbuchungen eines Nutzers
 - grafischer Shared-Office-Sitzplan
-- Kalender- und Zeitblockansichten pro Objekt
-- Benutzerfotos und Buchungsbesitzer in Adminansichten
+- Kalenderansicht pro Objekt mit Zeitblöcken
+- Regel gegen parallele Sitzplatzbuchungen eines Nutzers
+- Nutzerfotos und sichtbare Buchungsbesitzer
 - Passwortreset für Nutzer und Admins
 - Einladungen mit Code, Link und Passwortschutz
 - QR-Code-gestützter Check-in
 - iCalendar-Export
 - In-App-Benachrichtigungen
-- Dark Mode
-- Favoriten
+- Dark Mode und Favoriten
 - Audit-Protokoll
-- Demo-Reset und Seed-Daten für präsentationsfähige Testdaten
+- Demo-Reset und Seed-Daten
 
-### 5. Gewählte Architektur
+### 1.7 Bewusste Grenzen und Roadmap
 
-RePlan wurde als lokale Fullstack-Anwendung umgesetzt:
+Für den Prototyp bewusst nicht umgesetzt:
+
+- produktiver E-Mail-Versand
+- Single-Sign-On
+- externe Kalender-Synchronisierung
+- produktive Deployment-Konfiguration
+- browserbasierte End-to-End-Tests
+- vollständig normalisiertes relationales Datenbankschema
+
+Mögliche Phase 2:
+
+- normalisierte SQL-Tabellen mit Migrationstool
+- produktiver Maildienst für Einladungen und Passwortreset
+- Deployment mit Umgebungsvariablen, Monitoring und Backups
+- E2E-Tests für kritische Nutzerpfade
+- Rollen-/Rechtekonzept mit feineren Berechtigungen
+- Auslastungsberichte und Exportfunktionen für Administratoren
+
+---
+
+## 2. Entwicklerdokumentation
+
+### 2.1 Source Code und Kommentare
+
+Der Source Code ist nach Verantwortlichkeiten getrennt. Kommentare werden sparsam eingesetzt und dort genutzt, wo fachliche Regeln oder technische Entscheidungen nicht selbsterklärend sind. Die Hauptlogik liegt nicht in langen Kommentaren, sondern in klar benannten Modulen.
+
+Wichtige Bereiche:
+
+| Bereich | Aufgabe | Dateien |
+| --- | --- | --- |
+| Einstieg Backend | Flask-App starten und Blueprints registrieren | [`src/main.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/main.py) |
+| Routen/API | HTTP-Endpunkte, Payloads, Statuscodes, Authentifizierung | [`src/routes/`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/tree/main/src/routes) |
+| Services | Geschäftslogik, Buchungsregeln, Konfliktprüfung, Nutzerprozesse | [`src/services/`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/tree/main/src/services) |
+| Modelle | Fachliche Entitäten und Datenstrukturen | [`src/models/`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/tree/main/src/models) |
+| Repositories | Datenzugriff, Suche, Persistenzabstraktion | [`src/repositories/`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/tree/main/src/repositories) |
+| Frontend-Seiten | Nutzer- und Adminansichten | [`frontend/src/pages/`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/tree/main/frontend/src/pages) |
+| Frontend-Komponenten | wiederverwendbare UI-Bausteine | [`frontend/src/components/`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/tree/main/frontend/src/components) |
+| API-Clients | Verbindung zwischen Frontend und Backend | [`frontend/src/api/`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/tree/main/frontend/src/api) |
+
+### 2.2 Architektur
+
+Die Anwendung nutzt eine getrennte Fullstack-Architektur:
 
 ```text
 React/Vite-Frontend
@@ -111,55 +171,217 @@ React/Vite-Frontend
 Flask-Backend mit Blueprints
         |
         v
-Service-Schicht für Geschäftslogik
+Service-Schicht
         |
         v
-Repository-Schicht für Datenzugriff
+Repository-Schicht
         |
         v
-SQLite-Datenbank mit einmaliger JSON-Migration
+SQLite + JSON-Migration
 ```
 
-#### Begründung der Architekturentscheidung
+Architekturprinzipien:
 
-Die gewählte Architektur trennt Oberfläche, API, Geschäftslogik und Datenhaltung klar voneinander. Dadurch bleibt die Buchungslogik zentral im Backend und ist nicht auf einzelne Frontend-Ansichten verteilt.
+- Das Frontend stellt Abläufe dar und ruft API-Endpunkte auf.
+- Das Backend ist die zentrale Quelle für Regeln, Rechte und Konfliktprüfung.
+- Services kapseln fachliche Entscheidungen.
+- Repositories kapseln Datenzugriff und Persistenz.
+- Modelle beschreiben Räume, Sitzplätze, Assets, Nutzer und Buchungen.
+- SQLite ersetzt JSON als primäre Persistenz im Prototyp.
 
-Für die Datenhaltung wurde SQLite gewählt, weil es für den Projektumfang passend ist:
+Ausführlicher beschrieben in [`3_UML.md`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/docs/3_UML.md).
 
-- kein separater Datenbankserver notwendig
-- lokal einfach ausführbar
-- SQL-basierte Persistenz statt reiner JSON-Dateien
-- gute Eignung für eine bewertbare Demo
-- später erweiterbar in Richtung normalisierter relationaler Tabellen
+### 2.3 Backend / Frontend / Interfaces
 
-Die vorhandenen JSON-Daten wurden nicht verworfen, sondern über eine Migrationslogik in die SQLite-basierte Repository-Schicht übernommen. Damit blieb der Übergang kontrollierbar und die bestehenden Services konnten weitgehend erhalten bleiben.
+#### Backend
 
-Relevante Architekturdateien:
+Das Backend basiert auf Flask. Die API ist über Blueprints organisiert. Authentifizierung, Rollenprüfung und fachliche Validierung erfolgen serverseitig.
 
-- [docs/3_UML.md](./3_UML.md)
-- [src/main.py](../src/main.py)
-- [src/routes/](../src/routes/)
-- [src/services/](../src/services/)
-- [src/repositories/](../src/repositories/)
-- [src/models/](../src/models/)
-- [frontend/src/](../frontend/src/)
+Relevante Dateien:
 
-### 6. Bewusste Grenzen des Prototyps
+- [`src/routes/auth_routes.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/routes/auth_routes.py)
+- [`src/routes/booking_routes.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/routes/booking_routes.py)
+- [`src/routes/user_routes.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/routes/user_routes.py)
+- [`src/routes/room_routes.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/routes/room_routes.py)
+- [`src/routes/seat_routes.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/routes/seat_routes.py)
+- [`src/routes/asset_routes.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/routes/asset_routes.py)
+- [`src/utils/auth_middleware.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/utils/auth_middleware.py)
 
-RePlan ist eine lokale Projekt- und Demoanwendung. Einige produktive Aspekte wurden bewusst abgegrenzt:
+#### Frontend
 
-- kein echter E-Mail-Versand über SMTP
-- keine produktive Deployment-Konfiguration
-- keine Single-Sign-On-Anbindung
-- keine externe Kalender-Synchronisierung
-- keine produktive Token-Sperrliste
-- SQLite wird generisch über Repository-Datensätze genutzt; eine vollständig normalisierte Datenbank wäre ein nächster Ausbauschritt
+Das Frontend basiert auf React und Vite. Es ist kein autarker Demonstrator mehr, sondern ruft Backend-Endpunkte über API-Client-Dateien auf.
+
+Relevante Dateien:
+
+- [`frontend/src/App.jsx`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/App.jsx)
+- [`frontend/src/pages/Dashboard.jsx`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/pages/Dashboard.jsx)
+- [`frontend/src/pages/CreateBooking.jsx`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/pages/CreateBooking.jsx)
+- [`frontend/src/pages/MyBookings.jsx`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/pages/MyBookings.jsx)
+- [`frontend/src/pages/Admin.jsx`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/pages/Admin.jsx)
+- [`frontend/src/components/ObjectCalendar.jsx`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/components/ObjectCalendar.jsx)
+- [`frontend/src/api/client.js`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/api/client.js)
+
+#### Interfaces
+
+Die Kommunikation erfolgt über REST/JSON. Das Frontend sendet Bearer-Tokens und erhält fachliche Daten als JSON-Antworten zurück.
+
+Beispiele:
+
+- Authentifizierung: [`frontend/src/api/authApi.js`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/api/authApi.js) und [`src/routes/auth_routes.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/routes/auth_routes.py)
+- Buchungen: [`frontend/src/api/bookingsApi.js`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/api/bookingsApi.js) und [`src/routes/booking_routes.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/routes/booking_routes.py)
+- Räume: [`frontend/src/api/roomsApi.js`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/api/roomsApi.js) und [`src/routes/room_routes.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/routes/room_routes.py)
+- Sitzplätze: [`frontend/src/api/seatsApi.js`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/api/seatsApi.js) und [`src/routes/seat_routes.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/routes/seat_routes.py)
+- Assets: [`frontend/src/api/assetsApi.js`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/api/assetsApi.js) und [`src/routes/asset_routes.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/routes/asset_routes.py)
+
+### 2.4 Datenbank
+
+Die Anwendung nutzt SQLite als lokale SQL-Persistenz. Vorhandene JSON-Daten werden einmalig migriert. Die Datenbankdatei selbst wird nicht versioniert, weil sie lokale Laufzeitdaten enthält.
+
+Fachliche Entitäten:
+
+```mermaid
+classDiagram
+    class User {
+      id
+      name
+      email
+      role
+      password_hash
+      image_url
+    }
+    class Room {
+      id
+      name
+      capacity
+      room_type
+      image_url
+    }
+    class Seat {
+      id
+      room_id
+      label
+      monitor_count
+      image_url
+    }
+    class Asset {
+      id
+      name
+      asset_type
+      location
+      image_url
+    }
+    class Booking {
+      id
+      user_id
+      target_id
+      target_type
+      start_time
+      end_time
+      status
+    }
+    User "1" --> "0..*" Booking
+    Room "1" --> "0..*" Seat
+    Booking "0..*" --> "0..1" Room
+    Booking "0..*" --> "0..1" Seat
+    Booking "0..*" --> "0..1" Asset
+```
+
+Datenbanknahe Dateien:
+
+- [`src/repositories/base_repository.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/repositories/base_repository.py)
+- [`src/repositories/user_repository.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/repositories/user_repository.py)
+- [`src/repositories/booking_repository.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/repositories/booking_repository.py)
+- [`src/repositories/room_repository.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/repositories/room_repository.py)
+- [`src/repositories/seat_repository.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/repositories/seat_repository.py)
+- [`src/repositories/asset_repository.py`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/src/repositories/asset_repository.py)
 
 ---
 
-## Teil 2: Selbstreflexion des Entwicklungsteams
+## 3. Technische Dokumentation
 
-### 1. Rollenverteilung
+### 3.1 Anforderungen
+
+Die Anforderungen wurden im Konzeptionsplan funktional und nicht-funktional beschrieben. Die wichtigsten funktionalen Anforderungen wurden umgesetzt:
+
+- Räume anzeigen, suchen, filtern, buchen und verwalten
+- Assets anzeigen, suchen, filtern, buchen und verwalten
+- Sitzplätze in Shared Offices anzeigen, auswählen und buchen
+- Buchungskonflikte erkennen und Doppelbuchungen verhindern
+- eigene Buchungen anzeigen, bearbeiten und stornieren
+- Adminbereich für Nutzer, Rollen, Buchungen und Stammdaten
+- einfache rollenbasierte Zugriffskontrolle
+
+Nicht-funktionale Anforderungen:
+
+- verständliche Bedienung über Weboberfläche
+- nachvollziehbare Fehlermeldungen
+- wartbare Schichtenarchitektur
+- testbare Geschäftslogik
+- dokumentierte Architektur und Qualitätssicherung
+- lokal reproduzierbare Ausführung
+
+Roadmap für Phase 2:
+
+- produktive Datenbankmodellierung
+- E-Mail-Integration
+- Deployment-Konzept
+- E2E-Testabdeckung
+- erweiterte Rechteverwaltung
+- Auslastungsberichte
+
+### 3.2 Entwurfsdokumente
+
+Die wichtigsten Entwurfsdokumente sind:
+
+- [`2_Konzeptionsplan.md`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/docs/2_Konzeptionsplan.md): Projektziel, Stakeholder, Lastenheft, Use Cases, Sprintplanung
+- [`3_UML.md`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/docs/3_UML.md): Systemkontext, Schichtenmodell, Domänenmodell, Sequenzdiagramm
+- [`5_Abschlussdokumentation.md`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/docs/5_Abschlussdokumentation.md): Ergebnis, Architektur, Use Cases, Grenzen
+- [`Sprints/Sprint_III_Umsetzungsplan.md`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/docs/Sprints/Sprint_III_Umsetzungsplan.md): Sprint-III-Ziele und Erweiterungen
+- [`Sprints/Qualitaetsbericht.html`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/docs/Sprints/Qualitaetsbericht.html): visuelles Qualitätssheet für die Präsentation
+
+### 3.3 QS-Dokumente
+
+Qualitätssicherung wurde über automatische und manuelle Prüfungen dokumentiert.
+
+Automatisierte Prüfungen:
+
+- Backend-Tests mit `pytest`
+- Frontend-Tests mit `npm test -- --run`
+- Produktions-Build mit `npm run build`
+
+Dokumentierter Prüfstand:
+
+- 97 Backend-Tests bestanden
+- 13 Frontend-Tests bestanden
+- 110 automatisierte Tests insgesamt
+- React-Produktions-Build erfolgreich
+
+Abgedeckte Bereiche:
+
+- Authentifizierung und Rollen
+- Buchungslogik und Konfliktprüfung
+- Räume, Sitzplätze und Assets
+- Suche und Filterung
+- Serienbuchungen
+- Check-in und Check-out
+- Einladungen
+- Adminbereich
+- Kalender- und Zeitverarbeitung
+- Frontend-Hilfslogik
+
+Relevante Dateien:
+
+- [`docs/4_Testdokumentation.md`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/docs/4_Testdokumentation.md)
+- [`frontend/src/tests/calendar.test.js`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/tests/calendar.test.js)
+- [`frontend/src/tests/dateTime.test.js`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/tests/dateTime.test.js)
+- [`frontend/src/tests/theme.test.js`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/tests/theme.test.js)
+- [`frontend/src/tests/bookingUi.test.js`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/frontend/src/tests/bookingUi.test.js)
+
+---
+
+## 4. Projektmanagement-Dokumentation
+
+### 4.1 Projektplan und Rollen
 
 | Rolle | Verantwortliche Person | Aufgaben |
 | --- | --- | --- |
@@ -171,126 +393,178 @@ RePlan ist eine lokale Projekt- und Demoanwendung. Einige produktive Aspekte wur
 | Frontend-Entwicklung / UX | Denis Nickel & Florian Haentjes | Benutzeroberfläche, Nutzerführung, Darstellung der Buchungen |
 | Qualitätssicherung / Testing | Denis Nickel & Florian Haentjes | Testplanung, Testfälle, Funktionstests, Code Reviews, Fehlerprüfung |
 
-### 2. Tim-Oliver Strauß: Backend, Scrum Master, Qualitätsmanagement
+Dokumente:
 
-#### Durchgeführte Tätigkeiten
+- [`1_Projekt_Zeitplan.md`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/docs/1_Projekt_Zeitplan.md)
+- [`2_Konzeptionsplan.md`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/docs/2_Konzeptionsplan.md)
+- [`Sprints/Sprint_Planung_Vorlage.md`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/docs/Sprints/Sprint_Planung_Vorlage.md)
+- [`Sprints/Sprint_Review_Vorlage.md`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/docs/Sprints/Sprint_Review_Vorlage.md)
 
-Tim-Oliver übernahm im Projekt eine koordinierende und technische Rolle. Als Scrum Master strukturierte er Sprint Planning, Reviews und Retrospektiven mit und achtete darauf, dass die Arbeitspakete in nachvollziehbare Schritte zerlegt wurden. Im Backend lag sein Schwerpunkt auf Buchungslogik, Validierungsregeln, API-Anbindung, Nutzerprozessen und Qualitätssicherung.
+### 4.2 Sprints und Epics
 
-Wesentliche Tätigkeiten:
+| Sprint | Schwerpunkt | Umgesetzte Epics / Ergebnisse |
+| --- | --- | --- |
+| Sprint I | Grundlage | Thema, Stakeholder, Lastenheft, Rollen, Architekturidee, Domänenmodell, erste Projektstruktur |
+| Sprint II | MVP und Integration | REST-API, Login, Buchungen, Räume, Ressourcen, Sitzplatzlogik, Konfliktprüfung, erste Frontend-Anbindung |
+| Sprint III | Stabilisierung und Demoqualität | SQLite, JSON-Migration, Adminbereich, Nutzerverwaltung, Bilder, Filter, Kalender, Zeitblöcke, Einladungen, Benachrichtigungen, Tests und Dokumentation |
 
-- Strukturierung der Sprintarbeit und Vorbereitung von Sprintunterlagen
-- Mitarbeit an Backend-Services und Buchungsregeln
-- Prüfung und Stabilisierung der API-Endpunkte
-- Umsetzung bzw. Absicherung von Login, Logout und Passwortprozessen
-- Erweiterung der Sitzplatzlogik inklusive automatischer Zuweisung
-- Pflege der Qualitäts- und Abschlussdokumentation
-- Prüfung von Build- und Testläufen vor Präsentationsständen
+Sprint-Dokumente:
 
-#### Entscheidungsfindung
+- [`Sprints/Sprint_I_Architekturentscheidungen.md`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/docs/Sprints/Sprint_I_Architekturentscheidungen.md)
+- [`Sprints/Sprint_II_Planung.md`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/docs/Sprints/Sprint_II_Planung.md)
+- [`Sprints/Sprint_III_Umsetzungsplan.md`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/docs/Sprints/Sprint_III_Umsetzungsplan.md)
+- [`Sprints/Sprint_III_Engineering_Reflexion.md`](https://github.com/TimBoj23/Fallstudie_Software_Engineering_G03/blob/main/docs/Sprints/Sprint_III_Engineering_Reflexion.md)
 
-Eine zentrale Entscheidung war, fachliche Regeln nicht im Frontend zu verstecken, sondern im Backend zu bündeln. Gerade bei Doppelbuchungen, Sitzplatzkonflikten und Rollenprüfungen wäre eine reine UI-Prüfung zu fehleranfällig gewesen. Die Entscheidung für eine Service-Schicht half dabei, Validierungen wiederverwendbar und testbar zu halten.
+### 4.3 Abhängigkeiten und Entscheidungen
 
-#### Problemlösungen
+Wichtige Abhängigkeiten:
 
-Ein wiederkehrendes Problem war die Zusammenführung eines teilweise autarken Frontends mit einem Backend, das die eigentliche Geschäftslogik liefern sollte. Die Lösung bestand darin, klare API-Endpunkte zu definieren, bestehende Frontend-Dummylogik schrittweise zu ersetzen und Fehler wie fehlende Ports, fehlende Dependencies oder fehlerhafte Datenmigrationen gezielt zu beheben.
+- Frontend benötigt stabile API-Endpunkte.
+- Buchungsoberflächen hängen von zentraler Backend-Konfliktprüfung ab.
+- Adminansichten benötigen vollständige Nutzer-, Buchungs- und Ressourcendaten.
+- Demoqualität hängt stark von Seed-Daten, Bildern und einheitlicher lokaler Datenbank ab.
 
-### 3. Alexander Vetrenko: Backend, Requirements Engineering, Dokumentation
+Wichtige Entscheidungen:
 
-#### Durchgeführte Tätigkeiten
+- SQLite statt reiner JSON-Dateien
+- Backend als Quelle für Buchungsregeln
+- Sitzplätze als eigene Entität
+- REST/JSON als Schnittstelle
+- keine produktive E-Mail-Integration im Prototyp
+- Demo-Daten über Seed-Prozess statt manuelle Datenbankpflege
 
-Alexander verantwortete die fachliche Strukturierung der Anforderungen und unterstützte die Backend-Entwicklung. Seine Rolle war wichtig, um aus allgemeinen Anforderungen konkrete Use Cases, User Stories und technische Arbeitspakete abzuleiten. Außerdem wirkte er an der Dokumentation fachlicher Entscheidungen mit.
+---
 
-Wesentliche Tätigkeiten:
+## 5. Dokumentation für die Fallstudie
 
-- Sammlung und Strukturierung fachlicher Anforderungen
-- Formulierung von Use Cases und User Stories
-- Abgleich zwischen Lastenheft, Sprintzielen und Umsetzung
-- Mitarbeit an Backend-Modellen und Services
-- Unterstützung bei der Strukturierung von REST-Endpunkten
-- Dokumentation von Architektur- und Umsetzungsentscheidungen
+### 5.1 Tim-Oliver Strauß
 
-#### Entscheidungsfindung
+#### Meine Rolle im Projekt
 
-Alexander achtete besonders darauf, dass Anforderungen nicht nur als Wunschliste existieren, sondern in überprüfbare Arbeitspakete überführt werden. Dadurch konnten Muss-, Soll- und Kann-Anforderungen priorisiert werden. Diese Priorisierung half dem Team, den Umfang trotz zusätzlicher Funktionen kontrollierbar zu halten.
+Tim-Oliver übernahm Scrum-Master-Aufgaben, Backend-Entwicklung und Qualitätsmanagement. Im Projekt bedeutete das vor allem, Sprintplanung und Review vorzubereiten, technische Probleme zu strukturieren und die Backendlogik stabil zu halten.
 
-#### Problemlösungen
+#### Inhaltliche Beiträge
 
-Eine Herausforderung war die fachliche Trennung zwischen Räumen, Assets und Sitzplätzen. Anfangs konnten diese Objekte leicht vermischt werden, obwohl sie unterschiedliche Buchungsregeln besitzen. Durch die Modellierung als getrennte Entitäten mit gemeinsamen Buchungsmechanismen wurde die Anwendung verständlicher und erweiterbarer.
+- Sprint Planning, Review und Retrospektive mit vorbereitet
+- Backend-Services und API-Endpunkte geprüft und erweitert
+- Buchungslogik, Sitzplatzlogik und Validierungsregeln unterstützt
+- Login, Logout und Passwortprozesse stabilisiert
+- SQLite-Migration und Datenbankprobleme analysiert
+- Dokumente für Sprint, Qualität und Präsentation erstellt oder überarbeitet
 
-### 4. Florian Haentjes: Projektmanagement, Frontend, GitHub-Issues
+#### Positive Erfahrungen
 
-#### Durchgeführte Tätigkeiten
+Die zentrale Backendlogik machte es möglich, neue Frontend-Funktionen anzubinden, ohne fachliche Regeln mehrfach zu implementieren. Besonders hilfreich war, Buchungsregeln nicht über UI-Zustände, sondern über Services abzusichern.
 
-Florian übernahm die Projektmanagementrolle und arbeitete am Frontend mit. Sein Fokus lag auf Terminüberwachung, Nachverfolgung offener Aufgaben, GitHub-Issues und einer nutzbaren Oberfläche. Damit verband er organisatorische Arbeit mit sichtbaren Ergebnissen in der Anwendung.
+#### Schwierigkeiten und Lösungen
 
-Wesentliche Tätigkeiten:
+Schwierig war die Zusammenführung eines zunächst autarken Frontends mit dem Backend. Gelöst wurde das durch klare API-Clients, konkrete Endpunkte und wiederholte lokale Tests von Backend und Frontend.
 
-- Pflege und Nachverfolgung von Aufgaben über GitHub Issues
-- Koordination offener Punkte für die Sprintplanung
-- Mitarbeit an Frontend-Seiten und Nutzerführung
-- Umsetzung von Übersichten für Räume, Assets, Sitzplätze und Buchungen
-- Unterstützung bei Adminansichten und Darstellungslogik
-- Abstimmung, welche Funktionen präsentationsreif gezeigt werden können
+#### Fazit
 
-#### Entscheidungsfindung
+Gelernt wurde vor allem, dass Schnittstellen früh festgelegt werden müssen. Außerdem zeigte sich, dass Demo-Daten und Qualitätssicherung genauso wichtig sind wie der eigentliche Featurecode.
 
-Florian musste häufig zwischen Funktionsumfang und Verständlichkeit abwägen. Für die Präsentation war nicht nur entscheidend, dass eine Funktion technisch existiert, sondern dass sie in der Oberfläche nachvollziehbar ist. Deshalb wurden IDs aus Nutzersichten entfernt, Bilder ergänzt und Adminansichten stärker auf reale Nutzungssituationen ausgerichtet.
+### 5.2 Alexander Vetrenko
 
-#### Problemlösungen
+#### Meine Rolle im Projekt
 
-Ein wesentliches Problem war die anfänglich eigenständige Frontend-Struktur. Dadurch entstanden Inkonsistenzen zwischen Demo-Oberfläche und Backend-Logik. Die Lösung bestand darin, das Frontend schrittweise an die API anzubinden und Oberflächenzustände stärker aus echten Backenddaten abzuleiten.
+Alexander war für Requirements Engineering, Dokumentation und Backend-Entwicklung mitverantwortlich. Sein Schwerpunkt lag darin, aus fachlichen Anforderungen konkrete Use Cases, User Stories und technische Arbeitspakete abzuleiten.
 
-### 5. Denis Nickel: Frontend, UX, Qualitätssicherung
+#### Inhaltliche Beiträge
 
-#### Durchgeführte Tätigkeiten
+- Anforderungen aus dem Lastenheft strukturiert
+- Use Cases und User Stories eingeordnet
+- Muss-, Soll- und Kann-Anforderungen priorisiert
+- Backend-Modelle und Services fachlich mitgestaltet
+- Architektur- und Umsetzungsentscheidungen dokumentiert
+- Lastenheft und tatsächliche Umsetzung abgeglichen
 
-Denis arbeitete schwerpunktmäßig an Frontend und UX sowie an Qualitätssicherung. Seine Aufgaben lagen in der Darstellung von Buchungen, Nutzerführung, visuellen Komponenten und manuellen Funktionstests. Besonders wichtig war, komplexe Backendprozesse für Nutzer verständlich sichtbar zu machen.
+#### Positive Erfahrungen
 
-Wesentliche Tätigkeiten:
+Die Arbeit mit klaren Anforderungen half, den wachsenden Funktionsumfang zu kontrollieren. Besonders die Trennung von Räumen, Assets und Sitzplätzen machte die Fachlogik nachvollziehbarer.
 
-- Mitarbeit an Frontend-Komponenten und Seitenstruktur
-- Gestaltung von Ressourcen- und Buchungskarten
-- Unterstützung bei Kalender-, Status- und Filteransichten
-- Funktionstests zentraler Nutzerabläufe
-- Prüfung von UI-Verhalten bei Login, Buchung, Stornierung und Adminaktionen
-- Rückmeldung zu Bedienbarkeit und Verständlichkeit
+#### Schwierigkeiten und Lösungen
 
-#### Entscheidungsfindung
+Eine Herausforderung war, Anforderungen nachträglich zu präzisieren, ohne den Projektumfang zu sprengen. Gelöst wurde das über Priorisierung und über die Einordnung zusätzlicher Funktionen als Demo-Erweiterungen.
 
-Denis konzentrierte sich auf die Frage, welche Informationen Nutzer tatsächlich benötigen. Technische Details wie IDs sind für Admins teilweise hilfreich, für normale Nutzer aber störend. Daraus entstand die Entscheidung, Oberflächen stärker mit Namen, Bildern, Status und Zeitinformationen zu gestalten.
+#### Fazit
 
-#### Problemlösungen
+Die wichtigste Erkenntnis war, dass Anforderungen nicht statisch bleiben. Entscheidend ist, Änderungen nachvollziehbar zu dokumentieren und in realistische Arbeitspakete zu übersetzen.
 
-Eine Herausforderung war, unterschiedliche Objekttypen einheitlich darzustellen, ohne ihre Besonderheiten zu verlieren. Räume, Sitzplätze und Assets mussten ähnlich bedienbar sein, aber unterschiedliche Zusatzinformationen erhalten. Die Lösung bestand in wiederverwendbaren Komponenten wie ResourceCards, Buchungskarten und Kalenderansichten.
+### 5.3 Florian Haentjes
 
-### 6. Gemeinsame Reflexion
+#### Meine Rolle im Projekt
 
-#### Was gut funktioniert hat
+Florian übernahm Projektmanagement, Frontend-Entwicklung und GitHub-Issue-Management. Er achtete darauf, offene Aufgaben sichtbar zu halten und die Oberfläche für die Präsentation verständlich zu machen.
 
-- Die schrittweise Sprintstruktur half, den Projektumfang kontrollierbar zu halten.
-- Die Trennung in Backend, Frontend, Dokumentation und Projektmanagement gab klare Verantwortlichkeiten.
-- GitHub Issues und Dokumentation machten Fortschritt und offene Aufgaben nachvollziehbar.
-- Die zentrale Backendlogik reduzierte widersprüchliche Buchungsregeln.
-- Die finale Demo wurde durch realistischere Daten, Bilder und Adminfunktionen deutlich verständlicher.
+#### Inhaltliche Beiträge
 
-#### Was schwierig war
+- Zeitplan und offene Aufgaben nachverfolgt
+- GitHub Issues gepflegt und sprintbezogen eingeordnet
+- Frontend-Seiten und Nutzerführung unterstützt
+- Darstellungen für Räume, Assets, Sitzplätze und Buchungen mitgestaltet
+- Adminoberfläche und Nutzerverwaltung verbessert
+- Präsentationsreife der Oberfläche mitbewertet
 
-- Frontend und Backend entwickelten sich zeitweise zu getrennt voneinander.
-- Einige Anforderungen wurden erst im Verlauf präzise sichtbar, etwa Sitzplätze als eigene Entität oder Kalender-Zeitblöcke.
-- Die Umstellung von JSON-Dateien auf SQLite musste vorsichtig erfolgen, damit vorhandene Daten und Schnittstellen nutzbar blieben.
-- Der Präsentationsanspruch führte zu zusätzlichen Funktionen, die gegen Stabilität und Zeitrahmen abgewogen werden mussten.
+#### Positive Erfahrungen
 
-#### Was wir daraus gelernt haben
+Die Oberfläche wurde schrittweise verständlicher, weil technische Details wie IDs aus Nutzersichten entfernt und durch Namen, Bilder, Statusinformationen und Nutzerbezug ersetzt wurden.
 
-- Schnittstellen sollten früher gemeinsam festgelegt werden.
-- Demo-Daten sind kein Nebenthema, sondern entscheidend für eine überzeugende Präsentation.
-- Rollen helfen, müssen aber regelmäßig mit tatsächlichen Aufgaben abgeglichen werden.
-- Eine klare Service-Schicht erleichtert spätere Erweiterungen.
-- Kleine, überprüfbare Arbeitspakete reduzieren Risiko besser als große Featureblöcke.
+#### Schwierigkeiten und Lösungen
 
-### 7. Fazit
+Schwierig war die anfänglich eigenständige Frontend-Struktur. Dadurch entstanden Unterschiede zwischen UI-Demo und Backendlogik. Gelöst wurde das durch stärkere API-Anbindung und gemeinsame Abstimmung der Datenstrukturen.
 
-Das Projekt entwickelte sich von einer geplanten Raum- und Ressourcenbuchung zu einer integrierten Fullstack-Demo mit rollenbasierter Verwaltung, SQL-Persistenz, Sitzplatzlogik, Kalenderdarstellung und erweiterten Nutzerfunktionen.
+#### Fazit
 
-Aus Kundensicht ist RePlan als Prototyp geeignet, um die wichtigsten Abläufe einer internen Buchungsplattform zu demonstrieren. Aus Teamsicht zeigte das Projekt deutlich, wie wichtig frühe Schnittstellenklärung, klare Priorisierung und kontinuierliche Qualitätssicherung für eine lauffähige Software sind.
+Florian nahm mit, dass Projektmanagement in Softwareprojekten nicht nur Termine bedeutet. Es geht auch darum, offene fachliche Lücken rechtzeitig sichtbar zu machen und die Umsetzung präsentierbar zu halten.
+
+### 5.4 Denis Nickel
+
+#### Meine Rolle im Projekt
+
+Denis arbeitete an Frontend, UX und Qualitätssicherung. Sein Schwerpunkt lag auf Nutzerführung, visueller Darstellung und manueller Prüfung zentraler Abläufe.
+
+#### Inhaltliche Beiträge
+
+- Frontend-Komponenten und Seitenstruktur unterstützt
+- Ressourcen- und Buchungskarten mitgestaltet
+- Kalender-, Status- und Filteransichten geprüft
+- Nutzerabläufe für Login, Buchung, Stornierung und Adminaktionen getestet
+- Rückmeldung zur Verständlichkeit der Oberfläche gegeben
+- Qualitätssicherung durch Funktionstests unterstützt
+
+#### Positive Erfahrungen
+
+Die Nutzeroberfläche wurde klarer, als der Fokus auf fachliche Informationen gelegt wurde: Was ist buchbar, wann ist es frei, wer hat gebucht und welche Aktion ist möglich?
+
+#### Schwierigkeiten und Lösungen
+
+Eine Herausforderung war, unterschiedliche Objekttypen einheitlich darzustellen, ohne ihre Unterschiede zu verlieren. Gelöst wurde das durch wiederverwendbare Komponenten und differenzierte Detailinformationen pro Objekttyp.
+
+#### Fazit
+
+Denis lernte, dass UX im Projekt nicht nur Gestaltung bedeutet. Gute Nutzerführung hängt stark davon ab, dass Backenddaten korrekt, verständlich und im richtigen Kontext angezeigt werden.
+
+### 5.5 Teamarbeit
+
+Die Teamarbeit war geprägt von einer klaren Rollenaufteilung, aber auch von notwendigen Überschneidungen. Backend, Frontend und Dokumentation mussten regelmäßig abgeglichen werden, weil Änderungen an Datenmodell oder API direkte Auswirkungen auf die Oberfläche hatten.
+
+Positiv war, dass das Team den Projektumfang in Sprints strukturierte und Probleme Schritt für Schritt löste. Schwieriger war, dass Frontend und Backend zeitweise unterschiedlich weit entwickelt waren. Dadurch musste später Integrationsarbeit nachgeholt werden.
+
+### 5.6 Fachliche Herausforderungen
+
+| Herausforderung | Lösung |
+| --- | --- |
+| Frontend war zeitweise autark | API-Anbindung über zentrale Client-Dateien und Backend-Endpunkte |
+| JSON-Daten reichten für die Demo nicht mehr aus | SQLite-Schicht mit einmaliger JSON-Migration |
+| Räume, Assets und Sitzplätze hatten unterschiedliche Regeln | getrennte Entitäten mit gemeinsamer Buchungslogik |
+| Doppelbuchungen und parallele Sitzplatzbuchungen | zentrale Konfliktprüfung im Backend |
+| technische IDs waren für Nutzer nicht verständlich | Anzeige von Namen, Bildern, Status und Buchungsbesitzern |
+| lokale Demo-Daten unterschieden sich im Team | Seed- und Demo-Reset-Logik |
+| Zeiträume und Kalenderdarstellung waren fehleranfällig | gemeinsame Zeit- und Kalenderhilfsfunktionen |
+
+### 5.7 Gesamtfazit
+
+RePlan entwickelte sich von einer geplanten Raum- und Ressourcenbuchung zu einer integrierten Fullstack-Demo. Besonders wichtig waren die klare Trennung von Frontend und Backend, die zentrale Buchungslogik, die Einführung von SQLite und die schrittweise Verbesserung der Präsentationsqualität.
+
+Für eine nächste Projektphase wären vor allem produktive Datenbanknormalisierung, Deployment, E-Mail-Integration und E2E-Tests sinnvoll. Für die Fallstudie zeigt das Projekt aber bereits die wesentlichen Aspekte eines Software-Engineering-Prozesses: Anforderungen, Architektur, Implementierung, Qualitätssicherung, Projektmanagement und Reflexion.
